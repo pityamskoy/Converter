@@ -1,0 +1,12 @@
+name: Converter
+
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    ports:
+      - "1234:5432"
+    environment:
+        POSTGRES_USERNAME: postgres
+        POSTGRES_PASSWORD: root
+        POSTGRES_DB: postgres
