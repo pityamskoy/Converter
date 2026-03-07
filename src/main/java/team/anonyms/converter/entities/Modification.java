@@ -14,12 +14,21 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "Simple")
-public final class SimpleEntity {
+@Table(name = "Modifications")
+public final class Modification {
     @Id
     @Column(name = "id", nullable = false, unique = true)
     private UUID id;
 
-    @Column(name = "name", nullable = false)
-    private String name;
+    @Column(name = "old_name")
+    private String oldName;
+
+    @Column(name = "new_name")
+    private String newName;
+
+    @Column(name = "new_type")
+    private String newType;
+
+    @Column(name = "new_value")
+    private String newValue;
 }
