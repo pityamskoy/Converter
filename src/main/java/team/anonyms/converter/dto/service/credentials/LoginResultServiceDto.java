@@ -1,4 +1,4 @@
-package team.anonyms.converter.dto.service.user;
+package team.anonyms.converter.dto.service.credentials;
 
 import java.util.UUID;
 

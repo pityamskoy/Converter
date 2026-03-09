@@ -1,19 +1,21 @@
 package team.anonyms.converter.controllers;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import team.anonyms.converter.dto.controller.user.UserCreatedControllerDto;
-import team.anonyms.converter.dto.controller.user.UserToCreateControllerDto;
-import team.anonyms.converter.entities.User;
-import team.anonyms.converter.mappers.controller.UserControllerMapper;
+import team.anonyms.converter.dto.controller.user.UserControllerDto;
+import team.anonyms.converter.dto.controller.user.UserToUpdateControllerDto;
+import team.anonyms.converter.dto.service.user.UserServiceDto;
+import team.anonyms.converter.mappers.UserMapper;
 import team.anonyms.converter.services.UserService;
 
-@SuppressWarnings(value = {"unused"})
+import java.util.UUID;
+
 @RestController
-@CrossOrigin(allowCredentials = "true")
+@CrossOrigin
 @RequestMapping("/users")
 public final class UserController {
     private final static Logger log = LoggerFactory.getLogger(UserController.class);
@@ -21,18 +23,33 @@ public final class UserController {
     @Autowired
     private UserService userService;
     @Autowired
-    private UserControllerMapper userControllerMapper;
+    private UserMapper userMapper;
 
-    @GetMapping
-    public ResponseEntity<User> a() {
-        log.info("Called getUsers");
-        return ResponseEntity.ok(userService.getUsers());
+    @PutMapping("/update")
+    public ResponseEntity<UserControllerDto> updateUser(@RequestBody UserToUpdateControllerDto userToUpdate) {
+        try {
+            log.info("Called updateUser; userToUpdate={}", userToUpdate);
+
+            UserServiceDto userUpdated = userService.updateUser(
+                    userMapper.userToUpdateControllerDtoToService(userToUpdate));
+
+            return ResponseEntity.ok(userMapper.userServiceDtoToControllerDto(userUpdated));
+        } catch (EntityNotFoundException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
     }
 
-    @PostMapping("/create")
-    public ResponseEntity<UserCreatedControllerDto> register(@RequestBody UserToCreateControllerDto userToCreateControllerDto) {
-        log.info("Called register; userToCreateControllerDto={}", userToCreateControllerDto);
+    @DeleteMapping("/delete")
+    public ResponseEntity<Void> deleteUser(@RequestBody UUID userId) {
+        log.info("Called deleteUser; id={}", userId.toString());
 
-        return userContollerMapper.
+        try {
+            userService.deleteUser(userId);
+            return ResponseEntity.noContent().build();
+        } catch (EntityNotFoundException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.notFound().build();
+        }
     }
 }
