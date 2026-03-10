@@ -25,6 +25,7 @@ public final class PatternMapper {
 
         return new PatternServiceDto(
                 patternControllerDto.id(),
+                patternControllerDto.name(),
                 patternControllerDto.conversionType(),
                 patternControllerDto.instruction(),
                 modifications
@@ -39,6 +40,7 @@ public final class PatternMapper {
 
         return new PatternToCreateServiceDto(
                 patternToCreateControllerDto.userId(),
+                patternToCreateControllerDto.name(),
                 patternToCreateControllerDto.conversionType(),
                 patternToCreateControllerDto.instruction(),
                 modifications
@@ -51,6 +53,7 @@ public final class PatternMapper {
 
         return new PatternControllerDto(
                 patternServiceDto.id(),
+                patternServiceDto.name(),
                 patternServiceDto.conversionType(),
                 patternServiceDto.instruction(),
                 modifications
@@ -63,6 +66,7 @@ public final class PatternMapper {
 
         return new Pattern(
                 patternServiceDto.id(),
+                patternServiceDto.name(),
                 patternServiceDto.conversionType(),
                 patternServiceDto.instruction(),
                 modifications
@@ -75,6 +79,7 @@ public final class PatternMapper {
 
         return new Pattern(
                 UUID.randomUUID(),
+                patternToCreateServiceDto.name(),
                 patternToCreateServiceDto.conversionType(),
                 patternToCreateServiceDto.instruction(),
                 modifications
@@ -87,6 +92,7 @@ public final class PatternMapper {
 
         return new PatternServiceDto(
                 pattern.getId(),
+                pattern.getName(),
                 pattern.getConversionType(),
                 pattern.getInstruction(),
                 modifications

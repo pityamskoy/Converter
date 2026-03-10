@@ -69,6 +69,7 @@ public final class PatternService {
                 map(modificationMapper::modificationServiceDtoToEntity).toList();
 
         Pattern patternUpdated = pattern.get();
+        patternUpdated.setName(patternToUpdate.name());
         patternUpdated.setConversionType(patternToUpdate.conversionType());
         patternUpdated.setInstruction(patternToUpdate.instruction());
         patternUpdated.setModifications(modifications);
