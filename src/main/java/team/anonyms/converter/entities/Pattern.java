@@ -18,6 +18,9 @@ public final class Pattern {
     @Column(name = "id", nullable = false, unique = true)
     private UUID id;
 
+    @Column(name = "name", nullable = false)
+    private String name;
+
     @Column(name = "conversion_type", nullable = false)
     private String conversionType;
 
