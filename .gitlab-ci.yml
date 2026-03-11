@@ -64,9 +64,8 @@ deploy-job:
       export POSTGRES_PASSWORD=$POSTGRES_PASSWORD &&
       export POSTGRES_DB=$POSTGRES_DB &&
       export DATABASE_URL=$DATABASE_URL &&
-      docker stop Converter || true &&
-      docker rm Converter || true &&
-      docker image rm $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:latest &&
+      docker stop converter-backend-1 || true &&
+      docker rm converter-backend-1 || true &&
       docker pull $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:latest &&
       docker compose up -d
       "
