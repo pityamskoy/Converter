@@ -57,7 +57,7 @@ deploy-job:
   stage: deploy
   extends: .deploy_template
   script:
-    - scp -i ~/.ssh/id_ed25519 docker-compose.yaml root@$SSH_REMOTE_HOST:/root/projects/converter/docker-compose.yml
+    - scp -i ~/.ssh/id_ed25519 docker-compose.yaml root@$SSH_REMOTE_HOST:/root/projects/converter/docker-compose.yaml
     - ssh -i ~/.ssh/id_ed25519 root@$SSH_REMOTE_HOST "
       cd /root/projects/converter &&
       docker stop Converter || true &&
