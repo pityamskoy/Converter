@@ -51,7 +51,6 @@ build-job:
       /dev/null" > ~/.ssh/config
     - chmod 600 ~/.ssh/id_ed25519
 
-
 deploy-job:
   image: docker:27
   stage: deploy
@@ -70,8 +69,6 @@ deploy-job:
       docker pull $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:latest &&
       docker compose up -d
       "
-  needs:
-    - build-job
   only:
     - main
   when: manual
