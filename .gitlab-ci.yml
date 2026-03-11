@@ -60,6 +60,10 @@ deploy-job:
     - scp -i ~/.ssh/id_ed25519 docker-compose.yaml root@$SSH_REMOTE_HOST:/root/projects/converter/docker-compose.yaml
     - ssh -i ~/.ssh/id_ed25519 root@$SSH_REMOTE_HOST "
       cd /root/projects/converter &&
+      export POSTGRES_USERNAME=$POSTGRES_USERNAME \
+      POSTGRES_PASSWORD=$POSTGRES_PASSWORD \
+      POSTGRES_DB=$POSTGRES_DB \
+      DATABASE_URL=$DATABASE_URL &&
       docker stop Converter || true &&
       docker rm Converter || true &&
       docker pull $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:latest &&
