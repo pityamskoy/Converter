@@ -1,0 +1,59 @@
+stages:
+  - test
+  - build
+  - deploy
+
+variables:
+  DOCKERHUB_USER: kekishev
+  DOCKERHUB_REPOSITORY_NAME: converter
+  DOCKERHUB_REPOSITORY_TAG: 0.0.$CI_PIPELINE_IID
+
+test-job:
+  stage: test
+  image: maven:4.0.0-rc-5-amazoncorretto-25
+  script:
+    - mvn test
+  only:
+    - main
+    - develop
+    - merge_requests
+
+.docker_template:
+  services:
+    - docker:dind
+  before_script:
+    - docker -v
+    - docker info
+    - docker login docker.io -u "$DOCKERHUB_LOGIN" -p "$DOCKERHUB_PASSWORD"
+
+build-job:
+  image: docker:27
+  stage: build
+  extends: .docker_template
+  script:
+    - docker build -t $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:latest .
+    - docker tag $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:latest $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:$DOCKERHUB_REPOSITORY_TAG
+    - docker push $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:$DOCKERHUB_REPOSITORY_TAG
+    - docker push $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:latest
+  only:
+    - main
+
+deploy-job:
+  stage: deploy
+  image: docker:27
+  before_script:
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+    - chmod 600 ~/.ssh/id_ed25519
+  script:
+    - scp -i ~/.ssh/id_ed25519 docker-compose.yml root@$SSH_REMOTE_HOST:/root/projects/converter/docker-compose.yml
+    - ssh -i ~/.ssh/id_ed25519 root@$SSH_REMOTE_HOST "
+      cd /root/projects/converter &&
+      docker stop Converter || true &&
+      docker rm Converter || true &&
+      docker pull $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:latest &&
+      docker-compose up -d
+      "
+  only:
+    - main
+  when: manual
