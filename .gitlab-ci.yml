@@ -53,11 +53,11 @@ build-job:
 
 
 deploy-job:
+  image: docker:27
   stage: deploy
   extends: .deploy_template
   script:
-    - ls -la
-    - scp -i ~/.ssh/id_ed25519 docker-compose.yml root@$SSH_REMOTE_HOST:/root/projects/converter/docker-compose.yml
+    - scp -i ~/.ssh/id_ed25519 docker-compose.yaml root@$SSH_REMOTE_HOST:/root/projects/converter/docker-compose.yml
     - ssh -i ~/.ssh/id_ed25519 root@$SSH_REMOTE_HOST "
       cd /root/projects/converter &&
       docker stop Converter || true &&
@@ -65,6 +65,8 @@ deploy-job:
       docker pull $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:latest &&
       docker-compose up -d
       "
+  needs:
+    - build-job
   only:
     - main
   when: manual
