@@ -53,10 +53,10 @@ build-job:
 
 
 deploy-job:
-  image: docker:27
   stage: deploy
   extends: .deploy_template
   script:
+    - ls -la
     - scp -i ~/.ssh/id_ed25519 docker-compose.yml root@$SSH_REMOTE_HOST:/root/projects/converter/docker-compose.yml
     - ssh -i ~/.ssh/id_ed25519 root@$SSH_REMOTE_HOST "
       cd /root/projects/converter &&
