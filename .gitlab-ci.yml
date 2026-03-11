@@ -38,13 +38,21 @@ build-job:
   only:
     - main
 
-deploy-job:
-  stage: deploy
-  image: docker:27
+.deploy_template:
+  image: kroniak/ssh-client:latest
   before_script:
     - mkdir -p ~/.ssh
-    - echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
+    - >-
+      echo -e "Host *\n  StrictHostKeyChecking no\n  UserKnownHostsFile
+      /dev/null" > ~/.ssh/config
     - chmod 600 ~/.ssh/id_ed25519
+
+
+deploy-job:
+  image: docker:27
+  stage: deploy
+  extends: .deploy_template
   script:
     - scp -i ~/.ssh/id_ed25519 docker-compose.yml root@$SSH_REMOTE_HOST:/root/projects/converter/docker-compose.yml
     - ssh -i ~/.ssh/id_ed25519 root@$SSH_REMOTE_HOST "
