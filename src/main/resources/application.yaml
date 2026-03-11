@@ -15,6 +15,6 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
   datasource:
-    username: postgres
-    password: root
-    url: jdbc:postgresql://localhost:1234/postgres
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    url: ${DB_URL}
