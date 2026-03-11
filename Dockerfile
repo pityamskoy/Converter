@@ -1,11 +1,11 @@
-FROM maven:3.9.12-amazoncorretto-25 AS build
+FROM maven:3.9.9-amazoncorretto-24 AS build
 LABEL authors="ASKekishev"
 WORKDIR /app
 COPY . .
 
 RUN mvn clean package
 
-FROM eclipse-temurin:25-jre
+FROM eclipse-temurin:24-jre
 WORKDIR /app
 
 COPY --from=build /app/target/Converter-0.0.1-SNAPSHOT.jar /app.jar
