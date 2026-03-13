@@ -18,3 +18,11 @@ spring:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     url: ${DB_URL}
+  logging:
+    level:
+      root: INFO
+      team.anonyms.converter: DEBUG
+    file:
+      name: logs/application.log
+    pattern:
+      file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
