@@ -24,6 +24,7 @@ import javax.security.auth.login.CredentialException;
 
 @RestController
 @CrossOrigin(origins = {"http://localhost:3000"}, allowCredentials = "true")
+@RequestMapping("/auth")
 public final class AuthenticationController {
     private final static Logger log = LoggerFactory.getLogger(AuthenticationController.class);
 
