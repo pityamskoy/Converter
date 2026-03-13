@@ -27,8 +27,8 @@ public final class AuthenticationService {
     private UserMapper userMapper;
 
     /**
-     * @param userId is a value of cookie, which {@link AuthenticationController} accepts as an argument.
-     * @param credentials are login credentials.
+     * @param userId a value of cookie, which {@link AuthenticationController} accepts as an argument.
+     * @param credentials login credentials.
      * @return {@link Pair}<{@link Cookie}, {@link LoginResultServiceDto}>, where {@link Cookie} is null if {@code User}
      * has been found by {@code userId}.
      * @throws CredentialException if cookie is null, and credentials are null.
