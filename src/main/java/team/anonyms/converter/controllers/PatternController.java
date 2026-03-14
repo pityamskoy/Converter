@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@CrossOrigin
+@CrossOrigin(origins = {"http://localhost:4200"})
 @RequestMapping("/patterns")
 public final class PatternController {
     private final static Logger log = LoggerFactory.getLogger(PatternController.class);

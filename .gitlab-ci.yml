@@ -6,7 +6,6 @@ stages:
 variables:
   DOCKERHUB_USER: kekishev
   DOCKERHUB_REPOSITORY_NAME: converter
-  DOCKERHUB_REPOSITORY_TAG: 0.0.$CI_PIPELINE_IID
 
 test-job:
   stage: test
@@ -35,8 +34,6 @@ build-job:
   extends: .docker_template
   script:
     - docker build -t $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:latest .
-    - docker tag $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:latest $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:$DOCKERHUB_REPOSITORY_TAG
-    - docker push $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:$DOCKERHUB_REPOSITORY_TAG
     - docker push $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:latest
   only:
     - main

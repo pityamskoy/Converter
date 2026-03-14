@@ -16,12 +16,14 @@ services:
   backend:
     image: kekishev/converter:latest
     restart: unless-stopped
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
     environment:
       DB_USERNAME: ${POSTGRES_USERNAME}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_URL: ${DATABASE_URL}
-    ports:
-      - "8080:8080"
 
 volumes:
   db_data:

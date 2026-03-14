@@ -15,7 +15,7 @@ import team.anonyms.converter.services.UserService;
 import java.util.UUID;
 
 @RestController
-@CrossOrigin
+@CrossOrigin(origins = {"http://localhost:4200"})
 @RequestMapping("/users")
 public final class UserController {
     private final static Logger log = LoggerFactory.getLogger(UserController.class);
