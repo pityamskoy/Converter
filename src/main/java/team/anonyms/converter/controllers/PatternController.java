@@ -20,7 +20,7 @@ import java.util.UUID;
 @CrossOrigin(origins = {"http://localhost:4200"})
 @RequestMapping("/patterns")
 public final class PatternController {
-    private final static Logger log = LoggerFactory.getLogger(PatternController.class);
+    private static final Logger log = LoggerFactory.getLogger(PatternController.class);
 
     @Autowired
     private PatternService patternService;

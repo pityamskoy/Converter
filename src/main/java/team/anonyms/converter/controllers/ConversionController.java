@@ -18,40 +18,19 @@ import java.nio.file.Path;
 @CrossOrigin(origins = {"http://localhost:4200"})
 @RequestMapping("/conversion")
 public final class ConversionController {
-    private final static Logger log = LoggerFactory.getLogger(ConversionController.class);
+    private static final Logger log = LoggerFactory.getLogger(ConversionController.class);
 
     @Autowired
     private ConversionService conversionService;
 
     @PostMapping(value = "/json_csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<StreamingResponseBody> convertJsonFileToCsv(@RequestPart MultipartFile file) {
+    public ResponseEntity<StreamingResponseBody> convertJsonFileToCsv(@RequestPart(name = "file") MultipartFile file) {
         String fileName = file.getOriginalFilename();
-        String fileExtension = file.getContentType();
-
         log.info("Called convertJsonFileToCsv; filename={}", fileName);
-
-        if (fileName == null) {
-            log.error("fileName is null");
-            return ResponseEntity.status(HttpStatus.valueOf(500)).build();
-        }
-
-        if (fileExtension == null) {
-            log.error("fileExtension is null");
-            return ResponseEntity.status(HttpStatus.valueOf(500)).build();
-        }
-
-        if (!fileExtension.equals(".json")) {
-            log.error("File doesn't have '.json' extension");
-            return ResponseEntity.badRequest().build();
-        }
-
-        if (file.isEmpty()) {
-            log.error("File is empty");
-            return ResponseEntity.badRequest().build();
-        }
 
         try {
             Path csvPath = conversionService.convertJsonFileToCsv(file);
+            log.debug("CSV file created at {}", csvPath);
 
             StreamingResponseBody stream = outputStream -> {
                 try (InputStream in = Files.newInputStream(csvPath)) {
@@ -70,6 +49,7 @@ public final class ConversionController {
 
             return new ResponseEntity<>(stream, headers, HttpStatus.OK);
         } catch (IOException e) {
+            log.error(e.getMessage());
             return ResponseEntity.status(500).build();
         }
     }

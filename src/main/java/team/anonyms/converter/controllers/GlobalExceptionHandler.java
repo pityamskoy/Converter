@@ -16,7 +16,7 @@ import team.anonyms.converter.errors.UnsupportedExtensionException;
 @RestControllerAdvice
 @SuppressWarnings(value = "unused")
 public final class GlobalExceptionHandler {
-    private final static Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(exception = EntityNotFoundException.class)
     public ResponseEntity<Void> handleEntityNotFoundException(EntityNotFoundException e) {
@@ -34,5 +34,11 @@ public final class GlobalExceptionHandler {
     public ResponseEntity<Void> handleNullPointerException(NullPointerException e) {
         log.error(e.getMessage());
         return ResponseEntity.status(500).build();
+    }
+
+    @ExceptionHandler(exception = IllegalArgumentException.class)
+    public ResponseEntity<Void> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.error(e.getMessage());
+        return ResponseEntity.badRequest().build();
     }
 }
