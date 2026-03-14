@@ -14,10 +14,13 @@ spring:
     properties:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
   datasource:
     username: ${DB_USERNAME}
     password: ${DB_PASSWORD}
     url: ${DB_URL}
+    driver-class-name: org.postgresql.Driver
   logging:
     level:
       root: INFO
