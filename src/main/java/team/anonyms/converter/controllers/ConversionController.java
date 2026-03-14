@@ -16,7 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 @RestController
-@CrossOrigin
+@CrossOrigin(origins = {"http://localhost:4200"})
 @RequestMapping("/conversion")
 public final class ConversionController {
     private final static Logger log = LoggerFactory.getLogger(ConversionController.class);
