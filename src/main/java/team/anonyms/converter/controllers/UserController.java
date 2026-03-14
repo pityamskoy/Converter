@@ -17,7 +17,7 @@ import java.util.UUID;
 @CrossOrigin(origins = {"http://localhost:4200"})
 @RequestMapping("/users")
 public final class UserController {
-    private final static Logger log = LoggerFactory.getLogger(UserController.class);
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     @Autowired
     private UserService userService;

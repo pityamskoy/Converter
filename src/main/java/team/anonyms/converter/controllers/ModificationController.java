@@ -20,7 +20,7 @@ import java.util.UUID;
 @CrossOrigin(origins = {"http://localhost:4200"})
 @RequestMapping("/modifications")
 public final class ModificationController {
-    private final static Logger log = LoggerFactory.getLogger(ModificationController.class);
+    private static final Logger log = LoggerFactory.getLogger(ModificationController.class);
 
     @Autowired
     private ModificationService modificationService;
