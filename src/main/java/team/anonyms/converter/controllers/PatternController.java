@@ -1,6 +1,5 @@
 package team.anonyms.converter.controllers;
 
-import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,13 +31,8 @@ public final class PatternController {
     public ResponseEntity<List<PatternControllerDto>> getAllPatternsByUserId(@RequestBody UUID userId) {
         log.info("Called getAllPatternsByUserId; id={}", userId);
 
-        try {
-            return ResponseEntity.ok(patternService.getAllPatternsByUserId(userId).stream().
-                    map(patternMapper::patternServiceDtoToControllerDto).toList());
-        } catch (EntityNotFoundException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(patternService.getAllPatternsByUserId(userId).stream().
+                map(patternMapper::patternServiceDtoToControllerDto).toList());
     }
 
     @PostMapping("/create")
@@ -47,45 +41,31 @@ public final class PatternController {
     ) {
         log.info("Called createPattern; patternToCreate={}", patternToCreate);
 
-        try {
-            PatternToCreateServiceDto patternToCreateServiceDto = patternMapper.
-                    patternToCreateControllerDtoToService(patternToCreate);
+        PatternToCreateServiceDto patternToCreateServiceDto = patternMapper.
+                patternToCreateControllerDtoToService(patternToCreate);
 
-            PatternServiceDto patternCreated = patternService.createPattern(patternToCreateServiceDto);
+        PatternServiceDto patternCreated = patternService.createPattern(patternToCreateServiceDto);
 
-            return ResponseEntity.status(HttpStatus.CREATED).
-                    body(patternMapper.patternServiceDtoToControllerDto(patternCreated));
-        } catch (EntityNotFoundException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.status(HttpStatus.CREATED).
+                body(patternMapper.patternServiceDtoToControllerDto(patternCreated));
     }
 
     @PutMapping("/update")
     public ResponseEntity<PatternControllerDto> updatePattern(@RequestBody PatternControllerDto patternToUpdate) {
         log.info("Called updatePattern; patternToUpdate={}", patternToUpdate);
 
-        try {
-            PatternServiceDto patternUpdated = patternService.updatePattern(
-                    patternMapper.patternControllerDtoToServiceDto(patternToUpdate));
+        PatternServiceDto patternUpdated = patternService.updatePattern(
+                patternMapper.patternControllerDtoToServiceDto(patternToUpdate));
 
-            return ResponseEntity.ok(patternMapper.patternServiceDtoToControllerDto(patternUpdated));
-        } catch (EntityNotFoundException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(patternMapper.patternServiceDtoToControllerDto(patternUpdated));
     }
 
     @DeleteMapping("/delete")
     public ResponseEntity<Void> deletePattern(@RequestBody UUID patternId) {
         log.info("Called deletePattern; id={}", patternId);
 
-        try {
-            patternService.deletePattern(patternId);
-            return ResponseEntity.noContent().build();
-        } catch (EntityNotFoundException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+        patternService.deletePattern(patternId);
+
+        return ResponseEntity.noContent().build();
     }
 }

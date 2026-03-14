@@ -1,6 +1,5 @@
 package team.anonyms.converter.controllers;
 
-import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,13 +31,8 @@ public final class ModificationController {
     public ResponseEntity<List<ModificationControllerDto>> getAllModificationsByPatternId(@RequestBody UUID patternId) {
         log.info("Called getAllModificationsByPatternId; id={}", patternId);
 
-        try {
-            return ResponseEntity.ok(modificationService.getAllModificationsByPatternId(patternId).stream().
-                    map(modificationMapper::modificationServiceDtoToControllerDto).toList());
-        } catch (EntityNotFoundException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(modificationService.getAllModificationsByPatternId(patternId).stream().
+                map(modificationMapper::modificationServiceDtoToControllerDto).toList());
     }
 
     @PostMapping("/create")
@@ -47,19 +41,14 @@ public final class ModificationController {
     ) {
         log.info("Called createModification; modificationToCreate={}", modificationToCreate);
 
-        try {
-            ModificationToCreateServiceDto modificationToCreateServiceDto = modificationMapper.
-                    modificationToCreateControllerDtoToService(modificationToCreate);
+        ModificationToCreateServiceDto modificationToCreateServiceDto = modificationMapper.
+                modificationToCreateControllerDtoToService(modificationToCreate);
 
-            ModificationServiceDto modificationCreated = modificationService.
-                    createModification(modificationToCreateServiceDto);
+        ModificationServiceDto modificationCreated = modificationService.
+                createModification(modificationToCreateServiceDto);
 
-            return ResponseEntity.status(HttpStatus.CREATED).
-                    body(modificationMapper.modificationServiceDtoToControllerDto(modificationCreated));
-        } catch (EntityNotFoundException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.status(HttpStatus.CREATED).
+                body(modificationMapper.modificationServiceDtoToControllerDto(modificationCreated));
     }
 
     @PutMapping("/update")
@@ -68,27 +57,18 @@ public final class ModificationController {
     ) {
         log.info("Called updateModification; modificationToUpdate={}", modificationToUpdate);
 
-        try {
-            ModificationServiceDto modificationUpdated = modificationService.updateModification(
-                    modificationMapper.modificationControllerDtoToServiceDto(modificationToUpdate));
+        ModificationServiceDto modificationUpdated = modificationService.updateModification(
+                modificationMapper.modificationControllerDtoToServiceDto(modificationToUpdate));
 
-            return ResponseEntity.ok(modificationMapper.modificationServiceDtoToControllerDto(modificationUpdated));
-        } catch (EntityNotFoundException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(modificationMapper.modificationServiceDtoToControllerDto(modificationUpdated));
     }
 
     @DeleteMapping("/delete")
     public ResponseEntity<Void> deleteModification(@RequestBody UUID modificationId) {
         log.info("Called deleteModification; id={}", modificationId);
 
-        try {
-            modificationService.deleteModification(modificationId);
-            return ResponseEntity.noContent().build();
-        } catch (EntityNotFoundException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+        modificationService.deleteModification(modificationId);
+
+        return ResponseEntity.noContent().build();
     }
 }
