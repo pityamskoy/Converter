@@ -1,6 +1,5 @@
 package team.anonyms.converter.controllers;
 
-import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,29 +26,20 @@ public final class UserController {
 
     @PutMapping("/update")
     public ResponseEntity<UserControllerDto> updateUser(@RequestBody UserToUpdateControllerDto userToUpdate) {
-        try {
-            log.info("Called updateUser; userToUpdate={}", userToUpdate);
+        log.info("Called updateUser; userToUpdate={}", userToUpdate);
 
-            UserServiceDto userUpdated = userService.updateUser(
-                    userMapper.userToUpdateControllerDtoToService(userToUpdate));
+        UserServiceDto userUpdated = userService.updateUser(
+                userMapper.userToUpdateControllerDtoToService(userToUpdate));
 
-            return ResponseEntity.ok(userMapper.userServiceDtoToControllerDto(userUpdated));
-        } catch (EntityNotFoundException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+        return ResponseEntity.ok(userMapper.userServiceDtoToControllerDto(userUpdated));
     }
 
     @DeleteMapping("/delete")
     public ResponseEntity<Void> deleteUser(@RequestBody UUID userId) {
         log.info("Called deleteUser; id={}", userId.toString());
 
-        try {
-            userService.deleteUser(userId);
-            return ResponseEntity.noContent().build();
-        } catch (EntityNotFoundException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.notFound().build();
-        }
+        userService.deleteUser(userId);
+
+        return ResponseEntity.noContent().build();
     }
 }

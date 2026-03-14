@@ -7,7 +7,6 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-import team.anonyms.converter.errors.UnsupportedExtensionException;
 import team.anonyms.converter.services.ConversionService;
 
 import java.io.IOException;
@@ -58,9 +57,6 @@ public final class ConversionController {
             headers.setContentLength(Files.size(csvPath));
 
             return new ResponseEntity<>(stream, headers, HttpStatus.OK);
-        } catch (UnsupportedExtensionException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.badRequest().build();
         } catch (IOException e) {
             return ResponseEntity.status(500).build();
         }
