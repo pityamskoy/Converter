@@ -25,10 +25,22 @@ public final class ConversionController {
 
     @PostMapping(value = "/json_csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertJsonFileToCsv(@RequestPart MultipartFile file) {
-        String fileName = file.getName();
+        String fileName = file.getOriginalFilename();
+        String fileExtension = file.getContentType();
+
         log.info("Called convertJsonFileToCsv; filename={}", fileName);
 
-        if (!fileName.endsWith(".json")) {
+        if (fileName == null) {
+            log.error("fileName is null");
+            return ResponseEntity.status(HttpStatus.valueOf(500)).build();
+        }
+
+        if (fileExtension == null) {
+            log.error("fileExtension is null");
+            return ResponseEntity.status(HttpStatus.valueOf(500)).build();
+        }
+
+        if (!fileExtension.equals(".json")) {
             log.error("File doesn't have '.json' extension");
             return ResponseEntity.badRequest().build();
         }
