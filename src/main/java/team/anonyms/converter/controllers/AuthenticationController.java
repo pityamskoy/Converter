@@ -1,6 +1,5 @@
 package team.anonyms.converter.controllers;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.antlr.v4.runtime.misc.Pair;
@@ -56,9 +55,6 @@ public final class AuthenticationController {
         } catch (CredentialException e) {
             log.error(e.getMessage());
             return ResponseEntity.badRequest().build();
-        } catch (EntityNotFoundException e) {
-            log.error(e.getMessage());
-            return ResponseEntity.notFound().build();
         }
     }
 
