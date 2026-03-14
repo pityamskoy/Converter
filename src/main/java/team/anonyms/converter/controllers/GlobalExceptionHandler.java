@@ -29,4 +29,10 @@ public final class GlobalExceptionHandler {
         log.error(e.getMessage());
         return ResponseEntity.badRequest().build();
     }
+
+    @ExceptionHandler(exception = NullPointerException.class)
+    public ResponseEntity<Void> handleNullPointerException(NullPointerException e) {
+        log.error(e.getMessage());
+        return ResponseEntity.status(500).build();
+    }
 }

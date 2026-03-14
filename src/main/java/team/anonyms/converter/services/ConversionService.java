@@ -2,6 +2,7 @@ package team.anonyms.converter.services;
 
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,26 @@ public final class ConversionService {
 
     // The project directory path on the server, where the project has been deployed.
     private static final Path PROJECT_DIRECTORY_PATH = Path.of("/root/projects/converter");
+    
+    private static @NonNull String changeFilenameExtension(MultipartFile jsonFile, String newExtension) {
+        String jsonFilename = jsonFile.getOriginalFilename();
+        String jsonExtension = jsonFile.getContentType();
 
+        if (jsonFilename == null) {
+            throw new NullPointerException("jsonFilename is null");
+        }
+
+        if (jsonExtension == null) {
+            throw new NullPointerException("jsonExtension is null");
+        }
+
+        if (!jsonExtension.equals(".json")) {
+            throw new UnsupportedExtensionException("Unsupported extension was provided");
+        }
+
+        return jsonFilename.substring(0, jsonFilename.length() - 5) + newExtension;
+    }
+    
     /**
      * <p>Using {@code createFileWithUniqueName} is necessary to create a path to a new file with unique name in multithreading environment.</p>
      *
@@ -47,14 +67,8 @@ public final class ConversionService {
     }
 
     public Path convertJsonFileToCsv(MultipartFile jsonFile) throws IOException {
-        String jsonFileName = jsonFile.getName();
-
-        if (!jsonFileName.endsWith(".json")) {
-            throw new UnsupportedExtensionException("Unsupported extension was provided");
-        }
-
-        String csvFileName = jsonFileName.substring(0, jsonFileName.length() - 5) + ".csv";
-        Path uniquePath = createFileWithUniqueName(csvFileName);
+        String csvFilename = changeFilenameExtension(jsonFile, ".csv");
+        Path uniquePath = createFileWithUniqueName(csvFilename);
         Path csvPath = Files.createTempFile(uniquePath.toString().
                 substring(0, uniquePath.toString().length() - 4), ".csv");
 
