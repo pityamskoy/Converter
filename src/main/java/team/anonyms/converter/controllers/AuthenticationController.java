@@ -34,7 +34,7 @@ public final class AuthenticationController {
     @Autowired
     private UserMapper userMapper;
 
-    @GetMapping("/login")
+    @PostMapping("/login")
     public ResponseEntity<LoginResultControllerDto> login(
             @CookieValue(required = false, value = "user_id") String userId,
             @RequestBody CredentialsControllerDto credentials,
