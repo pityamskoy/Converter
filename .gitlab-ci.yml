@@ -13,9 +13,8 @@ test-job:
   script:
     - mvn test
   only:
-    - main
-    - develop
     - merge_requests
+    - main
 
 .docker_template:
   services:
