@@ -2,11 +2,12 @@ package team.anonyms.converter.annotations;
 
 import team.anonyms.converter.enums.ProjectVersion;
 
+import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
 import static java.lang.annotation.ElementType.*;
-import static java.lang.annotation.RetentionPolicy.RUNTIME;
+import static java.lang.annotation.RetentionPolicy.SOURCE;
 
 /**
  * <p>
@@ -22,8 +23,9 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  *     all targets annotated with this annotation should have new values after they are updated.
  * </p>
  */
-@Target(value = {TYPE, ANNOTATION_TYPE, METHOD, CONSTRUCTOR})
-@Retention(RUNTIME)
+@Documented
+@Target(value = {TYPE, METHOD, CONSTRUCTOR, ANNOTATION_TYPE})
+@Retention(SOURCE)
 public @interface LastSupportedProjectVersion {
     ProjectVersion value();
 }
