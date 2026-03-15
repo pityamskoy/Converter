@@ -6,13 +6,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import team.anonyms.converter.annotations.LastSupportedProjectVersion;
 import team.anonyms.converter.errors.UnsupportedExtensionException;
 
+import static team.anonyms.converter.enums.ProjectVersion.RELEASE_1;
+
 /**
- * <p>{@code GlobalExceptionHandler} is supposed to handle all {@link RuntimeException}, which all controllers
- * may throw.
+ * <p>
+ *     {@code GlobalExceptionHandler} is supposed to handle all {@link RuntimeException}, which all controllers
+ *     may throw.
  * </p>
  */
+@LastSupportedProjectVersion(RELEASE_1)
 @RestControllerAdvice
 @SuppressWarnings(value = "unused")
 public final class GlobalExceptionHandler {
@@ -33,7 +38,7 @@ public final class GlobalExceptionHandler {
     @ExceptionHandler(exception = NullPointerException.class)
     public ResponseEntity<Void> handleNullPointerException(NullPointerException e) {
         log.error(e.getMessage());
-        return ResponseEntity.status(500).build();
+        return ResponseEntity.internalServerError().build();
     }
 
     @ExceptionHandler(exception = IllegalArgumentException.class)

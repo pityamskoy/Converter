@@ -50,7 +50,7 @@ public final class ConversionController {
             return new ResponseEntity<>(stream, headers, HttpStatus.OK);
         } catch (IOException e) {
             log.error(e.getMessage());
-            return ResponseEntity.status(500).build();
+            return ResponseEntity.internalServerError().build();
         }
     }
 }
