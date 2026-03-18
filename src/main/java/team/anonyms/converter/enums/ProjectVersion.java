@@ -2,12 +2,12 @@ package team.anonyms.converter.enums;
 
 /**
  * <p>
- *     Project versions consist of the most significant project releases.
+ *     Project versions consist of the most significant converter backend project releases.
  * </p>
  */
 public enum ProjectVersion {
     /**
-     * The first version of the converter backend project.
+     * The initial release of the project.
      */
     RELEASE_1
 }
