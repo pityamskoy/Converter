@@ -9,5 +9,5 @@ public enum ProjectVersion {
     /**
      * The initial release of the project.
      */
-    RELEASE_1
+    RELEASE_0
 }
