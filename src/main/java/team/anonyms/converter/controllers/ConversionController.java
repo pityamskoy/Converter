@@ -18,7 +18,7 @@ import java.util.Objects;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 @RestController
-@CrossOrigin(origins = {"http://localhost:4200"})
+@CrossOrigin(origins = {"http://localhost:4200"}, exposedHeaders = "*")
 @RequestMapping("/conversion")
 public final class ConversionController {
     private static final Logger log = LoggerFactory.getLogger(ConversionController.class);
@@ -26,6 +26,7 @@ public final class ConversionController {
     @Autowired
     private ConversionService conversionService;
 
+    //add separator to return
     @PostMapping(value = "/json_csv", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertJsonFileToCsv(
             @RequestPart(name = "file") MultipartFile file
@@ -63,6 +64,7 @@ public final class ConversionController {
         }
     }
 
+    //fix separator problem
     @PostMapping(value = "/csv_json", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertCsvFileToJson(
             @RequestPart(name = "file") MultipartFile file
