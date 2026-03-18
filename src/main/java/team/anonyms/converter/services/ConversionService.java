@@ -1,32 +1,25 @@
 package team.anonyms.converter.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.DispatcherServlet;
-import team.anonyms.converter.annotations.LastSupportedProjectVersion;
 import team.anonyms.converter.errors.UnsupportedExtensionException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-
-import static team.anonyms.converter.enums.ProjectVersion.RELEASE_1;
+import java.util.*;
 
 @Service
 public final class ConversionService {
-    //
-    private static final String DEFAULT_PROJECT_DIRECTORY = "/root/projects/converter/";
+    // Project directory on the server for deployment.
+    private static final String PROJECT_DIRECTORY = "/root/projects/converter/";
 
     /**
      * <p>
@@ -46,38 +39,6 @@ public final class ConversionService {
         }
 
         return count;
-    }
-
-    /**
-     * <p>
-     *     Creates unique path in filesystem. Usage of this method is necessary in multithreading environment.
-     * </p>
-     * <p>
-     *     For example, when several users in the short period of time send files with the same name,
-     *     {@link DispatcherServlet} for the last supported version will create multiple threads
-     *     to handle these requests, after that {@link FileAlreadyExistsException} may be thrown
-     *     in the case of creating file with user's filename without using this method.
-     * </p>
-     * @param filename filename with extension.
-     * @return unique path.
-     */
-    @LastSupportedProjectVersion(RELEASE_1)
-    private @NonNull Path createUniquePathByFilename(@NonNull String filename) {
-        String uniqueFilename = DEFAULT_PROJECT_DIRECTORY + filename;
-
-        if (Files.notExists(Path.of(uniqueFilename))) {
-            return Path.of(uniqueFilename);
-        }
-
-        int count = 1;
-        uniqueFilename = "%s%s(%s)".formatted(DEFAULT_PROJECT_DIRECTORY, filename, Integer.toString(count));
-
-        while (Files.exists(Path.of(uniqueFilename))) {
-            count++;
-            uniqueFilename = "%s%s(%s)".formatted(DEFAULT_PROJECT_DIRECTORY, filename, Integer.toString(count));
-        }
-
-        return Path.of(uniqueFilename);
     }
 
     /**
@@ -127,6 +88,8 @@ public final class ConversionService {
      * @return path to converted CSV file.
      * @throws IllegalArgumentException if either {@code jsonFile} is empty or it consists of
      * unsupported structure for conversion from JSON to CSV.
+     * @throws NullPointerException if filename is null.
+     * @throws UnsupportedExtensionException if a file without '.json' extension was provided.
      */
     @SuppressWarnings(value = {"unchecked"})
     public @NonNull Path convertJsonFileToCsv(@NonNull MultipartFile jsonFile) throws IOException {
@@ -195,13 +158,94 @@ public final class ConversionService {
         CsvMapper csvMapper = new CsvMapper();
         csvMapper.writerFor(List.class).with(csvSchema).writeValue(csvPath.toFile(), rows);
 
-        // Preparing output file by making it has the original filename
-        Path uniquePathWithOriginalFilename = createUniquePathByFilename(filename + ".csv");
-        Files.createFile(uniquePathWithOriginalFilename);
+        return csvPath;
+    }
 
-        Files.copy(csvPath, uniquePathWithOriginalFilename, StandardCopyOption.REPLACE_EXISTING);
-        Files.delete(csvPath);
+    /**
+     *<p>
+     *     Converts CSV file to JSON file. Any other extensions are not supported.
+     *</p>
+     * @param csvFile CSV file written in {@link MultipartFile} instance.
+     * @return path to converted CSV file.
+     * @throws IllegalArgumentException if either {@code csvFile} is empty or it consists of
+     * unsupported structure for conversion from CSV to JSON.
+     * @throws NullPointerException if filename is null.
+     * @throws UnsupportedExtensionException if a file without '.csv' extension was provided.
+     */
+    public @NonNull Path convertCsvFileToJson(@NonNull MultipartFile csvFile) throws IOException {
+        // Check and validate csvFile
+        if (csvFile.isEmpty()) {
+            throw new IllegalArgumentException("csvFile is empty");
+        }
 
-        return uniquePathWithOriginalFilename;
+        String filename = csvFile.getOriginalFilename();
+        if (filename == null) {
+            throw new NullPointerException("filename is null");
+        }
+
+        if (!filename.endsWith(".csv")) {
+            throw new UnsupportedExtensionException("Provided file doesn't have '.csv' extension");
+        }
+
+        // Create temporarily JSON file for writing converted data
+        String filenameWithoutExtension = getFilenameWithoutExtension(csvFile, ".csv");
+        Path jsonPath = Files.createTempFile(filenameWithoutExtension, ".json");
+
+        // Start converting
+        ObjectMapper objectMapper = new ObjectMapper();
+        CsvMapper csvMapper = new CsvMapper();
+        CsvSchema csvSchema = CsvSchema.emptySchema().withHeader();
+
+        List<Map<String, Object>> rows = new ArrayList<>();
+        MappingIterator<Map<String, String>> iterator = csvMapper.readerFor(Map.class).
+                with(csvSchema).readValues(csvFile.getInputStream());
+
+        while (iterator.hasNext()) {
+            Map<String, String> row = iterator.next();
+            Map<String, Object> convertedRow = new LinkedHashMap<>();
+
+            for (Map.Entry<String, String> entry : row.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+
+                if (value == null || value.isEmpty()) {
+                    convertedRow.put(key, null);
+                    continue;
+                }
+
+                try {
+                    if (value.startsWith("{") || value.startsWith("[")) {
+                        JsonNode node = objectMapper.readTree(value);
+                        if (node.isObject()) {
+                            convertedRow.put(key, objectMapper.convertValue(node, Map.class));
+                        } else if (node.isArray()) {
+                            convertedRow.put(key, objectMapper.convertValue(node, List.class));
+                        }
+                    } else if (value.matches("-?\\d+")) {
+                        convertedRow.put(key, Long.parseLong(value));
+                    } else if (value.matches("-?\\d*\\.\\d+")) {
+                        convertedRow.put(key, Double.parseDouble(value));
+                    } else {
+                        convertedRow.put(key, value);
+                    }
+                } catch (JsonProcessingException | NumberFormatException e) {
+                    convertedRow.put(key, value);
+                }
+            }
+
+            rows.add(convertedRow);
+        }
+
+        if (rows.isEmpty()) {
+            throw new IllegalArgumentException("CSV contains no rows to convert");
+        }
+
+        if (rows.size() == 1) {
+            objectMapper.writeValue(jsonPath.toFile(), rows.getFirst());
+        } else {
+            objectMapper.writeValue(jsonPath.toFile(), rows);
+        }
+
+        return jsonPath;
     }
 }
