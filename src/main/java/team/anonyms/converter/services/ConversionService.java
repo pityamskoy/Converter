@@ -18,7 +18,7 @@ import java.util.*;
 
 @Service
 public final class ConversionService {
-    // Project directory on the server for deployment.
+    // Project directory on the server for deployment
     private static final String PROJECT_DIRECTORY = "/root/projects/converter/";
 
     /**
@@ -172,6 +172,7 @@ public final class ConversionService {
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if a file without '.csv' extension was provided.
      */
+    //fix separator problem
     public @NonNull Path convertCsvFileToJson(@NonNull MultipartFile csvFile) throws IOException {
         // Check and validate csvFile
         if (csvFile.isEmpty()) {

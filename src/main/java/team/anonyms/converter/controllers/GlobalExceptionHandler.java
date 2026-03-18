@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import team.anonyms.converter.annotations.LastSupportedProjectVersion;
 import team.anonyms.converter.errors.UnsupportedExtensionException;
 
-import static team.anonyms.converter.enums.ProjectVersion.RELEASE_1;
+import static team.anonyms.converter.enums.ProjectVersion.RELEASE_0;
 
 /**
  * <p>
@@ -17,7 +17,7 @@ import static team.anonyms.converter.enums.ProjectVersion.RELEASE_1;
  *     may throw.
  * </p>
  */
-@LastSupportedProjectVersion(RELEASE_1)
+@LastSupportedProjectVersion(RELEASE_0)
 @RestControllerAdvice
 @SuppressWarnings(value = "unused")
 public final class GlobalExceptionHandler {
