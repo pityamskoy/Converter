@@ -13,6 +13,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
+
+import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 @RestController
 @CrossOrigin(origins = {"http://localhost:4200"})
@@ -23,29 +26,72 @@ public final class ConversionController {
     @Autowired
     private ConversionService conversionService;
 
-    @PostMapping(value = "/json_csv", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<StreamingResponseBody> convertJsonFileToCsv(@RequestPart(name = "file") MultipartFile file) {
-        String fileName = file.getOriginalFilename();
-        log.info("Called convertJsonFileToCsv; filename={}", fileName);
+    @PostMapping(value = "/json_csv", consumes = MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<StreamingResponseBody> convertJsonFileToCsv(
+            @RequestPart(name = "file") MultipartFile file
+    ) {
+        String filename = file.getOriginalFilename();
+        log.info("Called convertJsonFileToCsv; filename={}", filename);
 
         try {
             Path csvPath = conversionService.convertJsonFileToCsv(file);
-            log.debug("CSV file created at {}", csvPath);
+            Objects.requireNonNull(filename);
+            log.debug("Converted file created; csvPath={}", csvPath);
 
             StreamingResponseBody stream = outputStream -> {
                 try (InputStream in = Files.newInputStream(csvPath)) {
                     in.transferTo(outputStream);
                 } finally {
-                    log.debug("Deleting temp file={}", csvPath);
+                    log.debug("Deleting converted file; csvPath={}", csvPath);
                     Files.deleteIfExists(csvPath);
                 }
             };
 
+            String outputFilename = filename.substring(0, filename.length() - 5) + ".csv";
+
             HttpHeaders headers = new HttpHeaders();
             headers.setContentDisposition(ContentDisposition.attachment().
-                    filename(csvPath.getFileName().toString()).build());
+                    filename(outputFilename)
+                    .build());
             headers.setContentType(MediaType.parseMediaType("text/csv"));
             headers.setContentLength(Files.size(csvPath));
+
+            return new ResponseEntity<>(stream, headers, HttpStatus.OK);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
+    @PostMapping(value = "/csv_json", consumes = MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<StreamingResponseBody> convertCsvFileToJson(
+            @RequestPart(name = "file") MultipartFile file
+    ) {
+        String filename = file.getOriginalFilename();
+        log.info("Called convertCsvFileToJson; filename={}", filename);
+
+        try {
+            Path jsonPath = conversionService.convertCsvFileToJson(file);
+            Objects.requireNonNull(filename);
+            log.debug("Converted file created; jsonPath={}", jsonPath);
+
+            StreamingResponseBody stream = outputStream -> {
+                try (InputStream in = Files.newInputStream(jsonPath)) {
+                    in.transferTo(outputStream);
+                } finally {
+                    log.debug("Deleting converted file; jsonPath={}", jsonPath);
+                    Files.deleteIfExists(jsonPath);
+                }
+            };
+
+            String outputFilename = filename.substring(0, filename.length() - 4) + ".json";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentDisposition(ContentDisposition.attachment()
+                    .filename(outputFilename)
+                    .build());
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentLength(Files.size(jsonPath));
 
             return new ResponseEntity<>(stream, headers, HttpStatus.OK);
         } catch (IOException e) {
