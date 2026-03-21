@@ -1,14 +1,6 @@
 name: Converter
 
 services:
-  frontend:
-    image: tr0f1mka/cson-frontend:latest
-    restart: unless-stopped
-    ports:
-      - "4200:4200"
-    depends_on:
-      - backend
-        
   backend:
     image: kekishev/converter:latest
     restart: unless-stopped

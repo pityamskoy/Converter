@@ -62,7 +62,6 @@ deploy-job:
       docker stop converter-backend-1 || true &&
       docker rm converter-backend-1 || true &&
       docker image rm $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:latest &&
-      docker pull $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:latest &&
       docker compose up -d
       "
   only:
