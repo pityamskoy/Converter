@@ -213,4 +213,42 @@ public final class ConversionController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    //fix separator problem
+    @PostMapping(value = "/csv_xml", consumes = MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<StreamingResponseBody> convertCsvFileToXml(
+            @RequestPart(name = "file") MultipartFile file
+    ) {
+        String filename = file.getOriginalFilename();
+        log.info("Called convertCsvFileToXml; filename={}", filename);
+
+        try {
+            Path xmlPath = conversionService.convertCsvFileToXml(file);
+            Objects.requireNonNull(filename);
+            log.debug("Converted file created; xmlPath={}", xmlPath);
+
+            StreamingResponseBody stream = outputStream -> {
+                try (InputStream in = Files.newInputStream(xmlPath)) {
+                    in.transferTo(outputStream);
+                } finally {
+                    log.debug("Deleting converted file; xmlPath={}", xmlPath);
+                    Files.deleteIfExists(xmlPath);
+                }
+            };
+
+            String outputFilename = filename.substring(0, filename.length() - 4) + ".xml";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentDisposition(ContentDisposition.attachment()
+                    .filename(outputFilename)
+                    .build());
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentLength(Files.size(xmlPath));
+
+            return new ResponseEntity<>(stream, headers, HttpStatus.OK);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }
