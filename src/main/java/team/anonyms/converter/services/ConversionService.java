@@ -129,7 +129,7 @@ public final class ConversionService {
         }
 
         if (rows.isEmpty()) {
-            throw new IllegalArgumentException("JSON contains no rows to convert");
+            throw new IllegalArgumentException("JSON file contains no rows to convert");
         }
 
         CsvSchema.Builder csvSchemaBuilder = CsvSchema.builder();
@@ -167,9 +167,8 @@ public final class ConversionService {
      *     Converts CSV file to JSON file. Any other extensions are not supported.
      * </p>
      * @param csvFile CSV file written in {@link MultipartFile} instance.
-     * @return path to converted CSV file.
-     * @throws IllegalArgumentException if either {@code csvFile} is empty or it consists of
-     * unsupported structure for conversion from CSV to JSON.
+     * @return path to converted JSON file.
+     * @throws IllegalArgumentException if {@code csvFile} is empty.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if a file without '.csv' extension was provided.
      */
@@ -239,9 +238,10 @@ public final class ConversionService {
         }
 
         if (rows.isEmpty()) {
-            throw new IllegalArgumentException("CSV contains no rows to convert");
+            throw new IllegalArgumentException("CSV file contains no rows to convert");
         }
 
+        // Writing converted data
         if (rows.size() == 1) {
             objectMapper.writeValue(jsonPath.toFile(), rows.getFirst());
         } else {
@@ -293,17 +293,77 @@ public final class ConversionService {
         } else if (root.isObject()) {
             rows.add(objectMapper.convertValue(root, Map.class));
         } else {
-            throw new IllegalArgumentException("Unsupported JSON structure for CSV conversion");
+            throw new IllegalArgumentException("Unsupported JSON structure for XML conversion");
         }
 
         if (rows.isEmpty()) {
-            throw new IllegalArgumentException("JSON contains no rows to convert");
+            throw new IllegalArgumentException("JSON file contains no rows to convert");
         }
 
+        // Writing converted data
         XmlMapper xmlMapper = new XmlMapper();
         xmlMapper.writeValue(xmlPath.toFile(), rows);
 
         return xmlPath;
     }
 
+    /**
+     * <p>
+     *     Converts XML file to JSON file. Any other extensions are not supported.
+     * </p>
+     * @param xmlFile XML file written in {@link MultipartFile} instance.
+     * @return path to converted JSON file.
+     * @throws IllegalArgumentException if {@code xmlFile} is empty.
+     * @throws NullPointerException if filename is null.
+     * @throws UnsupportedExtensionException if a file without '.xml' extension was provided.
+     */
+    @SuppressWarnings(value = {"unchecked"})
+    public @NonNull Path convertXmlFileToJson(@NonNull MultipartFile xmlFile) throws IOException {
+        // Check and validate xmlFile
+        if (xmlFile.isEmpty()) {
+            throw new IllegalArgumentException("xmlFile is empty");
+        }
+
+        String filename = xmlFile.getOriginalFilename();
+        if (filename == null) {
+            throw new NullPointerException("filename is null");
+        }
+
+        if (!filename.endsWith(".xml")) {
+            throw new UnsupportedExtensionException("Provided file doesn't have '.xml' extension");
+        }
+
+        // Create temporarily JSON file for writing converted data
+        String filenameWithoutExtension = getFilenameWithoutExtension(xmlFile, ".xml");
+        Path jsonPath = Files.createTempFile(filenameWithoutExtension, ".json");
+
+        // Start converting
+        XmlMapper xmlMapper = new XmlMapper();
+        JsonNode root = xmlMapper.readTree(xmlFile.getInputStream());
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Map<String,Object>> rows = new ArrayList<>();
+
+        if (root.isArray()) {
+            for (JsonNode node : root) {
+                rows.add(objectMapper.convertValue(node, Map.class));
+            }
+        } else if (root.isObject()) {
+            rows.add(objectMapper.convertValue(root, Map.class));
+        } else {
+            throw new IllegalArgumentException("Unsupported XML structure for JSON conversion");
+        }
+
+        if (rows.isEmpty()) {
+            throw new IllegalArgumentException("XML file contains no rows to convert");
+        }
+
+        // Writing converted data
+        if (rows.size() == 1) {
+            objectMapper.writeValue(jsonPath.toFile(), rows.getFirst());
+        } else {
+            objectMapper.writeValue(jsonPath.toFile(), rows);
+        }
+
+        return jsonPath;
+    }
 }

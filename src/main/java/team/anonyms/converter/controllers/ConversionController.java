@@ -138,4 +138,41 @@ public final class ConversionController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    @PostMapping(value = "/xml_json", consumes = MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<StreamingResponseBody> convertXmlFileToJson(
+            @RequestPart(name = "file") MultipartFile file
+    ) {
+        String filename = file.getOriginalFilename();
+        log.info("Called convertXmlFileToJson; filename={}", filename);
+
+        try {
+            Path jsonPath = conversionService.convertXmlFileToJson(file);
+            Objects.requireNonNull(filename);
+            log.debug("Converted file created; jsonPath={}", jsonPath);
+
+            StreamingResponseBody stream = outputStream -> {
+                try (InputStream in = Files.newInputStream(jsonPath)) {
+                    in.transferTo(outputStream);
+                } finally {
+                    log.debug("Deleting converted file; jsonPath={}", jsonPath);
+                    Files.deleteIfExists(jsonPath);
+                }
+            };
+
+            String outputFilename = filename.substring(0, filename.length() - 4) + ".json";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentDisposition(ContentDisposition.attachment()
+                    .filename(outputFilename)
+                    .build());
+            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
+            headers.setContentLength(Files.size(jsonPath));
+
+            return new ResponseEntity<>(stream, headers, HttpStatus.OK);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }
