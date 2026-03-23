@@ -28,6 +28,7 @@ public final class ConversionService {
      * </p>
      * @param string main string.
      * @param substring substring.
+     *
      * @return number of occurrences.
      */
     public static int countNumberOfOccurrences(@NonNull String string, @NonNull String substring) {
@@ -82,31 +83,48 @@ public final class ConversionService {
 
     /**
      * <p>
-     *     Converts JSON file to CSV file. Any other extensions are not supported.<br>
-     *     <b>Assumption</b>: all nested objects in JSON file will be written to CSV file as strings.
+     *     This method validates arguments for a conversion and throw an exception if some argument is not correct.
      * </p>
-     * @param jsonFile JSON file written in {@link MultipartFile} instance.
-     * @return path to converted CSV file.
-     * @throws IllegalArgumentException if either {@code jsonFile} is empty or it consists of
-     * unsupported structure for conversion from JSON to CSV.
+     *
+     * @param file requested file to convert.
+     * @param currentExtension current extension of {@code file}.
+     *
+     * @throws IllegalArgumentException if {@code file} is empty.
      * @throws NullPointerException if filename is null.
-     * @throws UnsupportedExtensionException if a file without '.json' extension was provided.
+     * @throws UnsupportedExtensionException if {@code file} doesn't have {@code currentExtension}.
      */
-    @SuppressWarnings(value = {"unchecked"})
-    public @NonNull Path convertJsonFileToCsv(@NonNull MultipartFile jsonFile) throws IOException {
-        // Check and validate jsonFile
-        if (jsonFile.isEmpty()) {
-            throw new IllegalArgumentException("jsonFile is empty");
+    private void validateArgumentsForConversion(@NonNull MultipartFile file, @NonNull String currentExtension) {
+        if (file.isEmpty()) {
+            throw new IllegalArgumentException("file is empty");
         }
 
-        String filename = jsonFile.getOriginalFilename();
+        String filename = file.getOriginalFilename();
         if (filename == null) {
             throw new NullPointerException("filename is null");
         }
 
-        if (!filename.endsWith(".json")) {
-            throw new UnsupportedExtensionException("Provided file doesn't have '.json' extension");
+        if (!filename.endsWith(currentExtension)) {
+            throw new UnsupportedExtensionException("Provided file doesn't have '" + currentExtension + "' extension");
         }
+    }
+
+    /**
+     * <p>
+     *     Converts JSON file to CSV file. Any other extensions are not supported.<br>
+     *     <b>Assumption</b>: all nested objects in JSON file will be written to CSV file as strings.
+     * </p>
+     * @param jsonFile JSON file written in {@link MultipartFile} instance.
+     *
+     * @return path to converted CSV file.
+     *
+     * @throws IllegalArgumentException if either {@code jsonFile} is empty or it consists of
+     * unsupported structure for conversion from JSON to CSV.
+     * @throws NullPointerException if filename is null.
+     * @throws UnsupportedExtensionException if {@code jsonFile} was provided without '.json' extension.
+     */
+    @SuppressWarnings(value = {"unchecked"})
+    public @NonNull Path convertJsonFileToCsv(@NonNull MultipartFile jsonFile) throws IOException {
+        validateArgumentsForConversion(jsonFile, ".json");
 
         // Possible vulnerability here
         // Create temporarily CSV file for writing converted data
@@ -167,27 +185,17 @@ public final class ConversionService {
      *     Converts CSV file to JSON file. Any other extensions are not supported.
      * </p>
      * @param csvFile CSV file written in {@link MultipartFile} instance.
+     *
      * @return path to converted JSON file.
+     *
      * @throws IllegalArgumentException if either {@code csvFile} is empty or it consists of
      * unsupported structure for conversion from CSV to JSON.
      * @throws NullPointerException if filename is null.
-     * @throws UnsupportedExtensionException if a file without '.csv' extension was provided.
+     * @throws UnsupportedExtensionException if {@code csvFile} was provided without '.csv' extension.
      */
     //fix separator problem
     public @NonNull Path convertCsvFileToJson(@NonNull MultipartFile csvFile) throws IOException {
-        // Check and validate csvFile
-        if (csvFile.isEmpty()) {
-            throw new IllegalArgumentException("csvFile is empty");
-        }
-
-        String filename = csvFile.getOriginalFilename();
-        if (filename == null) {
-            throw new NullPointerException("filename is null");
-        }
-
-        if (!filename.endsWith(".csv")) {
-            throw new UnsupportedExtensionException("Provided file doesn't have '.csv' extension");
-        }
+        validateArgumentsForConversion(csvFile, ".csv");
 
         // Create temporarily JSON file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(csvFile, ".csv");
@@ -257,27 +265,17 @@ public final class ConversionService {
      *     Converts JSON file to XML file. Any other extensions are not supported.
      * </p>
      * @param jsonFile JSON file written in {@link MultipartFile} instance.
+     *
      * @return path to converted XML file.
+     *
      * @throws IllegalArgumentException if either {@code jsonFile} is empty or it consists of
      * unsupported structure for conversion from JSON to XML.
      * @throws NullPointerException if filename is null.
-     * @throws UnsupportedExtensionException if a file without '.json' extension was provided.
+     * @throws UnsupportedExtensionException if {@code jsonFile} was provided without '.json' extension.
      */
     @SuppressWarnings(value = {"unchecked"})
     public @NonNull Path convertJsonFileToXml(@NonNull MultipartFile jsonFile) throws IOException {
-        // Check and validate jsonFile
-        if (jsonFile.isEmpty()) {
-            throw new IllegalArgumentException("jsonFile is empty");
-        }
-
-        String filename = jsonFile.getOriginalFilename();
-        if (filename == null) {
-            throw new NullPointerException("filename is null");
-        }
-
-        if (!filename.endsWith(".json")) {
-            throw new UnsupportedExtensionException("Provided file doesn't have '.json' extension");
-        }
+        validateArgumentsForConversion(jsonFile, ".json");
 
         // Create temporarily XML file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(jsonFile, ".json");
@@ -314,27 +312,17 @@ public final class ConversionService {
      *     Converts XML file to JSON file. Any other extensions are not supported.
      * </p>
      * @param xmlFile XML file written in {@link MultipartFile} instance.
+     *
      * @return path to converted JSON file.
+     *
      * @throws IllegalArgumentException if either {@code xmlFile} is empty or it consists of
      * unsupported structure for conversion from XML to JSON.
      * @throws NullPointerException if filename is null.
-     * @throws UnsupportedExtensionException if a file without '.xml' extension was provided.
+     * @throws UnsupportedExtensionException if {@code xmlFile} was provided without '.xml' extension.
      */
     @SuppressWarnings(value = {"unchecked"})
     public @NonNull Path convertXmlFileToJson(@NonNull MultipartFile xmlFile) throws IOException {
-        // Check and validate xmlFile
-        if (xmlFile.isEmpty()) {
-            throw new IllegalArgumentException("xmlFile is empty");
-        }
-
-        String filename = xmlFile.getOriginalFilename();
-        if (filename == null) {
-            throw new NullPointerException("filename is null");
-        }
-
-        if (!filename.endsWith(".xml")) {
-            throw new UnsupportedExtensionException("Provided file doesn't have '.xml' extension");
-        }
+        validateArgumentsForConversion(xmlFile, ".xml");
 
         // Create temporarily JSON file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(xmlFile, ".xml");
@@ -376,27 +364,17 @@ public final class ConversionService {
      *     <b>Assumption</b>: all nested objects in XML file will be written to CSV file as strings.
      * </p>
      * @param xmlFile XML file written in {@link MultipartFile} instance.
+     *
      * @return path to converted CSV file.
+     *
      * @throws IllegalArgumentException if either {@code xmlFile} is empty or it consists of
      * unsupported structure for conversion from XML to JSON.
      * @throws NullPointerException if filename is null.
-     * @throws UnsupportedExtensionException if a file without '.xml' extension was provided.
+     * @throws UnsupportedExtensionException if {@code xmlFile} was provided without '.xml' extension.
      */
     @SuppressWarnings(value = {"unchecked"})
     public @NonNull Path convertXmlFileToCsv(@NonNull MultipartFile xmlFile) throws IOException {
-        // Check and validate xmlFile
-        if (xmlFile.isEmpty()) {
-            throw new IllegalArgumentException("xmlFile is empty");
-        }
-
-        String filename = xmlFile.getOriginalFilename();
-        if (filename == null) {
-            throw new NullPointerException("filename is null");
-        }
-
-        if (!filename.endsWith(".xml")) {
-            throw new UnsupportedExtensionException("Provided file doesn't have '.xml' extension");
-        }
+        validateArgumentsForConversion(xmlFile, ".xml");
 
         // Possible vulnerability here
         // Create temporarily CSV file for writing converted data
@@ -457,27 +435,17 @@ public final class ConversionService {
      *     Converts CSV file to XML file. Any other extensions are not supported.
      * </p>
      * @param csvFile CSV file written in {@link MultipartFile} instance.
+     *
      * @return path to converted XML file.
+     *
      * @throws IllegalArgumentException if either {@code csvFile} is empty or it consists of
      * unsupported structure for conversion from CSV to XML.
      * @throws NullPointerException if filename is null.
-     * @throws UnsupportedExtensionException if a file without '.csv' extension was provided.
+     * @throws UnsupportedExtensionException if {@code csvFile} was provided without '.csv' extension.
      */
     //fix separator problem
     public @NonNull Path convertCsvFileToXml(@NonNull MultipartFile csvFile) throws IOException {
-        // Check and validate csvFile
-        if (csvFile.isEmpty()) {
-            throw new IllegalArgumentException("csvFile is empty");
-        }
-
-        String filename = csvFile.getOriginalFilename();
-        if (filename == null) {
-            throw new NullPointerException("filename is null");
-        }
-
-        if (!filename.endsWith(".csv")) {
-            throw new UnsupportedExtensionException("Provided file doesn't have '.csv' extension");
-        }
+        validateArgumentsForConversion(csvFile, ".csv");
 
         // Create temporarily XML file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(csvFile, ".csv");
