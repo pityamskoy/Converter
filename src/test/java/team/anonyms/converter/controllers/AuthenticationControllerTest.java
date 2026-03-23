@@ -123,6 +123,7 @@ class AuthenticationControllerTest {
     void testLogin_Success() throws Exception {
         String existingUserId = "old-session-123";
         UUID fakeTokenId = UUID.randomUUID();
+        String fakeUsername = "fakeUsername";
 
         CredentialsControllerDto requestDto = new CredentialsControllerDto(
                 "testuser",
@@ -134,8 +135,8 @@ class AuthenticationControllerTest {
                         "password123"
         );
 
-        LoginResultServiceDto mockServiceResult = new LoginResultServiceDto(true, fakeTokenId);
-        LoginResultControllerDto responseDto = new LoginResultControllerDto(true, fakeTokenId);
+        LoginResultServiceDto mockServiceResult = new LoginResultServiceDto(true, fakeUsername, fakeTokenId);
+        LoginResultControllerDto responseDto = new LoginResultControllerDto(true, fakeUsername, fakeTokenId);
 
         // кукис
         Cookie newSessionCookie = new Cookie("user_id", "new-session-456");

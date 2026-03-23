@@ -90,7 +90,7 @@ class ConversionServiceTest {
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             conversionService.convertJsonFileToCsv(emptyFile);
         });
-        assertEquals("jsonFile is empty", exception.getMessage());
+        assertEquals("file is empty", exception.getMessage());
     }
 
     @Test
