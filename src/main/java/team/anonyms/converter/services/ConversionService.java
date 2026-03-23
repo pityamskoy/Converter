@@ -2,6 +2,7 @@ package team.anonyms.converter.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MappingIterator;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -10,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import team.anonyms.converter.errors.UnsupportedExtensionException;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -114,16 +114,16 @@ public final class ConversionService {
         Path csvPath = Files.createTempFile(filenameWithoutExtension, ".csv");
 
         // Start converting
-        ObjectMapper objectMapper = new ObjectMapper();
+        JsonMapper jsonMapper = new JsonMapper();
         List<Map<String,Object>> rows = new ArrayList<>();
-        JsonNode root = objectMapper.readTree(jsonFile.getInputStream());
+        JsonNode root = jsonMapper.readTree(jsonFile.getInputStream());
 
         if (root.isArray()) {
             for (JsonNode node : root) {
-                rows.add(objectMapper.convertValue(node, Map.class));
+                rows.add(jsonMapper.convertValue(node, Map.class));
             }
         } else if (root.isObject()) {
-            rows.add(objectMapper.convertValue(root, Map.class));
+            rows.add(jsonMapper.convertValue(root, Map.class));
         } else {
             throw new IllegalArgumentException("Unsupported JSON structure for CSV conversion");
         }
@@ -147,7 +147,7 @@ public final class ConversionService {
                 Object value = entry.getValue();
 
                 if (value instanceof Map || value instanceof Collection) {
-                    entry.setValue(objectMapper.writeValueAsString(value));
+                    entry.setValue(jsonMapper.writeValueAsString(value));
                 } else if (value == null) {
                     entry.setValue("");
                 }
@@ -155,8 +155,8 @@ public final class ConversionService {
         }
 
         // Writing converted data
-        CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
         CsvMapper csvMapper = new CsvMapper();
+        CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
         csvMapper.writerFor(List.class).with(csvSchema).writeValue(csvPath.toFile(), rows);
 
         return csvPath;
@@ -194,7 +194,6 @@ public final class ConversionService {
         Path jsonPath = Files.createTempFile(filenameWithoutExtension, ".json");
 
         // Start converting
-        ObjectMapper objectMapper = new ObjectMapper();
         CsvMapper csvMapper = new CsvMapper();
         CsvSchema csvSchema = CsvSchema.emptySchema().withHeader();
 
@@ -217,11 +216,11 @@ public final class ConversionService {
 
                 try {
                     if (value.startsWith("{") || value.startsWith("[")) {
-                        JsonNode node = objectMapper.readTree(value);
+                        JsonNode node = csvMapper.readTree(value);
                         if (node.isObject()) {
-                            convertedRow.put(key, objectMapper.convertValue(node, Map.class));
+                            convertedRow.put(key, csvMapper.convertValue(node, Map.class));
                         } else if (node.isArray()) {
-                            convertedRow.put(key, objectMapper.convertValue(node, List.class));
+                            convertedRow.put(key, csvMapper.convertValue(node, List.class));
                         }
                     } else if (value.matches("-?\\d+")) {
                         convertedRow.put(key, Long.parseLong(value));
@@ -243,10 +242,11 @@ public final class ConversionService {
         }
 
         // Writing converted data
+        JsonMapper jsonMapper = new JsonMapper();
         if (rows.size() == 1) {
-            objectMapper.writeValue(jsonPath.toFile(), rows.getFirst());
+            jsonMapper.writeValue(jsonPath.toFile(), rows.getFirst());
         } else {
-            objectMapper.writeValue(jsonPath.toFile(), rows);
+            jsonMapper.writeValue(jsonPath.toFile(), rows);
         }
 
         return jsonPath;
@@ -284,16 +284,16 @@ public final class ConversionService {
         Path xmlPath = Files.createTempFile(filenameWithoutExtension, ".xml");
 
         // Start converting
-        ObjectMapper objectMapper = new ObjectMapper();
+        JsonMapper jsonMapper = new JsonMapper();
         List<Map<String,Object>> rows = new ArrayList<>();
-        JsonNode root = objectMapper.readTree(jsonFile.getInputStream());
+        JsonNode root = jsonMapper.readTree(jsonFile.getInputStream());
 
         if (root.isArray()) {
             for (JsonNode node : root) {
-                rows.add(objectMapper.convertValue(node, Map.class));
+                rows.add(jsonMapper.convertValue(node, Map.class));
             }
         } else if (root.isObject()) {
-            rows.add(objectMapper.convertValue(root, Map.class));
+            rows.add(jsonMapper.convertValue(root, Map.class));
         } else {
             throw new IllegalArgumentException("Unsupported JSON structure for XML conversion");
         }
@@ -342,16 +342,15 @@ public final class ConversionService {
 
         // Start converting
         XmlMapper xmlMapper = new XmlMapper();
-        JsonNode root = xmlMapper.readTree(xmlFile.getInputStream());
-        ObjectMapper objectMapper = new ObjectMapper();
         List<Map<String,Object>> rows = new ArrayList<>();
+        JsonNode root = xmlMapper.readTree(xmlFile.getInputStream());
 
         if (root.isArray()) {
             for (JsonNode node : root) {
-                rows.add(objectMapper.convertValue(node, Map.class));
+                rows.add(xmlMapper.convertValue(node, Map.class));
             }
         } else if (root.isObject()) {
-            rows.add(objectMapper.convertValue(root, Map.class));
+            rows.add(xmlMapper.convertValue(root, Map.class));
         } else {
             throw new IllegalArgumentException("Unsupported XML structure for JSON conversion");
         }
@@ -361,10 +360,11 @@ public final class ConversionService {
         }
 
         // Writing converted data
+        JsonMapper jsonMapper = new JsonMapper();
         if (rows.size() == 1) {
-            objectMapper.writeValue(jsonPath.toFile(), rows.getFirst());
+            jsonMapper.writeValue(jsonPath.toFile(), rows.getFirst());
         } else {
-            objectMapper.writeValue(jsonPath.toFile(), rows);
+            jsonMapper.writeValue(jsonPath.toFile(), rows);
         }
 
         return jsonPath;
@@ -384,7 +384,7 @@ public final class ConversionService {
      */
     @SuppressWarnings(value = {"unchecked"})
     public @NonNull Path convertXmlFileToCsv(@NonNull MultipartFile xmlFile) throws IOException {
-        // Check and validate jsonFile
+        // Check and validate xmlFile
         if (xmlFile.isEmpty()) {
             throw new IllegalArgumentException("xmlFile is empty");
         }
@@ -405,16 +405,15 @@ public final class ConversionService {
 
         // Start converting
         XmlMapper xmlMapper = new XmlMapper();
-        JsonNode root = xmlMapper.readTree(xmlFile.getInputStream());
-        ObjectMapper objectMapper = new ObjectMapper();
         List<Map<String,Object>> rows = new ArrayList<>();
+        JsonNode root = xmlMapper.readTree(xmlFile.getInputStream());
 
         if (root.isArray()) {
             for (JsonNode node : root) {
-                rows.add(objectMapper.convertValue(node, Map.class));
+                rows.add(xmlMapper.convertValue(node, Map.class));
             }
         } else if (root.isObject()) {
-            rows.add(objectMapper.convertValue(root, Map.class));
+            rows.add(xmlMapper.convertValue(root, Map.class));
         } else {
             throw new IllegalArgumentException("Unsupported XML structure for CSV conversion");
         }
@@ -438,7 +437,7 @@ public final class ConversionService {
                 Object value = entry.getValue();
 
                 if (value instanceof Map || value instanceof Collection) {
-                    entry.setValue(objectMapper.writeValueAsString(value));
+                    entry.setValue(xmlMapper.writeValueAsString(value));
                 } else if (value == null) {
                     entry.setValue("");
                 }
@@ -446,10 +445,100 @@ public final class ConversionService {
         }
 
         // Writing converted data
-        CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
         CsvMapper csvMapper = new CsvMapper();
+        CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
         csvMapper.writerFor(List.class).with(csvSchema).writeValue(csvPath.toFile(), rows);
 
         return csvPath;
+    }
+
+    /**
+     * <p>
+     *     Converts CSV file to XML file. Any other extensions are not supported.
+     * </p>
+     * @param csvFile CSV file written in {@link MultipartFile} instance.
+     * @return path to converted XML file.
+     * @throws IllegalArgumentException if either {@code csvFile} is empty or it consists of
+     * unsupported structure for conversion from CSV to XML.
+     * @throws NullPointerException if filename is null.
+     * @throws UnsupportedExtensionException if a file without '.csv' extension was provided.
+     */
+    //fix separator problem
+    public @NonNull Path convertCsvFileToXml(@NonNull MultipartFile csvFile) throws IOException {
+        // Check and validate csvFile
+        if (csvFile.isEmpty()) {
+            throw new IllegalArgumentException("csvFile is empty");
+        }
+
+        String filename = csvFile.getOriginalFilename();
+        if (filename == null) {
+            throw new NullPointerException("filename is null");
+        }
+
+        if (!filename.endsWith(".csv")) {
+            throw new UnsupportedExtensionException("Provided file doesn't have '.csv' extension");
+        }
+
+        // Create temporarily XML file for writing converted data
+        String filenameWithoutExtension = getFilenameWithoutExtension(csvFile, ".csv");
+        Path xmlPath = Files.createTempFile(filenameWithoutExtension, ".xml");
+
+        // Start converting
+        CsvMapper csvMapper = new CsvMapper();
+        CsvSchema csvSchema = CsvSchema.emptySchema().withHeader();
+
+        List<Map<String, Object>> rows = new ArrayList<>();
+        MappingIterator<Map<String, String>> iterator = csvMapper.readerFor(Map.class).
+                with(csvSchema).readValues(csvFile.getInputStream());
+
+        while (iterator.hasNext()) {
+            Map<String, String> row = iterator.next();
+            Map<String, Object> convertedRow = new LinkedHashMap<>();
+
+            for (Map.Entry<String, String> entry : row.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+
+                if (value == null || value.isEmpty()) {
+                    convertedRow.put(key, null);
+                    continue;
+                }
+
+                try {
+                    if (value.startsWith("{") || value.startsWith("[")) {
+                        JsonNode node = csvMapper.readTree(value);
+                        if (node.isObject()) {
+                            convertedRow.put(key, csvMapper.convertValue(node, Map.class));
+                        } else if (node.isArray()) {
+                            convertedRow.put(key, csvMapper.convertValue(node, List.class));
+                        }
+                    } else if (value.matches("-?\\d+")) {
+                        convertedRow.put(key, Long.parseLong(value));
+                    } else if (value.matches("-?\\d*\\.\\d+")) {
+                        convertedRow.put(key, Double.parseDouble(value));
+                    } else {
+                        convertedRow.put(key, value);
+                    }
+                } catch (JsonProcessingException | NumberFormatException e) {
+                    convertedRow.put(key, value);
+                }
+            }
+
+            rows.add(convertedRow);
+        }
+
+        if (rows.isEmpty()) {
+            throw new IllegalArgumentException("CSV file contains no rows to convert");
+        }
+
+        // Writing converted data
+        XmlMapper xmlMapper = new XmlMapper();
+        if (rows.size() == 1) {
+            xmlMapper.writeValue(xmlPath.toFile(), rows.getFirst());
+        } else {
+            xmlMapper.writeValue(xmlPath.toFile(), rows);
+        }
+
+        return xmlPath;
     }
 }
