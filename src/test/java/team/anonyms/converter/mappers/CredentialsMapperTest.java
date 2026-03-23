@@ -30,7 +30,8 @@ class CredentialsMapperTest {
     @Test
     void testLoginResultServiceDtoToController() {
         UUID fakeUserId = UUID.randomUUID();
-        LoginResultServiceDto serviceDto = new LoginResultServiceDto(true, fakeUserId);
+        String fakeUsername = "fakeUsername";
+        LoginResultServiceDto serviceDto = new LoginResultServiceDto(true, fakeUsername, fakeUserId);
 
         LoginResultControllerDto controllerDto = mapper.loginResultServiceDtoToController(serviceDto);
 
