@@ -175,4 +175,42 @@ public final class ConversionController {
             return ResponseEntity.internalServerError().build();
         }
     }
+
+    //add separator to return
+    @PostMapping(value = "/xml_csv", consumes = MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<StreamingResponseBody> convertXmlFileToCsv(
+            @RequestPart(name = "file") MultipartFile file
+    ) {
+        String filename = file.getOriginalFilename();
+        log.info("Called convertXmlFileToCsv; filename={}", filename);
+
+        try {
+            Path csvPath = conversionService.convertXmlFileToCsv(file);
+            Objects.requireNonNull(filename);
+            log.debug("Converted file created; csvPath={}", csvPath);
+
+            StreamingResponseBody stream = outputStream -> {
+                try (InputStream in = Files.newInputStream(csvPath)) {
+                    in.transferTo(outputStream);
+                } finally {
+                    log.debug("Deleting converted file; csvPath={}", csvPath);
+                    Files.deleteIfExists(csvPath);
+                }
+            };
+
+            String outputFilename = filename.substring(0, filename.length() - 4) + ".csv";
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentDisposition(ContentDisposition.attachment().
+                    filename(outputFilename)
+                    .build());
+            headers.setContentType(MediaType.parseMediaType("text/csv"));
+            headers.setContentLength(Files.size(csvPath));
+
+            return new ResponseEntity<>(stream, headers, HttpStatus.OK);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 }

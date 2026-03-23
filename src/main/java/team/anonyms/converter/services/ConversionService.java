@@ -168,7 +168,8 @@ public final class ConversionService {
      * </p>
      * @param csvFile CSV file written in {@link MultipartFile} instance.
      * @return path to converted JSON file.
-     * @throws IllegalArgumentException if {@code csvFile} is empty.
+     * @throws IllegalArgumentException if either {@code csvFile} is empty or it consists of
+     * unsupported structure for conversion from CSV to JSON.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if a file without '.csv' extension was provided.
      */
@@ -257,7 +258,8 @@ public final class ConversionService {
      * </p>
      * @param jsonFile JSON file written in {@link MultipartFile} instance.
      * @return path to converted XML file.
-     * @throws IllegalArgumentException if {@code jsonFile} is empty.
+     * @throws IllegalArgumentException if either {@code jsonFile} is empty or it consists of
+     * unsupported structure for conversion from JSON to XML.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if a file without '.json' extension was provided.
      */
@@ -313,7 +315,8 @@ public final class ConversionService {
      * </p>
      * @param xmlFile XML file written in {@link MultipartFile} instance.
      * @return path to converted JSON file.
-     * @throws IllegalArgumentException if {@code xmlFile} is empty.
+     * @throws IllegalArgumentException if either {@code xmlFile} is empty or it consists of
+     * unsupported structure for conversion from XML to JSON.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if a file without '.xml' extension was provided.
      */
@@ -365,5 +368,88 @@ public final class ConversionService {
         }
 
         return jsonPath;
+    }
+
+    /**
+     * <p>
+     *     Converts XML file to CSV file. Any other extensions are not supported.<br>
+     *     <b>Assumption</b>: all nested objects in XML file will be written to CSV file as strings.
+     * </p>
+     * @param xmlFile XML file written in {@link MultipartFile} instance.
+     * @return path to converted CSV file.
+     * @throws IllegalArgumentException if either {@code xmlFile} is empty or it consists of
+     * unsupported structure for conversion from XML to JSON.
+     * @throws NullPointerException if filename is null.
+     * @throws UnsupportedExtensionException if a file without '.xml' extension was provided.
+     */
+    @SuppressWarnings(value = {"unchecked"})
+    public @NonNull Path convertXmlFileToCsv(@NonNull MultipartFile xmlFile) throws IOException {
+        // Check and validate jsonFile
+        if (xmlFile.isEmpty()) {
+            throw new IllegalArgumentException("xmlFile is empty");
+        }
+
+        String filename = xmlFile.getOriginalFilename();
+        if (filename == null) {
+            throw new NullPointerException("filename is null");
+        }
+
+        if (!filename.endsWith(".xml")) {
+            throw new UnsupportedExtensionException("Provided file doesn't have '.xml' extension");
+        }
+
+        // Possible vulnerability here
+        // Create temporarily CSV file for writing converted data
+        String filenameWithoutExtension = getFilenameWithoutExtension(xmlFile, ".xml");
+        Path csvPath = Files.createTempFile(filenameWithoutExtension, ".csv");
+
+        // Start converting
+        XmlMapper xmlMapper = new XmlMapper();
+        JsonNode root = xmlMapper.readTree(xmlFile.getInputStream());
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Map<String,Object>> rows = new ArrayList<>();
+
+        if (root.isArray()) {
+            for (JsonNode node : root) {
+                rows.add(objectMapper.convertValue(node, Map.class));
+            }
+        } else if (root.isObject()) {
+            rows.add(objectMapper.convertValue(root, Map.class));
+        } else {
+            throw new IllegalArgumentException("Unsupported XML structure for CSV conversion");
+        }
+
+        if (rows.isEmpty()) {
+            throw new IllegalArgumentException("XML file contains no rows to convert");
+        }
+
+        CsvSchema.Builder csvSchemaBuilder = CsvSchema.builder();
+        for (String column : rows.getFirst().keySet()) {
+            csvSchemaBuilder.addColumn(column);
+        }
+
+        // Converting nested structures to XML strings
+        for (Map<String, Object> row : rows) {
+            if (row == null) {
+                continue;
+            }
+
+            for (Map.Entry<String, Object> entry : new ArrayList<>(row.entrySet())) {
+                Object value = entry.getValue();
+
+                if (value instanceof Map || value instanceof Collection) {
+                    entry.setValue(objectMapper.writeValueAsString(value));
+                } else if (value == null) {
+                    entry.setValue("");
+                }
+            }
+        }
+
+        // Writing converted data
+        CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
+        CsvMapper csvMapper = new CsvMapper();
+        csvMapper.writerFor(List.class).with(csvSchema).writeValue(csvPath.toFile(), rows);
+
+        return csvPath;
     }
 }
