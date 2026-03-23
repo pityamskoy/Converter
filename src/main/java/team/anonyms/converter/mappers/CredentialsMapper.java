@@ -18,6 +18,7 @@ public final class CredentialsMapper {
     public LoginResultControllerDto loginResultServiceDtoToController(LoginResultServiceDto loginResultServiceDto) {
         return new LoginResultControllerDto(
                 loginResultServiceDto.success(),
+                loginResultServiceDto.username(),
                 loginResultServiceDto.userId()
         );
     }

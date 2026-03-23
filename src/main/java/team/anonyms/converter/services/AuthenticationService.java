@@ -48,7 +48,10 @@ public final class AuthenticationService {
                 throw new EntityNotFoundException("User not found; id=" + userId);
             }
 
-            return new Pair<>(null, new LoginResultServiceDto(true, UUID.fromString(userId)));
+            User user = userOptional.get();
+
+            return new Pair<>(null,
+                    new LoginResultServiceDto(true, user.getUsername(), UUID.fromString(userId)));
         }
 
         String email = credentials.email();
@@ -60,7 +63,7 @@ public final class AuthenticationService {
 
         User user = userOptional.get();
         LoginResultServiceDto loginResultDto = new LoginResultServiceDto(user.getPassword().
-                equals(credentials.password()), user.getId());
+                equals(credentials.password()), user.getUsername(), user.getId());
 
         if (loginResultDto.success()) {
             Cookie cookie = new Cookie("user_id", loginResultDto.userId().toString());
