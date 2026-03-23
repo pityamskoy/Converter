@@ -1,4 +1,4 @@
-package team.anonyms.converter.dto.controller.errors;
+package team.anonyms.converter.dto.controller.responses.errors;
 
 import lombok.Data;
 
