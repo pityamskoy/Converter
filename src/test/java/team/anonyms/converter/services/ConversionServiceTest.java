@@ -109,6 +109,130 @@ class ConversionServiceTest {
         assertEquals("Provided file doesn't have '.csv' extension", exception.getMessage());
     }
 
+    // UPD: тесты для конвертации json->xml, xml->json, csv->xml, xml->csv
+
+    @Test
+    void testConvertJsonFileToXml_Success() throws IOException {
+        String jsonContent = "[{" +
+                "\"name\":\"Belkin Sergey\",\"age\":18" +
+                "}," +
+                "{" +
+                "\"name\":\"Krylov Daniil\",\"age\":19" +
+                "}," +
+                "{" +
+                "\"name\":\"Tolstopyatov Trofim\",\"age\":20" +
+                "}," +
+                "{" +
+                "\"name\":\"Kekishev Andrey\",\"age\":21" +
+                "}]";
+
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                jsonContent.getBytes()
+        );
+
+        Path resultPath = conversionService.convertJsonFileToXml(mockFile);
+
+        assertNotNull(resultPath);
+        assertTrue(Files.exists(resultPath));
+
+        String xmlContent = Files.readString(resultPath);
+
+        assertTrue(xmlContent.contains("<name>Belkin Sergey</name>"));
+        assertTrue(xmlContent.contains("<age>18</age>"));
+        assertTrue(xmlContent.contains("<name>Krylov Daniil</name>"));
+        assertTrue(xmlContent.contains("<age>19</age>"));
+        assertTrue(xmlContent.contains("<name>Kekishev Andrey</name>"));
+        assertTrue(xmlContent.contains("<age>20</age>"));
+        assertTrue(xmlContent.contains("<name>Tolstopyatov Trofim</name>"));
+        assertTrue(xmlContent.contains("<age>21</age>"));
+
+        Files.deleteIfExists(resultPath);
+    }
+
+    @Test
+    void testConvertXmlFileToJson_Success() throws IOException {
+        String xmlContent = "<root>" +
+                "<name>Kekishev Andrey</name>" +
+                "<age>18</age>" +
+                "</root>";
+
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.xml",
+                "application/xml",
+                xmlContent.getBytes()
+        );
+
+        Path resultPath = conversionService.convertXmlFileToJson(mockFile);
+
+        assertNotNull(resultPath);
+        assertTrue(Files.exists(resultPath));
+
+        String jsonContent = Files.readString(resultPath);
+
+        assertTrue(jsonContent.contains("\"name\":\"Kekishev Andrey\""));
+        assertTrue(jsonContent.contains("\"age\":\"18\"") || jsonContent.contains("\"age\":18"));
+
+        Files.deleteIfExists(resultPath);
+    }
+
+    @Test
+    void testConvertCsvFileToXml_Success() throws IOException {
+        String csvContent = "name,age\nBelkin Sergey,18\nKekishev Andrey,19";
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.csv",
+                "text/csv",
+                csvContent.getBytes()
+        );
+
+        Path resultPath = conversionService.convertCsvFileToXml(mockFile);
+
+        assertNotNull(resultPath);
+        assertTrue(Files.exists(resultPath));
+
+        String xmlContent = Files.readString(resultPath);
+
+        assertTrue(xmlContent.contains("<name>Belkin Sergey</name>"));
+        assertTrue(xmlContent.contains("<age>18</age>"));
+        assertTrue(xmlContent.contains("<name>Kekishev Andrey</name>"));
+        assertTrue(xmlContent.contains("<age>19</age>"));
+
+        Files.deleteIfExists(resultPath);
+    }
+
+    @Test
+    void testConvertXmlFileToCsv_Success() throws IOException {
+        String xmlContent = "<root>" +
+                "<name>Belkin Sergey</name>" +
+                "<age>18</age>" +
+                "</root>";
+
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.xml",
+                "application/xml",
+                xmlContent.getBytes()
+        );
+
+        Path resultPath = conversionService.convertXmlFileToCsv(mockFile);
+
+        assertNotNull(resultPath);
+        assertTrue(Files.exists(resultPath));
+
+        String csvContent = Files.readString(resultPath);
+
+        assertTrue(csvContent.contains("name"));
+        assertTrue(csvContent.contains("age"));
+        assertTrue(csvContent.contains("Belkin Sergey"));
+        assertTrue(csvContent.contains("18"));
+
+        Files.deleteIfExists(resultPath);
+    }
+
     // проверка статического метода
     @Test
     void testCountNumberOfOccurrences() {
