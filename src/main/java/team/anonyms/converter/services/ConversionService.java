@@ -4,7 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import org.springframework.lang.NonNull;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import org.jspecify.annotations.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import team.anonyms.converter.errors.UnsupportedExtensionException;
@@ -80,10 +81,10 @@ public final class ConversionService {
     }
 
     /**
-     *<p>
+     * <p>
      *     Converts JSON file to CSV file. Any other extensions are not supported.<br>
      *     <b>Assumption</b>: all nested objects in JSON file will be written to CSV file as strings.
-     *</p>
+     * </p>
      * @param jsonFile JSON file written in {@link MultipartFile} instance.
      * @return path to converted CSV file.
      * @throws IllegalArgumentException if either {@code jsonFile} is empty or it consists of
@@ -162,9 +163,9 @@ public final class ConversionService {
     }
 
     /**
-     *<p>
+     * <p>
      *     Converts CSV file to JSON file. Any other extensions are not supported.
-     *</p>
+     * </p>
      * @param csvFile CSV file written in {@link MultipartFile} instance.
      * @return path to converted CSV file.
      * @throws IllegalArgumentException if either {@code csvFile} is empty or it consists of
@@ -249,4 +250,60 @@ public final class ConversionService {
 
         return jsonPath;
     }
+
+    /**
+     * <p>
+     *     Converts JSON file to XML file. Any other extensions are not supported.
+     * </p>
+     * @param jsonFile JSON file written in {@link MultipartFile} instance.
+     * @return path to converted XML file.
+     * @throws IllegalArgumentException if {@code jsonFile} is empty.
+     * @throws NullPointerException if filename is null.
+     * @throws UnsupportedExtensionException if a file without '.json' extension was provided.
+     */
+    @SuppressWarnings(value = {"unchecked"})
+    public @NonNull Path convertJsonFileToXml(@NonNull MultipartFile jsonFile) throws IOException {
+        // Check and validate jsonFile
+        if (jsonFile.isEmpty()) {
+            throw new IllegalArgumentException("jsonFile is empty");
+        }
+
+        String filename = jsonFile.getOriginalFilename();
+        if (filename == null) {
+            throw new NullPointerException("filename is null");
+        }
+
+        if (!filename.endsWith(".json")) {
+            throw new UnsupportedExtensionException("Provided file doesn't have '.json' extension");
+        }
+
+        // Create temporarily XML file for writing converted data
+        String filenameWithoutExtension = getFilenameWithoutExtension(jsonFile, ".json");
+        Path xmlPath = Files.createTempFile(filenameWithoutExtension, ".xml");
+
+        // Start converting
+        ObjectMapper objectMapper = new ObjectMapper();
+        List<Map<String,Object>> rows = new ArrayList<>();
+        JsonNode root = objectMapper.readTree(jsonFile.getInputStream());
+
+        if (root.isArray()) {
+            for (JsonNode node : root) {
+                rows.add(objectMapper.convertValue(node, Map.class));
+            }
+        } else if (root.isObject()) {
+            rows.add(objectMapper.convertValue(root, Map.class));
+        } else {
+            throw new IllegalArgumentException("Unsupported JSON structure for CSV conversion");
+        }
+
+        if (rows.isEmpty()) {
+            throw new IllegalArgumentException("JSON contains no rows to convert");
+        }
+
+        XmlMapper xmlMapper = new XmlMapper();
+        xmlMapper.writeValue(xmlPath.toFile(), rows);
+
+        return xmlPath;
+    }
+
 }
