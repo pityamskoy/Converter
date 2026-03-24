@@ -1,7 +1,9 @@
 package team.anonyms.converter.services;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 import team.anonyms.converter.errors.UnsupportedExtensionException;
 
 import java.io.IOException;
@@ -76,6 +78,7 @@ class ConversionServiceTest {
         Files.deleteIfExists(resultPath);
     }
 
+    // пустой файл json -> csv
     @Test
     void testConvertJsonFileToCsv_EmptyFile_ThrowsException() {
         // пустой массив
@@ -93,9 +96,69 @@ class ConversionServiceTest {
         assertEquals("file is empty", exception.getMessage());
     }
 
+    // грозный хардкод null-имени, ибо MockMultipartFile мне не разрешает(((
+    @Test
+    void testConvertJsonFileToCsv_NullFilename_ThrowsException() {
+        MultipartFile brokenFile = Mockito.mock(MultipartFile.class);
+
+        Mockito.when(brokenFile.isEmpty()).thenReturn(false);
+        Mockito.when(brokenFile.getOriginalFilename()).thenReturn(null);
+
+        NullPointerException exception = assertThrows(NullPointerException.class, () -> {
+            conversionService.convertJsonFileToCsv(brokenFile);
+        });
+        assertEquals("filename is null", exception.getMessage());
+    }
+
+    // не то расширение
+    @Test
+    void testConvertJsonFileToCsv_WrongExtension_ThrowsException() {
+        // вместо csv тут расширение .txt
+        MockMultipartFile txtFile = new MockMultipartFile(
+                "file",
+                "wrong.txt",
+                "text/plain",
+                "data".getBytes()
+        );
+
+        UnsupportedExtensionException exception = assertThrows(UnsupportedExtensionException.class, () -> {
+            conversionService.convertJsonFileToCsv(txtFile);
+        });
+        assertEquals("Provided file doesn't have '.json' extension", exception.getMessage());
+    }
+
+    // пустой файл csv -> json
+    @Test
+    void testConvertCsvFileToJson_EmptyFile_ThrowsException() {
+        MockMultipartFile emptyFile = new MockMultipartFile(
+                "file",
+                "empty_file.csv",
+                "text/csv",
+                new byte[0]
+        );
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            conversionService.convertCsvFileToJson(emptyFile);
+        });
+        assertEquals("csvFile is empty", exception.getMessage());
+    }
+
+    @Test
+    void testConvertCsvFileToJson_NullFilename_ThrowsException() {
+        MultipartFile brokenFile = Mockito.mock(MultipartFile.class);
+
+        Mockito.when(brokenFile.isEmpty()).thenReturn(false);
+        Mockito.when(brokenFile.getOriginalFilename()).thenReturn(null);
+
+        NullPointerException exception = assertThrows(NullPointerException.class, () -> {
+                    conversionService.convertCsvFileToJson(brokenFile);
+        });
+        assertEquals("filename is null", exception.getMessage());
+    }
+
+    // не то расширение
     @Test
     void testConvertCsvFileToJson_WrongExtension_ThrowsException() {
-        // вместо csv тут расширение .txt
         MockMultipartFile txtFile = new MockMultipartFile(
                 "file",
                 "wrong.txt",
@@ -107,6 +170,130 @@ class ConversionServiceTest {
             conversionService.convertCsvFileToJson(txtFile);
         });
         assertEquals("Provided file doesn't have '.csv' extension", exception.getMessage());
+    }
+
+    // UPD: тесты для конвертации json->xml, xml->json, csv->xml, xml->csv
+
+    @Test
+    void testConvertJsonFileToXml_Success() throws IOException {
+        String jsonContent = "[{" +
+                "\"name\":\"Belkin Sergey\",\"age\":18" +
+                "}," +
+                "{" +
+                "\"name\":\"Krylov Daniil\",\"age\":19" +
+                "}," +
+                "{" +
+                "\"name\":\"Tolstopyatov Trofim\",\"age\":20" +
+                "}," +
+                "{" +
+                "\"name\":\"Kekishev Andrey\",\"age\":21" +
+                "}]";
+
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.json",
+                "application/json",
+                jsonContent.getBytes()
+        );
+
+        Path resultPath = conversionService.convertJsonFileToXml(mockFile);
+
+        assertNotNull(resultPath);
+        assertTrue(Files.exists(resultPath));
+
+        String xmlContent = Files.readString(resultPath);
+
+        assertTrue(xmlContent.contains("<name>Belkin Sergey</name>"));
+        assertTrue(xmlContent.contains("<age>18</age>"));
+        assertTrue(xmlContent.contains("<name>Krylov Daniil</name>"));
+        assertTrue(xmlContent.contains("<age>19</age>"));
+        assertTrue(xmlContent.contains("<name>Kekishev Andrey</name>"));
+        assertTrue(xmlContent.contains("<age>20</age>"));
+        assertTrue(xmlContent.contains("<name>Tolstopyatov Trofim</name>"));
+        assertTrue(xmlContent.contains("<age>21</age>"));
+
+        Files.deleteIfExists(resultPath);
+    }
+
+    @Test
+    void testConvertXmlFileToJson_Success() throws IOException {
+        String xmlContent = "<root>" +
+                "<name>Kekishev Andrey</name>" +
+                "<age>18</age>" +
+                "</root>";
+
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.xml",
+                "application/xml",
+                xmlContent.getBytes()
+        );
+
+        Path resultPath = conversionService.convertXmlFileToJson(mockFile);
+
+        assertNotNull(resultPath);
+        assertTrue(Files.exists(resultPath));
+
+        String jsonContent = Files.readString(resultPath);
+
+        assertTrue(jsonContent.contains("\"name\":\"Kekishev Andrey\""));
+        assertTrue(jsonContent.contains("\"age\":\"18\"") || jsonContent.contains("\"age\":18"));
+
+        Files.deleteIfExists(resultPath);
+    }
+
+    @Test
+    void testConvertCsvFileToXml_Success() throws IOException {
+        String csvContent = "name,age\nBelkin Sergey,18\nKekishev Andrey,19";
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.csv",
+                "text/csv",
+                csvContent.getBytes()
+        );
+
+        Path resultPath = conversionService.convertCsvFileToXml(mockFile);
+
+        assertNotNull(resultPath);
+        assertTrue(Files.exists(resultPath));
+
+        String xmlContent = Files.readString(resultPath);
+
+        assertTrue(xmlContent.contains("<name>Belkin Sergey</name>"));
+        assertTrue(xmlContent.contains("<age>18</age>"));
+        assertTrue(xmlContent.contains("<name>Kekishev Andrey</name>"));
+        assertTrue(xmlContent.contains("<age>19</age>"));
+
+        Files.deleteIfExists(resultPath);
+    }
+
+    @Test
+    void testConvertXmlFileToCsv_Success() throws IOException {
+        String xmlContent = "<root>" +
+                "<name>Belkin Sergey</name>" +
+                "<age>18</age>" +
+                "</root>";
+
+        MockMultipartFile mockFile = new MockMultipartFile(
+                "file",
+                "test.xml",
+                "application/xml",
+                xmlContent.getBytes()
+        );
+
+        Path resultPath = conversionService.convertXmlFileToCsv(mockFile);
+
+        assertNotNull(resultPath);
+        assertTrue(Files.exists(resultPath));
+
+        String csvContent = Files.readString(resultPath);
+
+        assertTrue(csvContent.contains("name"));
+        assertTrue(csvContent.contains("age"));
+        assertTrue(csvContent.contains("Belkin Sergey"));
+        assertTrue(csvContent.contains("18"));
+
+        Files.deleteIfExists(resultPath);
     }
 
     // проверка статического метода

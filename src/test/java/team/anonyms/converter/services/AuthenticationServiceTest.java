@@ -1,5 +1,6 @@
 package team.anonyms.converter.services;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.Cookie;
 import org.antlr.v4.runtime.misc.Pair;
 import org.junit.jupiter.api.Test;
@@ -42,6 +43,37 @@ class AuthenticationServiceTest {
         assertThrows(CredentialException.class, () -> {
             authenticationService.login(null, emptyCredentials);
         });
+    }
+
+    // логин с несуществующей почтой
+    @Test
+    void testLogin_NonexistentEmail_ThrowsEntityNotFoundException() {
+        String email = "test@gmail.com";
+        String password = "test_password";
+        CredentialsServiceDto credentials = new CredentialsServiceDto(email, password);
+
+        Mockito.when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
+            authenticationService.login(null, credentials);
+        });
+
+        assertTrue(exception.getMessage().contains("User not found; email=" + email));
+    }
+
+    // логин по кукам с несуществующим айди
+    @Test
+    void testLogin_NonexistentId_ThrowsEntityNotFoundException() {
+        String fakeId = UUID.randomUUID().toString();
+        CredentialsServiceDto emptyCredentials = new CredentialsServiceDto(null, null);
+
+        Mockito.when(userRepository.findById(UUID.fromString(fakeId))).thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
+            authenticationService.login(fakeId, emptyCredentials);
+        });
+
+        assertTrue(exception.getMessage().contains("User not found; id=" + fakeId));
     }
 
     // есть куки и пустые креды
