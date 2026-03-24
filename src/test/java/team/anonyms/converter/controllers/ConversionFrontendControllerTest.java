@@ -13,22 +13,24 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import team.anonyms.converter.services.ConversionService;
+
+import team.anonyms.converter.controllers.frontend.ConversionFrontendController;
+import team.anonyms.converter.services.frontend.ConversionFrontendService;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 import static org.mockito.ArgumentMatchers.any;
 
-@WebMvcTest(ConversionController.class)
-@ContextConfiguration(classes = ConversionController.class)
-class ConversionControllerTest {
+@WebMvcTest(ConversionFrontendController.class)
+@ContextConfiguration(classes = ConversionFrontendController.class)
+class ConversionFrontendControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockitoBean
-    private ConversionService conversionService;
+    private ConversionFrontendService conversionFrontendService;
 
     @Test
     void testConvertJsonFileToCsv_Success() throws Exception {
@@ -45,10 +47,10 @@ class ConversionControllerTest {
         Path tempCsvFile = Files.createTempFile("converted", ".csv");
         Files.write(tempCsvFile, "key,value".getBytes());
 
-        Mockito.when(conversionService.convertJsonFileToCsv(any())).thenReturn(tempCsvFile);
+        Mockito.when(conversionFrontendService.convertJsonFileToCsv(any())).thenReturn(tempCsvFile);
 
         // post-запрос
-        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/json_csv")
+        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/json/csv")
                         .file(mockFile))
                 .andExpect(MockMvcResultMatchers.request().asyncStarted())
                 .andReturn();
@@ -73,9 +75,9 @@ class ConversionControllerTest {
         java.nio.file.Path tempJsonFile = java.nio.file.Files.createTempFile("converted", ".json");
         java.nio.file.Files.write(tempJsonFile, "{\"name\":\"test\"}".getBytes());
 
-        Mockito.when(conversionService.convertCsvFileToJson(any())).thenReturn(tempJsonFile);
+        Mockito.when(conversionFrontendService.convertCsvFileToJson(any())).thenReturn(tempJsonFile);
 
-        org.springframework.test.web.servlet.MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/csv_json")
+        org.springframework.test.web.servlet.MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/csv/json")
                         .file(mockFile))
                 .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.request().asyncStarted())
                 .andReturn();

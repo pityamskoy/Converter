@@ -1,4 +1,4 @@
-package team.anonyms.converter.services;
+package team.anonyms.converter.services.frontend;
 
 import jakarta.annotation.Nullable;
 import jakarta.persistence.EntityNotFoundException;
@@ -6,7 +6,7 @@ import jakarta.servlet.http.Cookie;
 import org.antlr.v4.runtime.misc.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import team.anonyms.converter.controllers.AuthenticationController;
+import team.anonyms.converter.controllers.frontend.AuthenticationController;
 import team.anonyms.converter.dto.service.credentials.CredentialsServiceDto;
 import team.anonyms.converter.dto.service.credentials.LoginResultServiceDto;
 import team.anonyms.converter.dto.service.user.UserServiceDto;
@@ -29,8 +29,10 @@ public final class AuthenticationService {
     /**
      * @param userId a value of cookie, which {@link AuthenticationController} accepts as an argument.
      * @param credentials login credentials.
+     *
      * @return {@link Pair}<{@link Cookie}, {@link LoginResultServiceDto}>, where {@link Cookie} is null if {@code User}
      * has been found by {@code userId}.
+     *
      * @throws CredentialException if cookie is null, and credentials are null.
      */
     public Pair<Cookie, LoginResultServiceDto> login(

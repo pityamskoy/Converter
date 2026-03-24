@@ -15,6 +15,7 @@ import team.anonyms.converter.dto.service.user.UserToRegisterServiceDto;
 import team.anonyms.converter.entities.User;
 import team.anonyms.converter.mappers.UserMapper;
 import team.anonyms.converter.repositories.UserRepository;
+import team.anonyms.converter.services.frontend.AuthenticationService;
 
 import javax.security.auth.login.CredentialException;
 import java.util.List;

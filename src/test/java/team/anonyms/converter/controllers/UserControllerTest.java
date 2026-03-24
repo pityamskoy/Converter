@@ -11,12 +11,13 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import team.anonyms.converter.controllers.frontend.UserController;
 import team.anonyms.converter.dto.controller.user.UserControllerDto;
 import team.anonyms.converter.dto.controller.user.UserToUpdateControllerDto;
 import team.anonyms.converter.dto.service.user.UserServiceDto;
 import team.anonyms.converter.dto.service.user.UserToUpdateServiceDto;
 import team.anonyms.converter.mappers.UserMapper;
-import team.anonyms.converter.services.UserService;
+import team.anonyms.converter.services.frontend.UserService;
 
 import java.util.List;
 import java.util.UUID;

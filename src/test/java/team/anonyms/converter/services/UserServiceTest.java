@@ -13,6 +13,7 @@ import team.anonyms.converter.entities.User;
 import team.anonyms.converter.mappers.PatternMapper;
 import team.anonyms.converter.mappers.UserMapper;
 import team.anonyms.converter.repositories.UserRepository;
+import team.anonyms.converter.services.frontend.UserService;
 
 import java.util.List;
 import java.util.Optional;

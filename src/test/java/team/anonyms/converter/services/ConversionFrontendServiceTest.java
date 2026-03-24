@@ -3,6 +3,7 @@ package team.anonyms.converter.services;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockMultipartFile;
 import team.anonyms.converter.errors.UnsupportedExtensionException;
+import team.anonyms.converter.services.frontend.ConversionFrontendService;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,9 +11,9 @@ import java.nio.file.Path;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class ConversionServiceTest {
+class ConversionFrontendServiceTest {
 
-    private final ConversionService conversionService = new ConversionService();
+    private final ConversionFrontendService conversionFrontendService = new ConversionFrontendService();
 
     // тест из json в csv
     @Test
@@ -32,7 +33,7 @@ class ConversionServiceTest {
         );
 
         // вызываем метод
-        Path resultPath = conversionService.convertJsonFileToCsv(mockFile);
+        Path resultPath = conversionFrontendService.convertJsonFileToCsv(mockFile);
 
         // проверяем, что файл создался и все строки на месте как надо
         assertNotNull(resultPath);
@@ -61,7 +62,7 @@ class ConversionServiceTest {
                 csvContent.getBytes()
         );
 
-        Path resultPath = conversionService.convertCsvFileToJson(mockFile);
+        Path resultPath = conversionFrontendService.convertCsvFileToJson(mockFile);
 
         assertNotNull(resultPath);
         assertTrue(Files.exists(resultPath));
@@ -88,7 +89,7 @@ class ConversionServiceTest {
 
         // проверка на исключение
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            conversionService.convertJsonFileToCsv(emptyFile);
+            conversionFrontendService.convertJsonFileToCsv(emptyFile);
         });
         assertEquals("file is empty", exception.getMessage());
     }
@@ -104,7 +105,7 @@ class ConversionServiceTest {
         );
 
         UnsupportedExtensionException exception = assertThrows(UnsupportedExtensionException.class, () -> {
-            conversionService.convertCsvFileToJson(txtFile);
+            conversionFrontendService.convertCsvFileToJson(txtFile);
         });
         assertEquals("Provided file doesn't have '.csv' extension", exception.getMessage());
     }
@@ -112,10 +113,10 @@ class ConversionServiceTest {
     // проверка статического метода
     @Test
     void testCountNumberOfOccurrences() {
-        int count1 = ConversionService.countNumberOfOccurrences(".json", ".");
+        int count1 = ConversionFrontendService.countNumberOfOccurrences(".json", ".");
         assertEquals(1, count1);
 
-        int count2 = ConversionService.countNumberOfOccurrences("my.bad.file.json", ".");
+        int count2 = ConversionFrontendService.countNumberOfOccurrences("my.bad.file.json", ".");
         assertEquals(3, count2);
     }
 }

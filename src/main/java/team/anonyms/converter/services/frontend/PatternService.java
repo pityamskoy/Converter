@@ -1,4 +1,4 @@
-package team.anonyms.converter.services;
+package team.anonyms.converter.services.frontend;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
