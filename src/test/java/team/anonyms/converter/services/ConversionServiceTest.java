@@ -1,7 +1,9 @@
 package team.anonyms.converter.services;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.web.multipart.MultipartFile;
 import team.anonyms.converter.errors.UnsupportedExtensionException;
 
 import java.io.IOException;
@@ -76,6 +78,7 @@ class ConversionServiceTest {
         Files.deleteIfExists(resultPath);
     }
 
+    // пустой файл json -> csv
     @Test
     void testConvertJsonFileToCsv_EmptyFile_ThrowsException() {
         // пустой массив
@@ -93,9 +96,69 @@ class ConversionServiceTest {
         assertEquals("jsonFile is empty", exception.getMessage());
     }
 
+    // грозный хардкод null-имени, ибо MockMultipartFile мне не разрешает(((
+    @Test
+    void testConvertJsonFileToCsv_NullFilename_ThrowsException() {
+        MultipartFile brokenFile = Mockito.mock(MultipartFile.class);
+
+        Mockito.when(brokenFile.isEmpty()).thenReturn(false);
+        Mockito.when(brokenFile.getOriginalFilename()).thenReturn(null);
+
+        NullPointerException exception = assertThrows(NullPointerException.class, () -> {
+            conversionService.convertJsonFileToCsv(brokenFile);
+        });
+        assertEquals("filename is null", exception.getMessage());
+    }
+
+    // не то расширение
+    @Test
+    void testConvertJsonFileToCsv_WrongExtension_ThrowsException() {
+        // вместо csv тут расширение .txt
+        MockMultipartFile txtFile = new MockMultipartFile(
+                "file",
+                "wrong.txt",
+                "text/plain",
+                "data".getBytes()
+        );
+
+        UnsupportedExtensionException exception = assertThrows(UnsupportedExtensionException.class, () -> {
+            conversionService.convertJsonFileToCsv(txtFile);
+        });
+        assertEquals("Provided file doesn't have '.json' extension", exception.getMessage());
+    }
+
+    // пустой файл csv -> json
+    @Test
+    void testConvertCsvFileToJson_EmptyFile_ThrowsException() {
+        MockMultipartFile emptyFile = new MockMultipartFile(
+                "file",
+                "empty_file.csv",
+                "text/csv",
+                new byte[0]
+        );
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            conversionService.convertCsvFileToJson(emptyFile);
+        });
+        assertEquals("csvFile is empty", exception.getMessage());
+    }
+
+    @Test
+    void testConvertCsvFileToJson_NullFilename_ThrowsException() {
+        MultipartFile brokenFile = Mockito.mock(MultipartFile.class);
+
+        Mockito.when(brokenFile.isEmpty()).thenReturn(false);
+        Mockito.when(brokenFile.getOriginalFilename()).thenReturn(null);
+
+        NullPointerException exception = assertThrows(NullPointerException.class, () -> {
+                    conversionService.convertCsvFileToJson(brokenFile);
+        });
+        assertEquals("filename is null", exception.getMessage());
+    }
+
+    // не то расширение
     @Test
     void testConvertCsvFileToJson_WrongExtension_ThrowsException() {
-        // вместо csv тут расширение .txt
         MockMultipartFile txtFile = new MockMultipartFile(
                 "file",
                 "wrong.txt",
