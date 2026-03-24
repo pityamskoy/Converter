@@ -62,7 +62,7 @@ class ModificationServiceTest {
             modificationService.getAllModificationsByPatternId(patternId);
         });
         // должно быть правильное сообщение об ошибке
-        assertTrue(exception.getMessage().contains("Pattern not found"));
+        assertTrue(exception.getMessage().contains("Pattern not found; id=" + patternId));
     }
 
     @Test
@@ -104,6 +104,27 @@ class ModificationServiceTest {
     }
 
     @Test
+    void testCreateModification_ThrowsEntityNotFound() {
+        UUID patternId = UUID.randomUUID();
+
+        ModificationToCreateServiceDto createDto = new ModificationToCreateServiceDto(
+                patternId,
+                "old",
+                "new",
+                "type",
+                "value"
+        );
+
+        Mockito.when(patternRepository.findById(patternId)).thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
+            modificationService.createModification(createDto);
+        });
+
+        assertTrue(exception.getMessage().contains("Pattern not found; id=" + patternId));
+    }
+
+    @Test
     void testUpdateModification_Success() {
         UUID modId = UUID.randomUUID();
         ModificationServiceDto updateDto = new ModificationServiceDto(
@@ -127,6 +148,26 @@ class ModificationServiceTest {
     }
 
     @Test
+    void testUpdateModification_ThrowsEntityNotFound() {
+        UUID modificationId = UUID.randomUUID();
+        ModificationServiceDto updateDto = new ModificationServiceDto(
+                modificationId,
+                "old",
+                "new",
+                "type",
+                "value"
+        );
+
+        Mockito.when(modificationRepository.findById(modificationId)).thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
+            modificationService.updateModification(updateDto);
+        });
+
+        assertTrue(exception.getMessage().contains("Modification not found; id=" + modificationId));
+    }
+
+    @Test
     void testDeleteModification_Success() {
         UUID modId = UUID.randomUUID();
         Modification mockModification = new Modification();
@@ -136,5 +177,18 @@ class ModificationServiceTest {
         modificationService.deleteModification(modId);
 
         Mockito.verify(modificationRepository).delete(mockModification);
+    }
+
+    @Test
+    void testDeleteModification_ThrowsEntityNotFound() {
+        UUID modificationId = UUID.randomUUID();
+
+        Mockito.when(modificationRepository.findById(modificationId)).thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
+            modificationService.deleteModification(modificationId);
+        });
+
+        assertTrue(exception.getMessage().contains("Modification not found; id=" + modificationId));
     }
 }
