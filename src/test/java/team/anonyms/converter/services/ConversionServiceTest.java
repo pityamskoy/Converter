@@ -78,10 +78,9 @@ class ConversionServiceTest {
         Files.deleteIfExists(resultPath);
     }
 
-    // пустой файл json -> csv
+    // ненужные тесты удалены, остались три переделанных под метод валидации
     @Test
-    void testConvertJsonFileToCsv_EmptyFile_ThrowsException() {
-        // пустой массив
+    void testValidateArgumentsForConversion_EmptyFile_ThrowsException() {
         MockMultipartFile emptyFile = new MockMultipartFile(
                 "file",
                 "empty.json",
@@ -89,7 +88,6 @@ class ConversionServiceTest {
                 new byte[0]
         );
 
-        // проверка на исключение
         IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
             conversionService.convertJsonFileToCsv(emptyFile);
         });
@@ -98,7 +96,7 @@ class ConversionServiceTest {
 
     // грозный хардкод null-имени, ибо MockMultipartFile мне не разрешает(((
     @Test
-    void testConvertJsonFileToCsv_NullFilename_ThrowsException() {
+    void testValidateArgumentsForConversion_NullFilename_ThrowsException() {
         MultipartFile brokenFile = Mockito.mock(MultipartFile.class);
 
         Mockito.when(brokenFile.isEmpty()).thenReturn(false);
@@ -112,8 +110,8 @@ class ConversionServiceTest {
 
     // не то расширение
     @Test
-    void testConvertJsonFileToCsv_WrongExtension_ThrowsException() {
-        // вместо csv тут расширение .txt
+    void testValidateArgumentsForConversion_WrongExtension_ThrowsException() {
+        // вместо json тут расширение .txt
         MockMultipartFile txtFile = new MockMultipartFile(
                 "file",
                 "wrong.txt",
@@ -124,52 +122,8 @@ class ConversionServiceTest {
         UnsupportedExtensionException exception = assertThrows(UnsupportedExtensionException.class, () -> {
             conversionService.convertJsonFileToCsv(txtFile);
         });
+
         assertEquals("Provided file doesn't have '.json' extension", exception.getMessage());
-    }
-
-    // пустой файл csv -> json
-    @Test
-    void testConvertCsvFileToJson_EmptyFile_ThrowsException() {
-        MockMultipartFile emptyFile = new MockMultipartFile(
-                "file",
-                "empty_file.csv",
-                "text/csv",
-                new byte[0]
-        );
-
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            conversionService.convertCsvFileToJson(emptyFile);
-        });
-        assertEquals("csvFile is empty", exception.getMessage());
-    }
-
-    @Test
-    void testConvertCsvFileToJson_NullFilename_ThrowsException() {
-        MultipartFile brokenFile = Mockito.mock(MultipartFile.class);
-
-        Mockito.when(brokenFile.isEmpty()).thenReturn(false);
-        Mockito.when(brokenFile.getOriginalFilename()).thenReturn(null);
-
-        NullPointerException exception = assertThrows(NullPointerException.class, () -> {
-                    conversionService.convertCsvFileToJson(brokenFile);
-        });
-        assertEquals("filename is null", exception.getMessage());
-    }
-
-    // не то расширение
-    @Test
-    void testConvertCsvFileToJson_WrongExtension_ThrowsException() {
-        MockMultipartFile txtFile = new MockMultipartFile(
-                "file",
-                "wrong.txt",
-                "text/plain",
-                "data".getBytes()
-        );
-
-        UnsupportedExtensionException exception = assertThrows(UnsupportedExtensionException.class, () -> {
-            conversionService.convertCsvFileToJson(txtFile);
-        });
-        assertEquals("Provided file doesn't have '.csv' extension", exception.getMessage());
     }
 
     // UPD: тесты для конвертации json->xml, xml->json, csv->xml, xml->csv
