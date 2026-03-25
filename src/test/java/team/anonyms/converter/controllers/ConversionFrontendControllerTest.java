@@ -105,7 +105,7 @@ class ConversionFrontendControllerTest {
 
         Mockito.when(conversionFrontendService.convertJsonFileToXml(any())).thenReturn(tempXmlFile);
 
-        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/json_xml")
+        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/json/xml")
                         .file(mockFile))
                 .andExpect(MockMvcResultMatchers.request().asyncStarted())
                 .andReturn();
@@ -131,7 +131,7 @@ class ConversionFrontendControllerTest {
 
         Mockito.when(conversionFrontendService.convertXmlFileToJson(any())).thenReturn(tempJsonFile);
 
-        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/xml_json")
+        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/xml/json")
                         .file(mockFile))
                 .andExpect(MockMvcResultMatchers.request().asyncStarted())
                 .andReturn();
@@ -157,7 +157,7 @@ class ConversionFrontendControllerTest {
 
         Mockito.when(conversionFrontendService.convertXmlFileToCsv(any())).thenReturn(tempCsvFile);
 
-        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/xml_csv")
+        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/xml/csv")
                         .file(mockFile))
                 .andExpect(MockMvcResultMatchers.request().asyncStarted())
                 .andReturn();
@@ -183,7 +183,7 @@ class ConversionFrontendControllerTest {
 
         Mockito.when(conversionFrontendService.convertCsvFileToXml(any())).thenReturn(tempXmlFile);
 
-        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/csv_xml")
+        MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/csv/xml")
                         .file(mockFile))
                 .andExpect(MockMvcResultMatchers.request().asyncStarted())
                 .andReturn();

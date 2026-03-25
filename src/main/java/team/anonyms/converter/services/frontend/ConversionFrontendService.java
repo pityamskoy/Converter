@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import team.anonyms.converter.controllers.AuthenticationController;
 import team.anonyms.converter.errors.UnsupportedExtensionException;
 import com.fasterxml.jackson.databind.JsonNode;
 
@@ -23,7 +22,7 @@ import java.util.*;
 
 @Service
 public final class ConversionFrontendService {
-    private static final Logger log = LoggerFactory.getLogger(ConversionService.class);
+    private static final Logger log = LoggerFactory.getLogger(ConversionFrontendService.class);
 
     // Project directory on the server for deployment
     private static final String PROJECT_DIRECTORY = "/root/projects/converter/";
