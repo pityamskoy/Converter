@@ -1,4 +1,4 @@
-name: Converter
+name: converter
 
 services:
   backend:

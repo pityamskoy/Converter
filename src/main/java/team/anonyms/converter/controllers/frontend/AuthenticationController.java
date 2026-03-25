@@ -1,4 +1,4 @@
-package team.anonyms.converter.controllers;
+package team.anonyms.converter.controllers.frontend;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
@@ -17,7 +17,7 @@ import team.anonyms.converter.dto.service.credentials.LoginResultServiceDto;
 import team.anonyms.converter.dto.service.user.UserServiceDto;
 import team.anonyms.converter.mappers.CredentialsMapper;
 import team.anonyms.converter.mappers.UserMapper;
-import team.anonyms.converter.services.AuthenticationService;
+import team.anonyms.converter.services.frontend.AuthenticationService;
 
 import javax.security.auth.login.CredentialException;
 

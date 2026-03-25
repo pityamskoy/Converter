@@ -14,6 +14,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import team.anonyms.converter.controllers.frontend.AuthenticationController;
 import team.anonyms.converter.dto.controller.credentials.CredentialsControllerDto;
 import team.anonyms.converter.dto.controller.credentials.LoginResultControllerDto;
 import team.anonyms.converter.dto.controller.user.UserControllerDto;
@@ -24,7 +25,7 @@ import team.anonyms.converter.dto.service.user.UserServiceDto;
 import team.anonyms.converter.dto.service.user.UserToRegisterServiceDto;
 import team.anonyms.converter.mappers.CredentialsMapper;
 import team.anonyms.converter.mappers.UserMapper;
-import team.anonyms.converter.services.AuthenticationService;
+import team.anonyms.converter.services.frontend.AuthenticationService;
 
 import java.util.List;
 import java.util.UUID;

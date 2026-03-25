@@ -14,6 +14,7 @@ import team.anonyms.converter.entities.Pattern;
 import team.anonyms.converter.mappers.ModificationMapper;
 import team.anonyms.converter.repositories.ModificationRepository;
 import team.anonyms.converter.repositories.PatternRepository;
+import team.anonyms.converter.services.frontend.ModificationService;
 
 import java.util.ArrayList;
 import java.util.List;

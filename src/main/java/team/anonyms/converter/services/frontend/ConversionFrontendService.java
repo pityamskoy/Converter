@@ -1,4 +1,4 @@
-package team.anonyms.converter.services;
+package team.anonyms.converter.services.frontend;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MappingIterator;
@@ -22,7 +22,7 @@ import java.nio.file.Path;
 import java.util.*;
 
 @Service
-public final class ConversionService {
+public final class ConversionFrontendService {
     private static final Logger log = LoggerFactory.getLogger(ConversionService.class);
 
     // Project directory on the server for deployment
@@ -32,6 +32,7 @@ public final class ConversionService {
      * <p>
      *     Counts number of occurrences for provided string and substring.
      * </p>
+     *
      * @param string main string.
      * @param substring substring.
      *
@@ -119,6 +120,7 @@ public final class ConversionService {
      *     Converts JSON file to CSV file. Any other extensions are not supported.<br>
      *     <b>Assumption</b>: all nested objects in JSON file will be written to CSV file as strings.
      * </p>
+     *
      * @param jsonFile JSON file written in {@link MultipartFile} instance.
      *
      * @return path to converted CSV file.
@@ -203,6 +205,7 @@ public final class ConversionService {
      * <p>
      *     Converts CSV file to JSON file. Any other extensions are not supported.
      * </p>
+     *
      * @param csvFile CSV file written in {@link MultipartFile} instance.
      *
      * @return path to converted JSON file.
@@ -283,6 +286,7 @@ public final class ConversionService {
      * <p>
      *     Converts JSON file to XML file. Any other extensions are not supported.
      * </p>
+     *
      * @param jsonFile JSON file written in {@link MultipartFile} instance.
      *
      * @return path to converted XML file.
@@ -330,6 +334,7 @@ public final class ConversionService {
      * <p>
      *     Converts XML file to JSON file. Any other extensions are not supported.
      * </p>
+     *
      * @param xmlFile XML file written in {@link MultipartFile} instance.
      *
      * @return path to converted JSON file.
@@ -389,6 +394,7 @@ public final class ConversionService {
      *     Converts XML file to CSV file. Any other extensions are not supported.<br>
      *     <b>Assumption</b>: all nested objects in XML file will be written to CSV file as strings.
      * </p>
+     *
      * @param xmlFile XML file written in {@link MultipartFile} instance.
      *
      * @return path to converted CSV file.
@@ -473,6 +479,7 @@ public final class ConversionService {
      * <p>
      *     Converts CSV file to XML file. Any other extensions are not supported.
      * </p>
+     *
      * @param csvFile CSV file written in {@link MultipartFile} instance.
      *
      * @return path to converted XML file.

@@ -9,9 +9,9 @@
     </parent>
 
     <groupId>team.anonyms</groupId>
-    <artifactId>Converter</artifactId>
+    <artifactId>converter</artifactId>
     <version>0.0.1</version>
-    <name>Converter</name>
+    <name>backend</name>
 
     <properties>
         <java.version>25</java.version>
