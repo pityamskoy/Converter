@@ -1,4 +1,4 @@
-package team.anonyms.converter.controllers;
+package team.anonyms.converter.controllers.frontend;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,7 +7,7 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
-import team.anonyms.converter.services.ConversionService;
+import team.anonyms.converter.services.frontend.ConversionFrontendService;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -20,14 +20,14 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 @RestController
 @CrossOrigin(origins = {"http://localhost:4200"}, exposedHeaders = "*")
 @RequestMapping("/conversion")
-public final class ConversionController {
-    private static final Logger log = LoggerFactory.getLogger(ConversionController.class);
+public final class ConversionFrontendController {
+    private static final Logger log = LoggerFactory.getLogger(ConversionFrontendController.class);
 
     @Autowired
-    private ConversionService conversionService;
+    private ConversionFrontendService conversionFrontendService;
 
     //add separator to return
-    @PostMapping(value = "/json_csv", consumes = MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/json/csv", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertJsonFileToCsv(
             @RequestPart(name = "file") MultipartFile file
     ) {
@@ -35,7 +35,7 @@ public final class ConversionController {
         log.info("Called convertJsonFileToCsv; filename={}", filename);
 
         try {
-            Path csvPath = conversionService.convertJsonFileToCsv(file);
+            Path csvPath = conversionFrontendService.convertJsonFileToCsv(file);
             Objects.requireNonNull(filename);
             log.debug("Converted file created; csvPath={}", csvPath);
 
@@ -65,7 +65,7 @@ public final class ConversionController {
     }
 
     //fix separator problem
-    @PostMapping(value = "/csv_json", consumes = MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/csv/json", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertCsvFileToJson(
             @RequestPart(name = "file") MultipartFile file
     ) {
@@ -73,7 +73,7 @@ public final class ConversionController {
         log.info("Called convertCsvFileToJson; filename={}", filename);
 
         try {
-            Path jsonPath = conversionService.convertCsvFileToJson(file);
+            Path jsonPath = conversionFrontendService.convertCsvFileToJson(file);
             Objects.requireNonNull(filename);
             log.debug("Converted file created; jsonPath={}", jsonPath);
 
@@ -102,7 +102,7 @@ public final class ConversionController {
         }
     }
 
-    @PostMapping(value = "/json_xml", consumes = MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/json/xml", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertJsonFileToXml(
             @RequestPart(name = "file") MultipartFile file
     ) {
@@ -110,7 +110,7 @@ public final class ConversionController {
         log.info("Called convertJsonFileToXml; filename={}", filename);
 
         try {
-            Path xmlPath = conversionService.convertJsonFileToXml(file);
+            Path xmlPath = conversionFrontendService.convertJsonFileToXml(file);
             Objects.requireNonNull(filename);
             log.debug("Converted file created; xmlPath={}", xmlPath);
 
@@ -139,7 +139,7 @@ public final class ConversionController {
         }
     }
 
-    @PostMapping(value = "/xml_json", consumes = MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/xml/json", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertXmlFileToJson(
             @RequestPart(name = "file") MultipartFile file
     ) {
@@ -147,7 +147,7 @@ public final class ConversionController {
         log.info("Called convertXmlFileToJson; filename={}", filename);
 
         try {
-            Path jsonPath = conversionService.convertXmlFileToJson(file);
+            Path jsonPath = conversionFrontendService.convertXmlFileToJson(file);
             Objects.requireNonNull(filename);
             log.debug("Converted file created; jsonPath={}", jsonPath);
 
@@ -177,7 +177,7 @@ public final class ConversionController {
     }
 
     //add separator to return
-    @PostMapping(value = "/xml_csv", consumes = MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/xml/csv", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertXmlFileToCsv(
             @RequestPart(name = "file") MultipartFile file
     ) {
@@ -185,7 +185,7 @@ public final class ConversionController {
         log.info("Called convertXmlFileToCsv; filename={}", filename);
 
         try {
-            Path csvPath = conversionService.convertXmlFileToCsv(file);
+            Path csvPath = conversionFrontendService.convertXmlFileToCsv(file);
             Objects.requireNonNull(filename);
             log.debug("Converted file created; csvPath={}", csvPath);
 
@@ -215,7 +215,7 @@ public final class ConversionController {
     }
 
     //fix separator problem
-    @PostMapping(value = "/csv_xml", consumes = MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/csv/xml", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertCsvFileToXml(
             @RequestPart(name = "file") MultipartFile file
     ) {
@@ -223,7 +223,7 @@ public final class ConversionController {
         log.info("Called convertCsvFileToXml; filename={}", filename);
 
         try {
-            Path xmlPath = conversionService.convertCsvFileToXml(file);
+            Path xmlPath = conversionFrontendService.convertCsvFileToXml(file);
             Objects.requireNonNull(filename);
             log.debug("Converted file created; xmlPath={}", xmlPath);
 

@@ -1,12 +1,15 @@
-package team.anonyms.converter.services;
+package team.anonyms.converter.services.frontend;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import com.fasterxml.jackson.dataformat.csv.CsvWriteException;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.jspecify.annotations.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import team.anonyms.converter.errors.UnsupportedExtensionException;
@@ -18,7 +21,9 @@ import java.nio.file.Path;
 import java.util.*;
 
 @Service
-public final class ConversionService {
+public final class ConversionFrontendService {
+    private static final Logger log = LoggerFactory.getLogger(ConversionFrontendService.class);
+
     // Project directory on the server for deployment
     private static final String PROJECT_DIRECTORY = "/root/projects/converter/";
 
@@ -26,6 +31,7 @@ public final class ConversionService {
      * <p>
      *     Counts number of occurrences for provided string and substring.
      * </p>
+     *
      * @param string main string.
      * @param substring substring.
      *
@@ -113,6 +119,7 @@ public final class ConversionService {
      *     Converts JSON file to CSV file. Any other extensions are not supported.<br>
      *     <b>Assumption</b>: all nested objects in JSON file will be written to CSV file as strings.
      * </p>
+     *
      * @param jsonFile JSON file written in {@link MultipartFile} instance.
      *
      * @return path to converted CSV file.
@@ -134,7 +141,14 @@ public final class ConversionService {
         // Start converting
         JsonMapper jsonMapper = new JsonMapper();
         List<Map<String,Object>> rows = new ArrayList<>();
-        JsonNode root = jsonMapper.readTree(jsonFile.getInputStream());
+
+        JsonNode root;
+        try {
+            root = jsonMapper.readTree(jsonFile.getInputStream());
+        } catch (JsonProcessingException e) {
+            log.error("convertJsonFileToCsv: JsonProcessingException has been thrown");
+            throw new IllegalArgumentException(e.getMessage());
+        }
 
         if (root.isArray()) {
             for (JsonNode node : root) {
@@ -175,7 +189,13 @@ public final class ConversionService {
         // Writing converted data
         CsvMapper csvMapper = new CsvMapper();
         CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
-        csvMapper.writerFor(List.class).with(csvSchema).writeValue(csvPath.toFile(), rows);
+
+        try {
+            csvMapper.writerFor(List.class).with(csvSchema).writeValue(csvPath.toFile(), rows);
+        } catch (CsvWriteException e) {
+            log.error("convertJsonFileToCsv: CsvWriteException has been thrown");
+            throw new IllegalArgumentException(e.getMessage());
+        }
 
         return csvPath;
     }
@@ -184,6 +204,7 @@ public final class ConversionService {
      * <p>
      *     Converts CSV file to JSON file. Any other extensions are not supported.
      * </p>
+     *
      * @param csvFile CSV file written in {@link MultipartFile} instance.
      *
      * @return path to converted JSON file.
@@ -264,6 +285,7 @@ public final class ConversionService {
      * <p>
      *     Converts JSON file to XML file. Any other extensions are not supported.
      * </p>
+     *
      * @param jsonFile JSON file written in {@link MultipartFile} instance.
      *
      * @return path to converted XML file.
@@ -311,6 +333,7 @@ public final class ConversionService {
      * <p>
      *     Converts XML file to JSON file. Any other extensions are not supported.
      * </p>
+     *
      * @param xmlFile XML file written in {@link MultipartFile} instance.
      *
      * @return path to converted JSON file.
@@ -331,7 +354,14 @@ public final class ConversionService {
         // Start converting
         XmlMapper xmlMapper = new XmlMapper();
         List<Map<String,Object>> rows = new ArrayList<>();
-        JsonNode root = xmlMapper.readTree(xmlFile.getInputStream());
+
+        JsonNode root;
+        try {
+            root = xmlMapper.readTree(xmlFile.getInputStream());
+        } catch (JsonProcessingException e) {
+            log.error("convertXmlFileToJson: JsonProcessingException has been thrown");
+            throw new IllegalArgumentException(e.getMessage());
+        }
 
         if (root.isArray()) {
             for (JsonNode node : root) {
@@ -363,6 +393,7 @@ public final class ConversionService {
      *     Converts XML file to CSV file. Any other extensions are not supported.<br>
      *     <b>Assumption</b>: all nested objects in XML file will be written to CSV file as strings.
      * </p>
+     *
      * @param xmlFile XML file written in {@link MultipartFile} instance.
      *
      * @return path to converted CSV file.
@@ -384,7 +415,14 @@ public final class ConversionService {
         // Start converting
         XmlMapper xmlMapper = new XmlMapper();
         List<Map<String,Object>> rows = new ArrayList<>();
-        JsonNode root = xmlMapper.readTree(xmlFile.getInputStream());
+
+        JsonNode root;
+        try {
+            root = xmlMapper.readTree(xmlFile.getInputStream());
+        } catch (JsonProcessingException e) {
+            log.error("convertXmlFileToCsv: JsonProcessingException has been thrown");
+            throw new IllegalArgumentException(e.getMessage());
+        }
 
         if (root.isArray()) {
             for (JsonNode node : root) {
@@ -424,8 +462,14 @@ public final class ConversionService {
 
         // Writing converted data
         CsvMapper csvMapper = new CsvMapper();
-        CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
-        csvMapper.writerFor(List.class).with(csvSchema).writeValue(csvPath.toFile(), rows);
+
+        try {
+            CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
+            csvMapper.writerFor(List.class).with(csvSchema).writeValue(csvPath.toFile(), rows);
+        } catch (CsvWriteException e) {
+            log.error("convertXmlFileToCsv: CsvWriteException has been thrown");
+            throw new IllegalArgumentException(e.getMessage());
+        }
 
         return csvPath;
     }
@@ -434,6 +478,7 @@ public final class ConversionService {
      * <p>
      *     Converts CSV file to XML file. Any other extensions are not supported.
      * </p>
+     *
      * @param csvFile CSV file written in {@link MultipartFile} instance.
      *
      * @return path to converted XML file.

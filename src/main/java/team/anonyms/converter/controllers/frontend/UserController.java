@@ -1,4 +1,4 @@
-package team.anonyms.converter.controllers;
+package team.anonyms.converter.controllers.frontend;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +9,7 @@ import team.anonyms.converter.dto.controller.user.UserControllerDto;
 import team.anonyms.converter.dto.controller.user.UserToUpdateControllerDto;
 import team.anonyms.converter.dto.service.user.UserServiceDto;
 import team.anonyms.converter.mappers.UserMapper;
-import team.anonyms.converter.services.UserService;
+import team.anonyms.converter.services.frontend.UserService;
 
 import java.util.UUID;
 
