@@ -24,7 +24,7 @@ public final class UserController {
     @Autowired
     private UserMapper userMapper;
 
-    @PutMapping("/update")
+    @PutMapping
     public ResponseEntity<UserControllerDto> updateUser(@RequestBody UserToUpdateControllerDto userToUpdate) {
         log.info("Called updateUser; userToUpdate={}", userToUpdate);
 
@@ -34,8 +34,8 @@ public final class UserController {
         return ResponseEntity.ok(userMapper.userServiceDtoToControllerDto(userUpdated));
     }
 
-    @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteUser(@RequestBody UUID userId) {
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteUser(@RequestParam UUID userId) {
         log.info("Called deleteUser; id={}", userId.toString());
 
         userService.deleteUser(userId);

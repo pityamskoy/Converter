@@ -18,14 +18,12 @@ public final class Pattern {
     @Column(name = "id", nullable = false, unique = true)
     private UUID id;
 
-    @Column(name = "name", nullable = false)
+    @Column(name = "name")
     private String name;
 
+    // Example: .csv .json or .json .xml.
     @Column(name = "conversion_type", nullable = false)
     private String conversionType;
-
-    @Column(name = "instruction", columnDefinition = "TEXT")
-    private String instruction;
 
     @OneToMany(fetch = FetchType.EAGER)
     private List<Modification> modifications;

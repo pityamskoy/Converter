@@ -10,6 +10,7 @@ import team.anonyms.converter.entities.Pattern;
 import team.anonyms.converter.entities.User;
 import team.anonyms.converter.mappers.ModificationMapper;
 import team.anonyms.converter.mappers.PatternMapper;
+import team.anonyms.converter.repositories.ModificationRepository;
 import team.anonyms.converter.repositories.PatternRepository;
 import team.anonyms.converter.repositories.UserRepository;
 
@@ -21,6 +22,8 @@ import java.util.UUID;
 public final class PatternService {
     @Autowired
     private PatternRepository patternRepository;
+    @Autowired
+    private ModificationRepository modificationRepository;
     @Autowired
     private UserRepository userRepository;
     @Autowired
@@ -71,7 +74,8 @@ public final class PatternService {
         Pattern patternUpdated = pattern.get();
         patternUpdated.setName(patternToUpdate.name());
         patternUpdated.setConversionType(patternToUpdate.conversionType());
-        patternUpdated.setInstruction(patternToUpdate.instruction());
+
+        modificationRepository.deleteAll(patternUpdated.getModifications());
         patternUpdated.setModifications(modifications);
 
         patternRepository.save(patternUpdated);

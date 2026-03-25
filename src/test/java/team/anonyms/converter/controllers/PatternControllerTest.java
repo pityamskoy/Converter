@@ -50,7 +50,6 @@ class PatternControllerTest {
                 patternId,
                 "Test Pattern",
                 "json_csv",
-                "test instruction",
                 List.of()
         );
 
@@ -58,7 +57,6 @@ class PatternControllerTest {
                 patternId,
                 "Test Pattern",
                 "json_csv",
-                "test instruction",
                 List.of()
         );
 
@@ -83,7 +81,6 @@ class PatternControllerTest {
                 userId,
                 "New Pattern",
                 "json_csv",
-                "test instruction",
                 List.of()
         );
 
@@ -91,7 +88,6 @@ class PatternControllerTest {
                 userId,
                 "New Pattern",
                 "json_csv",
-                "test instruction",
                 List.of()
         );
 
@@ -99,7 +95,6 @@ class PatternControllerTest {
                 patternId,
                 "New Pattern",
                 "json_csv",
-                "test instruction",
                 List.of()
         );
 
@@ -107,7 +102,6 @@ class PatternControllerTest {
                 patternId,
                 "New Pattern",
                 "json_csv",
-                "test instruction",
                 List.of()
         );
 

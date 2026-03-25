@@ -27,7 +27,6 @@ public final class PatternMapper {
                 patternControllerDto.id(),
                 patternControllerDto.name(),
                 patternControllerDto.conversionType(),
-                patternControllerDto.instruction(),
                 modifications
         );
     }
@@ -42,7 +41,6 @@ public final class PatternMapper {
                 patternToCreateControllerDto.userId(),
                 patternToCreateControllerDto.name(),
                 patternToCreateControllerDto.conversionType(),
-                patternToCreateControllerDto.instruction(),
                 modifications
         );
     }
@@ -55,7 +53,6 @@ public final class PatternMapper {
                 patternServiceDto.id(),
                 patternServiceDto.name(),
                 patternServiceDto.conversionType(),
-                patternServiceDto.instruction(),
                 modifications
         );
     }
@@ -68,7 +65,6 @@ public final class PatternMapper {
                 patternServiceDto.id(),
                 patternServiceDto.name(),
                 patternServiceDto.conversionType(),
-                patternServiceDto.instruction(),
                 modifications
         );
     }
@@ -81,7 +77,6 @@ public final class PatternMapper {
                 UUID.randomUUID(),
                 patternToCreateServiceDto.name(),
                 patternToCreateServiceDto.conversionType(),
-                patternToCreateServiceDto.instruction(),
                 modifications
         );
     }
@@ -94,7 +89,6 @@ public final class PatternMapper {
                 pattern.getId(),
                 pattern.getName(),
                 pattern.getConversionType(),
-                pattern.getInstruction(),
                 modifications
         );
     }

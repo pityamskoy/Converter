@@ -7,6 +7,7 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.method.annotation.StreamingResponseBody;
+import team.anonyms.converter.dto.controller.pattern.PatternControllerDto;
 import team.anonyms.converter.services.frontend.ConversionFrontendService;
 
 import java.io.IOException;
@@ -29,21 +30,20 @@ public final class ConversionFrontendController {
     //add separator to return
     @PostMapping(value = "/json/csv", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertJsonFileToCsv(
-            @RequestPart(name = "file") MultipartFile file
+            @RequestPart(name = "file") MultipartFile file,
+            @RequestBody PatternControllerDto pattern
     ) {
         String filename = file.getOriginalFilename();
-        log.info("Called convertJsonFileToCsv; filename={}", filename);
+        log.info("Called convertJsonFileToCsv; filename={}; pattern={}", filename, pattern);
 
         try {
-            Path csvPath = conversionFrontendService.convertJsonFileToCsv(file);
+            Path csvPath = conversionFrontendService.convertJsonFileToCsv(file, pattern);
             Objects.requireNonNull(filename);
-            log.debug("Converted file created; csvPath={}", csvPath);
 
             StreamingResponseBody stream = outputStream -> {
                 try (InputStream in = Files.newInputStream(csvPath)) {
                     in.transferTo(outputStream);
                 } finally {
-                    log.debug("Deleting converted file; csvPath={}", csvPath);
                     Files.deleteIfExists(csvPath);
                 }
             };
@@ -67,21 +67,20 @@ public final class ConversionFrontendController {
     //fix separator problem
     @PostMapping(value = "/csv/json", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertCsvFileToJson(
-            @RequestPart(name = "file") MultipartFile file
+            @RequestPart(name = "file") MultipartFile file,
+            @RequestBody PatternControllerDto pattern
     ) {
         String filename = file.getOriginalFilename();
-        log.info("Called convertCsvFileToJson; filename={}", filename);
+        log.info("Called convertCsvFileToJson; filename={}; pattern={}", filename, pattern);
 
         try {
-            Path jsonPath = conversionFrontendService.convertCsvFileToJson(file);
+            Path jsonPath = conversionFrontendService.convertCsvFileToJson(file, pattern);
             Objects.requireNonNull(filename);
-            log.debug("Converted file created; jsonPath={}", jsonPath);
 
             StreamingResponseBody stream = outputStream -> {
                 try (InputStream in = Files.newInputStream(jsonPath)) {
                     in.transferTo(outputStream);
                 } finally {
-                    log.debug("Deleting converted file; jsonPath={}", jsonPath);
                     Files.deleteIfExists(jsonPath);
                 }
             };
@@ -104,21 +103,20 @@ public final class ConversionFrontendController {
 
     @PostMapping(value = "/json/xml", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertJsonFileToXml(
-            @RequestPart(name = "file") MultipartFile file
+            @RequestPart(name = "file") MultipartFile file,
+            @RequestBody PatternControllerDto pattern
     ) {
         String filename = file.getOriginalFilename();
-        log.info("Called convertJsonFileToXml; filename={}", filename);
+        log.info("Called convertJsonFileToXml; filename={}; pattern={}", filename, pattern);
 
         try {
-            Path xmlPath = conversionFrontendService.convertJsonFileToXml(file);
+            Path xmlPath = conversionFrontendService.convertJsonFileToXml(file, pattern);
             Objects.requireNonNull(filename);
-            log.debug("Converted file created; xmlPath={}", xmlPath);
 
             StreamingResponseBody stream = outputStream -> {
                 try (InputStream in = Files.newInputStream(xmlPath)) {
                     in.transferTo(outputStream);
                 } finally {
-                    log.debug("Deleting converted file; xmlPath={}", xmlPath);
                     Files.deleteIfExists(xmlPath);
                 }
             };
@@ -141,21 +139,20 @@ public final class ConversionFrontendController {
 
     @PostMapping(value = "/xml/json", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertXmlFileToJson(
-            @RequestPart(name = "file") MultipartFile file
+            @RequestPart(name = "file") MultipartFile file,
+            @RequestBody PatternControllerDto pattern
     ) {
         String filename = file.getOriginalFilename();
-        log.info("Called convertXmlFileToJson; filename={}", filename);
+        log.info("Called convertXmlFileToJson; filename={}; pattern={}", filename, pattern);
 
         try {
-            Path jsonPath = conversionFrontendService.convertXmlFileToJson(file);
+            Path jsonPath = conversionFrontendService.convertXmlFileToJson(file, pattern);
             Objects.requireNonNull(filename);
-            log.debug("Converted file created; jsonPath={}", jsonPath);
 
             StreamingResponseBody stream = outputStream -> {
                 try (InputStream in = Files.newInputStream(jsonPath)) {
                     in.transferTo(outputStream);
                 } finally {
-                    log.debug("Deleting converted file; jsonPath={}", jsonPath);
                     Files.deleteIfExists(jsonPath);
                 }
             };
@@ -179,21 +176,20 @@ public final class ConversionFrontendController {
     //add separator to return
     @PostMapping(value = "/xml/csv", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertXmlFileToCsv(
-            @RequestPart(name = "file") MultipartFile file
+            @RequestPart(name = "file") MultipartFile file,
+            @RequestBody PatternControllerDto pattern
     ) {
         String filename = file.getOriginalFilename();
-        log.info("Called convertXmlFileToCsv; filename={}", filename);
+        log.info("Called convertXmlFileToCsv; filename={}; pattern={}", filename, pattern);
 
         try {
-            Path csvPath = conversionFrontendService.convertXmlFileToCsv(file);
+            Path csvPath = conversionFrontendService.convertXmlFileToCsv(file, pattern);
             Objects.requireNonNull(filename);
-            log.debug("Converted file created; csvPath={}", csvPath);
 
             StreamingResponseBody stream = outputStream -> {
                 try (InputStream in = Files.newInputStream(csvPath)) {
                     in.transferTo(outputStream);
                 } finally {
-                    log.debug("Deleting converted file; csvPath={}", csvPath);
                     Files.deleteIfExists(csvPath);
                 }
             };
@@ -217,21 +213,20 @@ public final class ConversionFrontendController {
     //fix separator problem
     @PostMapping(value = "/csv/xml", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertCsvFileToXml(
-            @RequestPart(name = "file") MultipartFile file
+            @RequestPart(name = "file") MultipartFile file,
+            @RequestBody PatternControllerDto pattern
     ) {
         String filename = file.getOriginalFilename();
-        log.info("Called convertCsvFileToXml; filename={}", filename);
+        log.info("Called convertCsvFileToXml; filename={}; pattern={}", filename, pattern);
 
         try {
-            Path xmlPath = conversionFrontendService.convertCsvFileToXml(file);
+            Path xmlPath = conversionFrontendService.convertCsvFileToXml(file, pattern);
             Objects.requireNonNull(filename);
-            log.debug("Converted file created; xmlPath={}", xmlPath);
 
             StreamingResponseBody stream = outputStream -> {
                 try (InputStream in = Files.newInputStream(xmlPath)) {
                     in.transferTo(outputStream);
                 } finally {
-                    log.debug("Deleting converted file; xmlPath={}", xmlPath);
                     Files.deleteIfExists(xmlPath);
                 }
             };

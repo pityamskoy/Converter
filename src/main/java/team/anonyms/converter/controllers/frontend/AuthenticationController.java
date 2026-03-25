@@ -58,7 +58,7 @@ public final class AuthenticationController {
         }
     }
 
-    @PostMapping("/register")
+    @PostMapping("/registration")
     public ResponseEntity<UserControllerDto> register(
             @RequestBody UserToRegisterControllerDto userToRegister,
             HttpServletResponse response
@@ -74,7 +74,7 @@ public final class AuthenticationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(userRegistered);
     }
 
-    @DeleteMapping("/logout")
+    @DeleteMapping
     public ResponseEntity<Void> logout(
             @CookieValue(value = "user_id") String userId,
             HttpServletResponse response

@@ -10,6 +10,11 @@ import lombok.NoArgsConstructor;
 
 import java.util.UUID;
 
+/**
+ * <p>
+ *     Modifications are necessary to know how to apply a pattern.
+ * </p>
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor

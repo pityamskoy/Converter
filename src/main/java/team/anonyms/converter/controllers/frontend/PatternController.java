@@ -27,15 +27,15 @@ public final class PatternController {
     @Autowired
     private PatternMapper patternMapper;
 
-    @GetMapping
-    public ResponseEntity<List<PatternControllerDto>> getAllPatternsByUserId(@RequestBody UUID userId) {
+    @GetMapping("/{userId}")
+    public ResponseEntity<List<PatternControllerDto>> getAllPatternsByUserId(@RequestParam UUID userId) {
         log.info("Called getAllPatternsByUserId; id={}", userId);
 
         return ResponseEntity.ok(patternService.getAllPatternsByUserId(userId).stream().
                 map(patternMapper::patternServiceDtoToControllerDto).toList());
     }
 
-    @PostMapping("/create")
+    @PostMapping
     public ResponseEntity<PatternControllerDto> createPattern(
             @RequestBody PatternToCreateControllerDto patternToCreate
     ) {
@@ -50,7 +50,7 @@ public final class PatternController {
                 body(patternMapper.patternServiceDtoToControllerDto(patternCreated));
     }
 
-    @PutMapping("/update")
+    @PutMapping
     public ResponseEntity<PatternControllerDto> updatePattern(@RequestBody PatternControllerDto patternToUpdate) {
         log.info("Called updatePattern; patternToUpdate={}", patternToUpdate);
 
@@ -60,8 +60,8 @@ public final class PatternController {
         return ResponseEntity.ok(patternMapper.patternServiceDtoToControllerDto(patternUpdated));
     }
 
-    @DeleteMapping("/delete")
-    public ResponseEntity<Void> deletePattern(@RequestBody UUID patternId) {
+    @DeleteMapping("/{patternId}")
+    public ResponseEntity<Void> deletePattern(@RequestParam UUID patternId) {
         log.info("Called deletePattern; id={}", patternId);
 
         patternService.deletePattern(patternId);

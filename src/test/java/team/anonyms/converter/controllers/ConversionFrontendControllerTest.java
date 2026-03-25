@@ -47,7 +47,7 @@ class ConversionFrontendControllerTest {
         Path tempCsvFile = Files.createTempFile("converted", ".csv");
         Files.write(tempCsvFile, "key,value".getBytes());
 
-        Mockito.when(conversionFrontendService.convertJsonFileToCsv(any())).thenReturn(tempCsvFile);
+        Mockito.when(conversionFrontendService.convertJsonFileToCsv(any(), null)).thenReturn(tempCsvFile);
 
         // post-запрос
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/json/csv")
@@ -75,7 +75,7 @@ class ConversionFrontendControllerTest {
         Path tempJsonFile = Files.createTempFile("converted", ".json");
         Files.write(tempJsonFile, "{\"name\":\"test\"}".getBytes());
 
-        Mockito.when(conversionFrontendService.convertCsvFileToJson(any())).thenReturn(tempJsonFile);
+        Mockito.when(conversionFrontendService.convertCsvFileToJson(any(), null)).thenReturn(tempJsonFile);
 
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/csv/json")
                         .file(mockFile))
@@ -103,7 +103,7 @@ class ConversionFrontendControllerTest {
         Path tempXmlFile = Files.createTempFile("converted", ".xml");
         Files.write(tempXmlFile, "<name>test</name>".getBytes());
 
-        Mockito.when(conversionFrontendService.convertJsonFileToXml(any())).thenReturn(tempXmlFile);
+        Mockito.when(conversionFrontendService.convertJsonFileToXml(any(), null)).thenReturn(tempXmlFile);
 
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/json/xml")
                         .file(mockFile))
@@ -129,7 +129,7 @@ class ConversionFrontendControllerTest {
         Path tempJsonFile = Files.createTempFile("converted", ".json");
         Files.write(tempJsonFile, "{\"name\":\"test\"}".getBytes());
 
-        Mockito.when(conversionFrontendService.convertXmlFileToJson(any())).thenReturn(tempJsonFile);
+        Mockito.when(conversionFrontendService.convertXmlFileToJson(any(), null)).thenReturn(tempJsonFile);
 
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/xml/json")
                         .file(mockFile))
@@ -155,7 +155,7 @@ class ConversionFrontendControllerTest {
         Path tempCsvFile = Files.createTempFile("converted", ".csv");
         Files.write(tempCsvFile, "name\ntest".getBytes());
 
-        Mockito.when(conversionFrontendService.convertXmlFileToCsv(any())).thenReturn(tempCsvFile);
+        Mockito.when(conversionFrontendService.convertXmlFileToCsv(any(), null)).thenReturn(tempCsvFile);
 
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/xml/csv")
                         .file(mockFile))
@@ -181,7 +181,7 @@ class ConversionFrontendControllerTest {
         Path tempXmlFile = Files.createTempFile("converted", ".xml");
         Files.write(tempXmlFile, "<name>test</name>".getBytes());
 
-        Mockito.when(conversionFrontendService.convertCsvFileToXml(any())).thenReturn(tempXmlFile);
+        Mockito.when(conversionFrontendService.convertCsvFileToXml(any(), null)).thenReturn(tempXmlFile);
 
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/csv/xml")
                         .file(mockFile))

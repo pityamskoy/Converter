@@ -76,7 +76,6 @@ class PatternServiceTest {
                 userId,
                 "name",
                 "type",
-                "inst",
                 List.of()
         );
 
@@ -88,7 +87,6 @@ class PatternServiceTest {
                 UUID.randomUUID(),
                 "name",
                 "type",
-                "inst",
                 List.of()
         );
 
@@ -111,7 +109,6 @@ class PatternServiceTest {
                 userId,
                 "name",
                 "type",
-                "inst",
                 List.of()
         );
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.empty());
@@ -130,7 +127,6 @@ class PatternServiceTest {
                 patternId,
                 "name",
                 "type",
-                "inst",
                 List.of()
         );
         Pattern mockPattern = new Pattern();
@@ -152,7 +148,6 @@ class PatternServiceTest {
                 patternId,
                 "name",
                 "type",
-                "inst",
                 List.of()
         );
         Mockito.when(patternRepository.findById(patternId)).thenReturn(Optional.empty());
