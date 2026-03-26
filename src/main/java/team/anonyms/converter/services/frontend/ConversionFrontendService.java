@@ -188,7 +188,9 @@ public final class ConversionFrontendService {
     ) throws IOException {
         validateArgumentsForConversion(jsonFile, ".json", ".csv", patternControllerDto);
 
-        PatternServiceDto pattern = patternMapper.patternControllerDtoToServiceDto(patternControllerDto);
+        if (patternControllerDto != null) {
+            PatternServiceDto pattern = patternMapper.patternControllerDtoToServiceDto(patternControllerDto);
+        }
 
         // Possible vulnerability here
         // Create temporarily CSV file for writing converted data
@@ -279,7 +281,9 @@ public final class ConversionFrontendService {
     ) throws IOException {
         validateArgumentsForConversion(csvFile, ".csv", ".json", patternControllerDto);
 
-        PatternServiceDto pattern = patternMapper.patternControllerDtoToServiceDto(patternControllerDto);
+        if (patternControllerDto != null) {
+            PatternServiceDto pattern = patternMapper.patternControllerDtoToServiceDto(patternControllerDto);
+        }
 
         // Create temporarily JSON file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(csvFile, ".csv");
@@ -366,7 +370,9 @@ public final class ConversionFrontendService {
     ) throws IOException {
         validateArgumentsForConversion(jsonFile, ".json", ".xml", patternControllerDto);
 
-        PatternServiceDto pattern = patternMapper.patternControllerDtoToServiceDto(patternControllerDto);
+        if (patternControllerDto != null) {
+            PatternServiceDto pattern = patternMapper.patternControllerDtoToServiceDto(patternControllerDto);
+        }
 
         // Create temporarily XML file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(jsonFile, ".json");
@@ -420,7 +426,9 @@ public final class ConversionFrontendService {
     ) throws IOException {
         validateArgumentsForConversion(xmlFile, ".xml", ".json", patternControllerDto);
 
-        PatternServiceDto pattern = patternMapper.patternControllerDtoToServiceDto(patternControllerDto);
+        if (patternControllerDto != null) {
+            PatternServiceDto pattern = patternMapper.patternControllerDtoToServiceDto(patternControllerDto);
+        }
 
         // Create temporarily JSON file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(xmlFile, ".xml");
@@ -486,7 +494,9 @@ public final class ConversionFrontendService {
     ) throws IOException {
         validateArgumentsForConversion(xmlFile, ".xml", ".csv", patternControllerDto);
 
-        PatternServiceDto pattern = patternMapper.patternControllerDtoToServiceDto(patternControllerDto);
+        if (patternControllerDto != null) {
+            PatternServiceDto pattern = patternMapper.patternControllerDtoToServiceDto(patternControllerDto);
+        }
 
         // Possible vulnerability here
         // Create temporarily CSV file for writing converted data
@@ -577,7 +587,9 @@ public final class ConversionFrontendService {
     ) throws IOException {
         validateArgumentsForConversion(csvFile, ".csv", ".xml", patternControllerDto);
 
-        PatternServiceDto pattern = patternMapper.patternControllerDtoToServiceDto(patternControllerDto);
+        if (patternControllerDto != null) {
+            PatternServiceDto pattern = patternMapper.patternControllerDtoToServiceDto(patternControllerDto);
+        }
 
         // Create temporarily XML file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(csvFile, ".csv");
