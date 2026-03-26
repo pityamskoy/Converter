@@ -46,7 +46,7 @@ class UserControllerTest {
         UserToUpdateControllerDto requestDto = new UserToUpdateControllerDto(
                 userId,
                 "newname",
-                "new@mail.com",
+                "new@gmail.com",
                 "test password",
                 List.of()
         );
@@ -54,7 +54,7 @@ class UserControllerTest {
         UserToUpdateServiceDto serviceRequestDto = new UserToUpdateServiceDto(
                         userId,
                 "newname",
-                "new@mail.com",
+                "new@gmail.com",
                 "test password",
                 List.of()
         );
@@ -62,14 +62,14 @@ class UserControllerTest {
         UserServiceDto serviceResponseDto = new UserServiceDto(
                 userId,
                 "newname",
-                "new@mail.com",
+                "new@gmail.com",
                 List.of()
         );
 
         UserControllerDto responseDto = new UserControllerDto(
                 userId,
                 "newname",
-                "new@mail.com",
+                "new@gmail.com",
                 List.of()
         );
 
@@ -80,7 +80,7 @@ class UserControllerTest {
         Mockito.when(userMapper.userServiceDtoToControllerDto(any(UserServiceDto.class)))
                 .thenReturn(responseDto);
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/users/update")
+        mockMvc.perform(MockMvcRequestBuilders.put("/users")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isOk());
@@ -93,9 +93,7 @@ class UserControllerTest {
         // 204
         Mockito.doNothing().when(userService).deleteUser(userId);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/users/delete")
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userId)))
+        mockMvc.perform(MockMvcRequestBuilders.delete("/users/" + userId))
                 .andExpect(status().isNoContent());
     }
 }

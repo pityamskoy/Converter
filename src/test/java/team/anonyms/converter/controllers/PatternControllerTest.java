@@ -65,7 +65,7 @@ class PatternControllerTest {
                 .thenReturn(controllerDto);
 
         // в get передаем uuid, должен вернуться массив и первый элемент с тем же именем
-        mockMvc.perform(MockMvcRequestBuilders.get("/patterns")
+        mockMvc.perform(MockMvcRequestBuilders.get("/patterns/" + userId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(userId)))
                 .andExpect(status().isOk())
@@ -113,11 +113,43 @@ class PatternControllerTest {
                 .thenReturn(responseDto);
 
         // 201 created
-        mockMvc.perform(MockMvcRequestBuilders.post("/patterns/create")
+        mockMvc.perform(MockMvcRequestBuilders.post("/patterns")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(patternId.toString()));
+    }
+
+    @Test
+    void testUpdatePattern_Success() throws Exception {
+        UUID patternId = UUID.randomUUID();
+
+        PatternControllerDto requestDto = new PatternControllerDto(
+                patternId,
+                "Updated Pattern",
+                "xml_json",
+                List.of()
+        );
+
+        PatternServiceDto serviceDto = new PatternServiceDto(
+                patternId,
+                "Updated Pattern",
+                "xml_json",
+                List.of()
+        );
+
+        Mockito.when(patternMapper.patternControllerDtoToServiceDto(any(PatternControllerDto.class)))
+                .thenReturn(serviceDto);
+        Mockito.when(patternService.updatePattern(any(PatternServiceDto.class)))
+                .thenReturn(serviceDto);
+        Mockito.when(patternMapper.patternServiceDtoToControllerDto(any(PatternServiceDto.class)))
+                .thenReturn(requestDto);
+
+        mockMvc.perform(MockMvcRequestBuilders.put("/patterns")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(requestDto)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Updated Pattern"));
     }
 
     @Test
@@ -127,7 +159,7 @@ class PatternControllerTest {
         // void и возвращает 204
         Mockito.doNothing().when(patternService).deletePattern(patternId);
 
-        mockMvc.perform(MockMvcRequestBuilders.delete("/patterns/delete")
+        mockMvc.perform(MockMvcRequestBuilders.delete("/patterns/" + patternId)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(patternId)))
                 .andExpect(status().isNoContent());

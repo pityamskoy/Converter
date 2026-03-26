@@ -1,11 +1,13 @@
 package team.anonyms.converter.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.mock.web.MockPart;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -15,10 +17,13 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import team.anonyms.converter.controllers.frontend.ConversionFrontendController;
+import team.anonyms.converter.dto.controller.pattern.PatternControllerDto;
 import team.anonyms.converter.services.frontend.ConversionFrontendService;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 
@@ -32,33 +37,42 @@ class ConversionFrontendControllerTest {
     @MockitoBean
     private ConversionFrontendService conversionFrontendService;
 
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    // ЭТО НУЖНО!!! вспомогательный метод для json-части запроса
+    private MockPart getPatternPart() throws Exception {
+        PatternControllerDto patternDto = new PatternControllerDto(
+                UUID.randomUUID(), "Test", "json csv", List.of()
+        );
+        MockPart part = new MockPart("pattern", objectMapper.writeValueAsBytes(patternDto));
+        part.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+        return part;
+    }
+
     @Test
     void testConvertJsonFileToCsv_Success() throws Exception {
-
-        // имитация файла
         MockMultipartFile mockFile = new MockMultipartFile(
                 "file",
-                "test-data.json",
+                "data.json",
                 MediaType.APPLICATION_JSON_VALUE,
-                "{\"key\": \"value\"}".getBytes()
+                "{\"key\":\"value\"}".getBytes()
         );
 
-        // реальный файл .csv
-        Path tempCsvFile = Files.createTempFile("converted", ".csv");
-        Files.write(tempCsvFile, "key,value".getBytes());
+        Path tempFile = Files.createTempFile("converted", ".csv");
+        Files.write(tempFile, "key,value".getBytes());
 
-        Mockito.when(conversionFrontendService.convertJsonFileToCsv(any(), null)).thenReturn(tempCsvFile);
+        // теперь везде вместо null передается два any()
+        Mockito.when(conversionFrontendService.convertJsonFileToCsv(any(), any())).thenReturn(tempFile);
 
-        // post-запрос
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/json/csv")
-                        .file(mockFile))
+                        .file(mockFile)
+                        .part(getPatternPart()))
                 .andExpect(MockMvcResultMatchers.request().asyncStarted())
                 .andReturn();
 
-        // проверка, что все норм и код 200
         mockMvc.perform(MockMvcRequestBuilders.asyncDispatch(mvcResult))
-                .andExpect(MockMvcResultMatchers.status().isOk())
-                .andExpect(MockMvcResultMatchers.header().string("Content-Disposition", "attachment; filename=\"test-data.csv\""))
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.header().string("Content-Disposition", "attachment; filename=\"data.csv\""))
                 .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith("text/csv"))
                 .andExpect(MockMvcResultMatchers.content().string("key,value"));
     }
@@ -72,13 +86,14 @@ class ConversionFrontendControllerTest {
                 "key,value\nname,test".getBytes()
         );
 
-        Path tempJsonFile = Files.createTempFile("converted", ".json");
-        Files.write(tempJsonFile, "{\"name\":\"test\"}".getBytes());
+        Path tempFile = Files.createTempFile("converted", ".json");
+        Files.write(tempFile, "{\"name\":\"test\"}".getBytes());
 
-        Mockito.when(conversionFrontendService.convertCsvFileToJson(any(), null)).thenReturn(tempJsonFile);
+        Mockito.when(conversionFrontendService.convertCsvFileToJson(any(), any())).thenReturn(tempFile);
 
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/csv/json")
-                        .file(mockFile))
+                        .file(mockFile)
+                        .part(getPatternPart()))
                 .andExpect(MockMvcResultMatchers.request().asyncStarted())
                 .andReturn();
 
@@ -89,30 +104,29 @@ class ConversionFrontendControllerTest {
                 .andExpect(MockMvcResultMatchers.content().string("{\"name\":\"test\"}"));
     }
 
-    // UPD: тесты для логики, связанной с xml
-
     @Test
     void testConvertJsonFileToXml_Success() throws Exception {
         MockMultipartFile mockFile = new MockMultipartFile(
                 "file",
-                "test_data.json",
+                "data.json",
                 MediaType.APPLICATION_JSON_VALUE,
-                "{\"test_key\":\"test_value\"}".getBytes()
+                "{\"name\":\"test\"}".getBytes()
         );
 
-        Path tempXmlFile = Files.createTempFile("converted", ".xml");
-        Files.write(tempXmlFile, "<name>test</name>".getBytes());
+        Path tempFile = Files.createTempFile("converted", ".xml");
+        Files.write(tempFile, "<name>test</name>".getBytes());
 
-        Mockito.when(conversionFrontendService.convertJsonFileToXml(any(), null)).thenReturn(tempXmlFile);
+        Mockito.when(conversionFrontendService.convertJsonFileToXml(any(), any())).thenReturn(tempFile);
 
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/json/xml")
-                        .file(mockFile))
+                        .file(mockFile)
+                        .part(getPatternPart()))
                 .andExpect(MockMvcResultMatchers.request().asyncStarted())
                 .andReturn();
 
         mockMvc.perform(MockMvcRequestBuilders.asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.header().string("Content-Disposition", "attachment; filename=\"test_data.xml\""))
+                .andExpect(MockMvcResultMatchers.header().string("Content-Disposition", "attachment; filename=\"data.xml\""))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_OCTET_STREAM))
                 .andExpect(MockMvcResultMatchers.content().string("<name>test</name>"));
     }
@@ -121,24 +135,25 @@ class ConversionFrontendControllerTest {
     void testConvertXmlFileToJson_Success() throws Exception {
         MockMultipartFile mockFile = new MockMultipartFile(
                 "file",
-                "test_data.xml",
+                "data.xml",
                 MediaType.APPLICATION_XML_VALUE,
                 "<name>test</name>".getBytes()
         );
 
-        Path tempJsonFile = Files.createTempFile("converted", ".json");
-        Files.write(tempJsonFile, "{\"name\":\"test\"}".getBytes());
+        Path tempFile = Files.createTempFile("converted", ".json");
+        Files.write(tempFile, "{\"name\":\"test\"}".getBytes());
 
-        Mockito.when(conversionFrontendService.convertXmlFileToJson(any(), null)).thenReturn(tempJsonFile);
+        Mockito.when(conversionFrontendService.convertXmlFileToJson(any(), any())).thenReturn(tempFile);
 
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/xml/json")
-                        .file(mockFile))
+                        .file(mockFile)
+                        .part(getPatternPart()))
                 .andExpect(MockMvcResultMatchers.request().asyncStarted())
                 .andReturn();
 
         mockMvc.perform(MockMvcRequestBuilders.asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.header().string("Content-Disposition", "attachment; filename=\"test_data.json\""))
+                .andExpect(MockMvcResultMatchers.header().string("Content-Disposition", "attachment; filename=\"data.json\""))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_OCTET_STREAM))
                 .andExpect(MockMvcResultMatchers.content().string("{\"name\":\"test\"}"));
     }
@@ -147,24 +162,25 @@ class ConversionFrontendControllerTest {
     void testConvertXmlFileToCsv_Success() throws Exception {
         MockMultipartFile mockFile = new MockMultipartFile(
                 "file",
-                "test_data.xml",
+                "data.xml",
                 MediaType.APPLICATION_XML_VALUE,
                 "<name>test</name>".getBytes()
         );
 
-        Path tempCsvFile = Files.createTempFile("converted", ".csv");
-        Files.write(tempCsvFile, "name\ntest".getBytes());
+        Path tempFile = Files.createTempFile("converted", ".csv");
+        Files.write(tempFile, "name\ntest".getBytes());
 
-        Mockito.when(conversionFrontendService.convertXmlFileToCsv(any(), null)).thenReturn(tempCsvFile);
+        Mockito.when(conversionFrontendService.convertXmlFileToCsv(any(), any())).thenReturn(tempFile);
 
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/xml/csv")
-                        .file(mockFile))
+                        .file(mockFile)
+                        .part(getPatternPart()))
                 .andExpect(MockMvcResultMatchers.request().asyncStarted())
                 .andReturn();
 
         mockMvc.perform(MockMvcRequestBuilders.asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.header().string("Content-Disposition", "attachment; filename=\"test_data.csv\""))
+                .andExpect(MockMvcResultMatchers.header().string("Content-Disposition", "attachment; filename=\"data.csv\""))
                 .andExpect(MockMvcResultMatchers.content().contentTypeCompatibleWith("text/csv"))
                 .andExpect(MockMvcResultMatchers.content().string("name\ntest"));
     }
@@ -173,24 +189,25 @@ class ConversionFrontendControllerTest {
     void testConvertCsvFileToXml_Success() throws Exception {
         MockMultipartFile mockFile = new MockMultipartFile(
                 "file",
-                "test_data.csv",
+                "data.csv",
                 "text/csv",
                 "name\ntest".getBytes()
         );
 
-        Path tempXmlFile = Files.createTempFile("converted", ".xml");
-        Files.write(tempXmlFile, "<name>test</name>".getBytes());
+        Path tempFile = Files.createTempFile("converted", ".xml");
+        Files.write(tempFile, "<name>test</name>".getBytes());
 
-        Mockito.when(conversionFrontendService.convertCsvFileToXml(any(), null)).thenReturn(tempXmlFile);
+        Mockito.when(conversionFrontendService.convertCsvFileToXml(any(), any())).thenReturn(tempFile);
 
         MvcResult mvcResult = mockMvc.perform(MockMvcRequestBuilders.multipart("/conversion/csv/xml")
-                        .file(mockFile))
+                        .file(mockFile)
+                        .part(getPatternPart()))
                 .andExpect(MockMvcResultMatchers.request().asyncStarted())
                 .andReturn();
 
         mockMvc.perform(MockMvcRequestBuilders.asyncDispatch(mvcResult))
                 .andExpect(status().isOk())
-                .andExpect(MockMvcResultMatchers.header().string("Content-Disposition", "attachment; filename=\"test_data.xml\""))
+                .andExpect(MockMvcResultMatchers.header().string("Content-Disposition", "attachment; filename=\"data.xml\""))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_OCTET_STREAM))
                 .andExpect(MockMvcResultMatchers.content().string("<name>test</name>"));
     }

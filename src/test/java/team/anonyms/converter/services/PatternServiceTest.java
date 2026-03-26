@@ -13,6 +13,7 @@ import team.anonyms.converter.entities.Pattern;
 import team.anonyms.converter.entities.User;
 import team.anonyms.converter.mappers.ModificationMapper;
 import team.anonyms.converter.mappers.PatternMapper;
+import team.anonyms.converter.repositories.ModificationRepository;
 import team.anonyms.converter.repositories.PatternRepository;
 import team.anonyms.converter.repositories.UserRepository;
 import team.anonyms.converter.services.frontend.PatternService;
@@ -33,6 +34,8 @@ class PatternServiceTest {
     private UserRepository userRepository;
     @Mock
     private PatternMapper patternMapper;
+    @Mock
+    private ModificationRepository modificationRepository;
     @Mock
     private ModificationMapper modificationMapper;
 
@@ -129,6 +132,7 @@ class PatternServiceTest {
                 "type",
                 List.of()
         );
+
         Pattern mockPattern = new Pattern();
 
         Mockito.when(patternRepository.findById(patternId)).thenReturn(Optional.of(mockPattern));

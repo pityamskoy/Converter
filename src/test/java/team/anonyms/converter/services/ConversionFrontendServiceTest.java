@@ -5,6 +5,7 @@ import org.mockito.Mockito;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 import team.anonyms.converter.exceptions.UnsupportedExtensionException;
+import team.anonyms.converter.mappers.PatternMapper;
 import team.anonyms.converter.services.frontend.ConversionFrontendService;
 
 import java.io.IOException;
@@ -15,8 +16,11 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ConversionFrontendServiceTest {
 
-    // fix this.
-    private final ConversionFrontendService conversionFrontendService = new ConversionFrontendService(null);
+    private final PatternMapper patternMapper =
+            Mockito.mock(PatternMapper.class);
+
+    private final ConversionFrontendService conversionFrontendService =
+            new ConversionFrontendService(patternMapper);
 
     // тест из json в csv
     @Test
