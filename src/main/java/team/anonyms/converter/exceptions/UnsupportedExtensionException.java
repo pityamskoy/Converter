@@ -1,4 +1,4 @@
-package team.anonyms.converter.errors;
+package team.anonyms.converter.exceptions;
 
 public class UnsupportedExtensionException extends RuntimeException {
     public UnsupportedExtensionException() {

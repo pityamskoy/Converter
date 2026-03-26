@@ -7,7 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import team.anonyms.converter.annotations.LastSupportedProjectVersion;
-import team.anonyms.converter.errors.UnsupportedExtensionException;
+import team.anonyms.converter.exceptions.IllegalPatternException;
+import team.anonyms.converter.exceptions.UnsupportedExtensionException;
 
 import static team.anonyms.converter.enums.ProjectVersion.RELEASE_0;
 
@@ -43,6 +44,12 @@ public final class GlobalExceptionHandler {
 
     @ExceptionHandler(exception = IllegalArgumentException.class)
     public ResponseEntity<Void> handleIllegalArgumentException(IllegalArgumentException e) {
+        log.error(e.getMessage());
+        return ResponseEntity.badRequest().build();
+    }
+
+    @ExceptionHandler(exception = IllegalPatternException.class)
+    public ResponseEntity<Void> handleIllegalPatternException(IllegalPatternException e) {
         log.error(e.getMessage());
         return ResponseEntity.badRequest().build();
     }

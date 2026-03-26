@@ -1,6 +1,5 @@
 package team.anonyms.converter.mappers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import team.anonyms.converter.dto.controller.pattern.PatternControllerDto;
 import team.anonyms.converter.dto.controller.user.UserControllerDto;
@@ -18,8 +17,11 @@ import java.util.UUID;
 
 @Component
 public final class UserMapper {
-    @Autowired
-    private PatternMapper patternMapper;
+    private final PatternMapper patternMapper;
+
+    public UserMapper(PatternMapper patternMapper) {
+        this.patternMapper = patternMapper;
+    }
 
     public UserToRegisterServiceDto userToRegisterControllerDtoToService(
             UserToRegisterControllerDto userToRegisterControllerDto

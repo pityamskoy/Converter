@@ -9,7 +9,6 @@ public record PatternServiceDto(
         UUID id,
         String name,
         String conversionType,
-        String instruction,
         List<ModificationServiceDto> modifications
 ) {
 }

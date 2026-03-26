@@ -13,6 +13,7 @@ import team.anonyms.converter.entities.Pattern;
 import team.anonyms.converter.entities.User;
 import team.anonyms.converter.mappers.ModificationMapper;
 import team.anonyms.converter.mappers.PatternMapper;
+import team.anonyms.converter.repositories.ModificationRepository;
 import team.anonyms.converter.repositories.PatternRepository;
 import team.anonyms.converter.repositories.UserRepository;
 import team.anonyms.converter.services.frontend.PatternService;
@@ -33,6 +34,8 @@ class PatternServiceTest {
     private UserRepository userRepository;
     @Mock
     private PatternMapper patternMapper;
+    @Mock
+    private ModificationRepository modificationRepository;
     @Mock
     private ModificationMapper modificationMapper;
 
@@ -76,7 +79,6 @@ class PatternServiceTest {
                 userId,
                 "name",
                 "type",
-                "inst",
                 List.of()
         );
 
@@ -88,7 +90,6 @@ class PatternServiceTest {
                 UUID.randomUUID(),
                 "name",
                 "type",
-                "inst",
                 List.of()
         );
 
@@ -111,7 +112,6 @@ class PatternServiceTest {
                 userId,
                 "name",
                 "type",
-                "inst",
                 List.of()
         );
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.empty());
@@ -130,9 +130,9 @@ class PatternServiceTest {
                 patternId,
                 "name",
                 "type",
-                "inst",
                 List.of()
         );
+
         Pattern mockPattern = new Pattern();
 
         Mockito.when(patternRepository.findById(patternId)).thenReturn(Optional.of(mockPattern));
@@ -152,7 +152,6 @@ class PatternServiceTest {
                 patternId,
                 "name",
                 "type",
-                "inst",
                 List.of()
         );
         Mockito.when(patternRepository.findById(patternId)).thenReturn(Optional.empty());
