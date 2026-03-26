@@ -18,7 +18,7 @@ import java.util.Objects;
 import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 
 @RestController
-@CrossOrigin(origins = {"http://localhost:4200"}, exposedHeaders = "*")
+@CrossOrigin(origins = {"https://cson.site"}, exposedHeaders = "*")
 @RequestMapping("/conversion")
 public final class ConversionFrontendController {
     private static final Logger log = LoggerFactory.getLogger(ConversionFrontendController.class);

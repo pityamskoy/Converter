@@ -17,7 +17,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@CrossOrigin(origins = {"http://localhost:4200"})
+@CrossOrigin(origins = {"https://cson.site"})
 @RequestMapping("/modifications")
 public final class ModificationController {
     private static final Logger log = LoggerFactory.getLogger(ModificationController.class);
