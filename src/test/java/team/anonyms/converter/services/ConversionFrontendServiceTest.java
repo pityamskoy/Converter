@@ -4,7 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
-import team.anonyms.converter.errors.UnsupportedExtensionException;
+import team.anonyms.converter.exceptions.UnsupportedExtensionException;
 import team.anonyms.converter.services.frontend.ConversionFrontendService;
 
 import java.io.IOException;

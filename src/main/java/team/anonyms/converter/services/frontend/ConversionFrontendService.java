@@ -14,8 +14,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import team.anonyms.converter.dto.controller.pattern.PatternControllerDto;
 import team.anonyms.converter.dto.service.pattern.PatternServiceDto;
-import team.anonyms.converter.errors.IllegalPatternException;
-import team.anonyms.converter.errors.UnsupportedExtensionException;
+import team.anonyms.converter.exceptions.IllegalPatternException;
+import team.anonyms.converter.exceptions.UnsupportedExtensionException;
 import com.fasterxml.jackson.databind.JsonNode;
 import team.anonyms.converter.mappers.PatternMapper;
 

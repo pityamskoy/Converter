@@ -7,8 +7,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import team.anonyms.converter.annotations.LastSupportedProjectVersion;
-import team.anonyms.converter.errors.IllegalPatternException;
-import team.anonyms.converter.errors.UnsupportedExtensionException;
+import team.anonyms.converter.exceptions.IllegalPatternException;
+import team.anonyms.converter.exceptions.UnsupportedExtensionException;
 
 import static team.anonyms.converter.enums.ProjectVersion.RELEASE_0;
 
