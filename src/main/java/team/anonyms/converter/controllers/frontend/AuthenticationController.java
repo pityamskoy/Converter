@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.antlr.v4.runtime.misc.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,12 +26,19 @@ import javax.security.auth.login.CredentialException;
 public final class AuthenticationController {
     private static final Logger log = LoggerFactory.getLogger(AuthenticationController.class);
 
-    @Autowired
-    private AuthenticationService authenticationService;
-    @Autowired
-    private CredentialsMapper credentialsMapper;
-    @Autowired
-    private UserMapper userMapper;
+    private final AuthenticationService authenticationService;
+    private final CredentialsMapper credentialsMapper;
+    private final UserMapper userMapper;
+
+    public AuthenticationController(
+            AuthenticationService authenticationService,
+            CredentialsMapper credentialsMapper,
+            UserMapper userMapper
+    ) {
+        this.authenticationService = authenticationService;
+        this.credentialsMapper = credentialsMapper;
+        this.userMapper = userMapper;
+    }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResultControllerDto> login(

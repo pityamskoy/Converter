@@ -10,7 +10,6 @@ import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import team.anonyms.converter.dto.controller.pattern.PatternControllerDto;
@@ -32,8 +31,11 @@ public final class ConversionFrontendService {
     // Project directory on the server for deployment
     private static final String PROJECT_DIRECTORY = "/root/projects/converter/";
 
-    @Autowired
-    private PatternMapper patternMapper;
+    private final PatternMapper patternMapper;
+
+    public ConversionFrontendService(PatternMapper patternMapper) {
+        this.patternMapper = patternMapper;
+    }
 
     /**
      * <p>

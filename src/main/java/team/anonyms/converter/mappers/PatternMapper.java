@@ -1,6 +1,5 @@
 package team.anonyms.converter.mappers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import team.anonyms.converter.dto.controller.modification.ModificationControllerDto;
 import team.anonyms.converter.dto.controller.pattern.PatternControllerDto;
@@ -16,8 +15,11 @@ import java.util.UUID;
 
 @Component
 public final class PatternMapper {
-    @Autowired
-    private ModificationMapper modificationMapper;
+    private final ModificationMapper modificationMapper;
+
+    public PatternMapper(ModificationMapper modificationMapper) {
+        this.modificationMapper = modificationMapper;
+    }
 
     public PatternServiceDto patternControllerDtoToServiceDto(PatternControllerDto patternControllerDto) {
         List<ModificationServiceDto> modifications = patternControllerDto.modifications().stream().

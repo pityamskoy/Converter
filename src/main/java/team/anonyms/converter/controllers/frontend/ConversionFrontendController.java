@@ -1,8 +1,8 @@
 package team.anonyms.converter.controllers.frontend;
 
+import org.jspecify.annotations.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -16,7 +16,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
 
-import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
+import static org.springframework.http.MediaType.*;
 
 @RestController
 @CrossOrigin(origins = {"http://localhost:4200"}, exposedHeaders = "*")
@@ -24,8 +24,40 @@ import static org.springframework.http.MediaType.MULTIPART_FORM_DATA_VALUE;
 public final class ConversionFrontendController {
     private static final Logger log = LoggerFactory.getLogger(ConversionFrontendController.class);
 
-    @Autowired
-    private ConversionFrontendService conversionFrontendService;
+    private final ConversionFrontendService conversionFrontendService;
+
+    public ConversionFrontendController(ConversionFrontendService conversionFrontendService) {
+        this.conversionFrontendService = conversionFrontendService;
+    }
+
+    /**
+     *
+     * @param path path to converted file.
+     * @param outputFilename output filename.
+     * @param mediaType media type of response file.
+     *
+     * @return prepared {@link ResponseEntity}, which can be transferred right into return statement.
+     */
+    private @NonNull ResponseEntity<StreamingResponseBody> getResponseEntityForConversionEndpoints(
+            @NonNull Path path,
+            @NonNull String outputFilename,
+            @NonNull MediaType mediaType
+    ) throws IOException {
+        StreamingResponseBody stream = outputStream -> {
+            try (InputStream in = Files.newInputStream(path)) {
+                in.transferTo(outputStream);
+            } finally {
+                Files.deleteIfExists(path);
+            }
+        };
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDisposition(ContentDisposition.attachment().filename(outputFilename).build());
+        headers.setContentType(mediaType);
+        headers.setContentLength(Files.size(path));
+
+        return new ResponseEntity<>(stream, headers, HttpStatus.OK);
+    }
 
     //add separator to return
     @PostMapping(value = "/json/csv", consumes = MULTIPART_FORM_DATA_VALUE)
@@ -38,26 +70,11 @@ public final class ConversionFrontendController {
 
         try {
             Path csvPath = conversionFrontendService.convertJsonFileToCsv(file, pattern);
+
             Objects.requireNonNull(filename);
-
-            StreamingResponseBody stream = outputStream -> {
-                try (InputStream in = Files.newInputStream(csvPath)) {
-                    in.transferTo(outputStream);
-                } finally {
-                    Files.deleteIfExists(csvPath);
-                }
-            };
-
             String outputFilename = filename.substring(0, filename.length() - 5) + ".csv";
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentDisposition(ContentDisposition.attachment().
-                    filename(outputFilename)
-                    .build());
-            headers.setContentType(MediaType.parseMediaType("text/csv"));
-            headers.setContentLength(Files.size(csvPath));
-
-            return new ResponseEntity<>(stream, headers, HttpStatus.OK);
+            return getResponseEntityForConversionEndpoints(csvPath, outputFilename, parseMediaType("text/csv"));
         } catch (IOException e) {
             log.error(e.getMessage());
             return ResponseEntity.internalServerError().build();
@@ -75,26 +92,11 @@ public final class ConversionFrontendController {
 
         try {
             Path jsonPath = conversionFrontendService.convertCsvFileToJson(file, pattern);
+
             Objects.requireNonNull(filename);
-
-            StreamingResponseBody stream = outputStream -> {
-                try (InputStream in = Files.newInputStream(jsonPath)) {
-                    in.transferTo(outputStream);
-                } finally {
-                    Files.deleteIfExists(jsonPath);
-                }
-            };
-
             String outputFilename = filename.substring(0, filename.length() - 4) + ".json";
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentDisposition(ContentDisposition.attachment()
-                    .filename(outputFilename)
-                    .build());
-            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-            headers.setContentLength(Files.size(jsonPath));
-
-            return new ResponseEntity<>(stream, headers, HttpStatus.OK);
+            return getResponseEntityForConversionEndpoints(jsonPath, outputFilename, APPLICATION_OCTET_STREAM);
         } catch (IOException e) {
             log.error(e.getMessage());
             return ResponseEntity.internalServerError().build();
@@ -111,26 +113,11 @@ public final class ConversionFrontendController {
 
         try {
             Path xmlPath = conversionFrontendService.convertJsonFileToXml(file, pattern);
+
             Objects.requireNonNull(filename);
-
-            StreamingResponseBody stream = outputStream -> {
-                try (InputStream in = Files.newInputStream(xmlPath)) {
-                    in.transferTo(outputStream);
-                } finally {
-                    Files.deleteIfExists(xmlPath);
-                }
-            };
-
             String outputFilename = filename.substring(0, filename.length() - 5) + ".xml";
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentDisposition(ContentDisposition.attachment().
-                    filename(outputFilename)
-                    .build());
-            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-            headers.setContentLength(Files.size(xmlPath));
-
-            return new ResponseEntity<>(stream, headers, HttpStatus.OK);
+            return getResponseEntityForConversionEndpoints(xmlPath, outputFilename, APPLICATION_OCTET_STREAM);
         } catch (IOException e) {
             log.error(e.getMessage());
             return ResponseEntity.internalServerError().build();
@@ -147,26 +134,11 @@ public final class ConversionFrontendController {
 
         try {
             Path jsonPath = conversionFrontendService.convertXmlFileToJson(file, pattern);
+
             Objects.requireNonNull(filename);
-
-            StreamingResponseBody stream = outputStream -> {
-                try (InputStream in = Files.newInputStream(jsonPath)) {
-                    in.transferTo(outputStream);
-                } finally {
-                    Files.deleteIfExists(jsonPath);
-                }
-            };
-
             String outputFilename = filename.substring(0, filename.length() - 4) + ".json";
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentDisposition(ContentDisposition.attachment()
-                    .filename(outputFilename)
-                    .build());
-            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-            headers.setContentLength(Files.size(jsonPath));
-
-            return new ResponseEntity<>(stream, headers, HttpStatus.OK);
+            return getResponseEntityForConversionEndpoints(jsonPath, outputFilename, APPLICATION_OCTET_STREAM);
         } catch (IOException e) {
             log.error(e.getMessage());
             return ResponseEntity.internalServerError().build();
@@ -184,26 +156,11 @@ public final class ConversionFrontendController {
 
         try {
             Path csvPath = conversionFrontendService.convertXmlFileToCsv(file, pattern);
+
             Objects.requireNonNull(filename);
-
-            StreamingResponseBody stream = outputStream -> {
-                try (InputStream in = Files.newInputStream(csvPath)) {
-                    in.transferTo(outputStream);
-                } finally {
-                    Files.deleteIfExists(csvPath);
-                }
-            };
-
             String outputFilename = filename.substring(0, filename.length() - 4) + ".csv";
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentDisposition(ContentDisposition.attachment().
-                    filename(outputFilename)
-                    .build());
-            headers.setContentType(MediaType.parseMediaType("text/csv"));
-            headers.setContentLength(Files.size(csvPath));
-
-            return new ResponseEntity<>(stream, headers, HttpStatus.OK);
+            return getResponseEntityForConversionEndpoints(csvPath, outputFilename, parseMediaType("text/csv"));
         } catch (IOException e) {
             log.error(e.getMessage());
             return ResponseEntity.internalServerError().build();
@@ -221,26 +178,11 @@ public final class ConversionFrontendController {
 
         try {
             Path xmlPath = conversionFrontendService.convertCsvFileToXml(file, pattern);
+
             Objects.requireNonNull(filename);
-
-            StreamingResponseBody stream = outputStream -> {
-                try (InputStream in = Files.newInputStream(xmlPath)) {
-                    in.transferTo(outputStream);
-                } finally {
-                    Files.deleteIfExists(xmlPath);
-                }
-            };
-
             String outputFilename = filename.substring(0, filename.length() - 4) + ".xml";
 
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentDisposition(ContentDisposition.attachment()
-                    .filename(outputFilename)
-                    .build());
-            headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-            headers.setContentLength(Files.size(xmlPath));
-
-            return new ResponseEntity<>(stream, headers, HttpStatus.OK);
+            return getResponseEntityForConversionEndpoints(xmlPath, outputFilename, APPLICATION_OCTET_STREAM);
         } catch (IOException e) {
             log.error(e.getMessage());
             return ResponseEntity.internalServerError().build();

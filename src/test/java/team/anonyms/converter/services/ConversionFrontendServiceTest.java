@@ -15,7 +15,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ConversionFrontendServiceTest {
 
-    private final ConversionFrontendService conversionFrontendService = new ConversionFrontendService();
+    // fix this.
+    private final ConversionFrontendService conversionFrontendService = new ConversionFrontendService(null);
 
     // тест из json в csv
     @Test

@@ -2,7 +2,6 @@ package team.anonyms.converter.controllers.frontend;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,13 +21,16 @@ import java.util.UUID;
 public final class PatternController {
     private static final Logger log = LoggerFactory.getLogger(PatternController.class);
 
-    @Autowired
-    private PatternService patternService;
-    @Autowired
-    private PatternMapper patternMapper;
+    private final PatternService patternService;
+    private final PatternMapper patternMapper;
+
+    public PatternController(PatternService patternService, PatternMapper patternMapper) {
+        this.patternService = patternService;
+        this.patternMapper = patternMapper;
+    }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<List<PatternControllerDto>> getAllPatternsByUserId(@RequestParam UUID userId) {
+    public ResponseEntity<List<PatternControllerDto>> getAllPatternsByUserId(@PathVariable UUID userId) {
         log.info("Called getAllPatternsByUserId; id={}", userId);
 
         return ResponseEntity.ok(patternService.getAllPatternsByUserId(userId).stream().
@@ -61,7 +63,7 @@ public final class PatternController {
     }
 
     @DeleteMapping("/{patternId}")
-    public ResponseEntity<Void> deletePattern(@RequestParam UUID patternId) {
+    public ResponseEntity<Void> deletePattern(@PathVariable UUID patternId) {
         log.info("Called deletePattern; id={}", patternId);
 
         patternService.deletePattern(patternId);
