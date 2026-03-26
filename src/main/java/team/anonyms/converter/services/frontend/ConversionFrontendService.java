@@ -12,8 +12,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-import team.anonyms.converter.errors.UnsupportedExtensionException;
+import team.anonyms.converter.dto.controller.pattern.PatternControllerDto;
+import team.anonyms.converter.dto.service.pattern.PatternServiceDto;
+import team.anonyms.converter.exceptions.IllegalPatternException;
+import team.anonyms.converter.exceptions.UnsupportedExtensionException;
 import com.fasterxml.jackson.databind.JsonNode;
+import team.anonyms.converter.mappers.PatternMapper;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -26,6 +30,12 @@ public final class ConversionFrontendService {
 
     // Project directory on the server for deployment
     private static final String PROJECT_DIRECTORY = "/root/projects/converter/";
+
+    private final PatternMapper patternMapper;
+
+    public ConversionFrontendService(PatternMapper patternMapper) {
+        this.patternMapper = patternMapper;
+    }
 
     /**
      * <p>
@@ -94,12 +104,29 @@ public final class ConversionFrontendService {
      *
      * @param file requested file to convert.
      * @param currentExtension current extension of {@code file}.
+     * @param conversionExtension extension, to which the application converting to.
+     * @param patternControllerDto pattern, which uses to convert {@code file}.
      *
-     * @throws IllegalArgumentException if {@code file} is empty.
+     * @throws IllegalArgumentException Either if {@code file} is empty or {@code currentExtension}
+     * and {@code conversionExtension} are the same.
      * @throws NullPointerException if filename is null.
-     * @throws UnsupportedExtensionException if {@code file} doesn't have {@code currentExtension}.
+     * @throws UnsupportedExtensionException if {@code file} has extension, which doesn't correspond to
+     * {@code currentExtension}.
+     * @throws IllegalPatternException if {@code patternControllerDto} has type, which doesn't match with
+     * {@code currentExtension} and {@code conversionExtension}.
      */
-    private void validateArgumentsForConversion(@NonNull MultipartFile file, @NonNull String currentExtension) {
+    private void validateArgumentsForConversion(
+            @NonNull MultipartFile file,
+            @NonNull String currentExtension,
+            @NonNull String conversionExtension,
+            PatternControllerDto patternControllerDto
+    ) {
+        if (currentExtension.equals(conversionExtension)) {
+            throw new IllegalArgumentException(String.format("currentExtension and conversionExtension are the same; " +
+                    "currentExtension=%s; conversionExtension=%s", currentExtension, conversionExtension)
+            );
+        }
+
         if (file.isEmpty()) {
             throw new IllegalArgumentException("file is empty");
         }
@@ -111,6 +138,30 @@ public final class ConversionFrontendService {
 
         if (!filename.endsWith(currentExtension)) {
             throw new UnsupportedExtensionException("Provided file doesn't have '" + currentExtension + "' extension");
+        }
+
+        if (patternControllerDto == null) {
+            return;
+        }
+
+        String patternCurrentExtension = patternControllerDto.conversionType().split(" ")[0];
+        String patternConversionExtension = patternControllerDto.conversionType().split(" ")[1];
+
+        if (!currentExtension.equals(patternCurrentExtension)) {
+            throw new IllegalPatternException(
+                    String.format("currentExtensions of pattern and conversion don't match; " +
+                    "currentExtension=%s; patternCurrentExtension=%s", currentExtension, patternCurrentExtension
+                    )
+            );
+        }
+
+        if (!conversionExtension.equals(patternConversionExtension)) {
+            throw new IllegalPatternException(
+                    String.format("conversionExtensions of pattern and conversion don't match; " +
+                    "conversionExtension=%s; patternConversionExtension=%s",
+                            conversionExtension, patternConversionExtension
+                    )
+            );
         }
     }
 
@@ -128,10 +179,16 @@ public final class ConversionFrontendService {
      * unsupported structure for conversion from JSON to CSV.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code jsonFile} was provided without '.json' extension.
+     * @throws IllegalPatternException if {@code patternControllerDto} does not have type equal to '.json .csv'.
      */
     @SuppressWarnings(value = {"unchecked"})
-    public @NonNull Path convertJsonFileToCsv(@NonNull MultipartFile jsonFile) throws IOException {
-        validateArgumentsForConversion(jsonFile, ".json");
+    public @NonNull Path convertJsonFileToCsv(
+            @NonNull MultipartFile jsonFile,
+            PatternControllerDto patternControllerDto
+    ) throws IOException {
+        validateArgumentsForConversion(jsonFile, ".json", ".csv", patternControllerDto);
+
+        PatternServiceDto pattern = patternMapper.patternControllerDtoToServiceDto(patternControllerDto);
 
         // Possible vulnerability here
         // Create temporarily CSV file for writing converted data
@@ -213,10 +270,16 @@ public final class ConversionFrontendService {
      * unsupported structure for conversion from CSV to JSON.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code csvFile} was provided without '.csv' extension.
+     * @throws IllegalPatternException if {@code patternControllerDto} does not have type equal to '.csv .json'.
      */
     //fix separator problem
-    public @NonNull Path convertCsvFileToJson(@NonNull MultipartFile csvFile) throws IOException {
-        validateArgumentsForConversion(csvFile, ".csv");
+    public @NonNull Path convertCsvFileToJson(
+            @NonNull MultipartFile csvFile,
+            PatternControllerDto patternControllerDto
+    ) throws IOException {
+        validateArgumentsForConversion(csvFile, ".csv", ".json", patternControllerDto);
+
+        PatternServiceDto pattern = patternMapper.patternControllerDtoToServiceDto(patternControllerDto);
 
         // Create temporarily JSON file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(csvFile, ".csv");
@@ -294,10 +357,16 @@ public final class ConversionFrontendService {
      * unsupported structure for conversion from JSON to XML.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code jsonFile} was provided without '.json' extension.
+     * @throws IllegalPatternException if {@code patternControllerDto} does not have type equal to '.json .xml'.
      */
     @SuppressWarnings(value = {"unchecked"})
-    public @NonNull Path convertJsonFileToXml(@NonNull MultipartFile jsonFile) throws IOException {
-        validateArgumentsForConversion(jsonFile, ".json");
+    public @NonNull Path convertJsonFileToXml(
+            @NonNull MultipartFile jsonFile,
+            PatternControllerDto patternControllerDto
+    ) throws IOException {
+        validateArgumentsForConversion(jsonFile, ".json", ".xml", patternControllerDto);
+
+        PatternServiceDto pattern = patternMapper.patternControllerDtoToServiceDto(patternControllerDto);
 
         // Create temporarily XML file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(jsonFile, ".json");
@@ -342,10 +411,16 @@ public final class ConversionFrontendService {
      * unsupported structure for conversion from XML to JSON.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code xmlFile} was provided without '.xml' extension.
+     * @throws IllegalPatternException if {@code patternControllerDto} does not have type equal to '.xml .json'.
      */
     @SuppressWarnings(value = {"unchecked"})
-    public @NonNull Path convertXmlFileToJson(@NonNull MultipartFile xmlFile) throws IOException {
-        validateArgumentsForConversion(xmlFile, ".xml");
+    public @NonNull Path convertXmlFileToJson(
+            @NonNull MultipartFile xmlFile,
+            PatternControllerDto patternControllerDto
+    ) throws IOException {
+        validateArgumentsForConversion(xmlFile, ".xml", ".json", patternControllerDto);
+
+        PatternServiceDto pattern = patternMapper.patternControllerDtoToServiceDto(patternControllerDto);
 
         // Create temporarily JSON file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(xmlFile, ".xml");
@@ -402,10 +477,16 @@ public final class ConversionFrontendService {
      * unsupported structure for conversion from XML to JSON.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code xmlFile} was provided without '.xml' extension.
+     * @throws IllegalPatternException if {@code patternControllerDto} does not have type equal to '.xml .csv'.
      */
     @SuppressWarnings(value = {"unchecked"})
-    public @NonNull Path convertXmlFileToCsv(@NonNull MultipartFile xmlFile) throws IOException {
-        validateArgumentsForConversion(xmlFile, ".xml");
+    public @NonNull Path convertXmlFileToCsv(
+            @NonNull MultipartFile xmlFile,
+            PatternControllerDto patternControllerDto
+    ) throws IOException {
+        validateArgumentsForConversion(xmlFile, ".xml", ".csv", patternControllerDto);
+
+        PatternServiceDto pattern = patternMapper.patternControllerDtoToServiceDto(patternControllerDto);
 
         // Possible vulnerability here
         // Create temporarily CSV file for writing converted data
@@ -487,10 +568,16 @@ public final class ConversionFrontendService {
      * unsupported structure for conversion from CSV to XML.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code csvFile} was provided without '.csv' extension.
+     * @throws IllegalPatternException if {@code patternControllerDto} does not have type equal to '.csv .xml'.
      */
     //fix separator problem
-    public @NonNull Path convertCsvFileToXml(@NonNull MultipartFile csvFile) throws IOException {
-        validateArgumentsForConversion(csvFile, ".csv");
+    public @NonNull Path convertCsvFileToXml(
+            @NonNull MultipartFile csvFile,
+            PatternControllerDto patternControllerDto
+    ) throws IOException {
+        validateArgumentsForConversion(csvFile, ".csv", ".xml", patternControllerDto);
+
+        PatternServiceDto pattern = patternMapper.patternControllerDtoToServiceDto(patternControllerDto);
 
         // Create temporarily XML file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(csvFile, ".csv");

@@ -4,7 +4,6 @@ import jakarta.annotation.Nullable;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.servlet.http.Cookie;
 import org.antlr.v4.runtime.misc.Pair;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import team.anonyms.converter.controllers.frontend.AuthenticationController;
 import team.anonyms.converter.dto.service.credentials.CredentialsServiceDto;
@@ -21,10 +20,13 @@ import java.util.UUID;
 
 @Service
 public final class AuthenticationService {
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private UserMapper userMapper;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
+
+    public AuthenticationService(UserRepository userRepository, UserMapper userMapper) {
+        this.userRepository = userRepository;
+        this.userMapper = userMapper;
+    }
 
     /**
      * @param userId a value of cookie, which {@link AuthenticationController} accepts as an argument.

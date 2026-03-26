@@ -1,7 +1,6 @@
 package team.anonyms.converter.services.frontend;
 
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import team.anonyms.converter.dto.service.pattern.PatternServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternToCreateServiceDto;
@@ -10,6 +9,7 @@ import team.anonyms.converter.entities.Pattern;
 import team.anonyms.converter.entities.User;
 import team.anonyms.converter.mappers.ModificationMapper;
 import team.anonyms.converter.mappers.PatternMapper;
+import team.anonyms.converter.repositories.ModificationRepository;
 import team.anonyms.converter.repositories.PatternRepository;
 import team.anonyms.converter.repositories.UserRepository;
 
@@ -19,14 +19,25 @@ import java.util.UUID;
 
 @Service
 public final class PatternService {
-    @Autowired
-    private PatternRepository patternRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private PatternMapper patternMapper;
-    @Autowired
-    private ModificationMapper modificationMapper;
+    private final PatternRepository patternRepository;
+    private final ModificationRepository modificationRepository;
+    private final UserRepository userRepository;
+    private final PatternMapper patternMapper;
+    private final ModificationMapper modificationMapper;
+
+    public PatternService(
+            PatternRepository patternRepository,
+            ModificationRepository modificationRepository,
+            UserRepository userRepository,
+            PatternMapper patternMapper,
+            ModificationMapper modificationMapper
+    ) {
+        this.patternRepository = patternRepository;
+        this.modificationRepository = modificationRepository;
+        this.userRepository = userRepository;
+        this.patternMapper = patternMapper;
+        this.modificationMapper = modificationMapper;
+    }
 
     public List<PatternServiceDto> getAllPatternsByUserId(UUID userId) {
         Optional<User> userOptional = userRepository.findById(userId);
@@ -71,7 +82,8 @@ public final class PatternService {
         Pattern patternUpdated = pattern.get();
         patternUpdated.setName(patternToUpdate.name());
         patternUpdated.setConversionType(patternToUpdate.conversionType());
-        patternUpdated.setInstruction(patternToUpdate.instruction());
+
+        modificationRepository.deleteAll(patternUpdated.getModifications());
         patternUpdated.setModifications(modifications);
 
         patternRepository.save(patternUpdated);

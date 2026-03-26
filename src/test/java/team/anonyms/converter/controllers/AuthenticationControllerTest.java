@@ -61,7 +61,7 @@ class AuthenticationControllerTest {
         Mockito.when(authenticationService.logout(userId)).thenReturn(expectedCookie);
 
         // проверка на 204 и что везде пусто
-        mockMvc.perform(MockMvcRequestBuilders.delete("/auth/logout")
+        mockMvc.perform(MockMvcRequestBuilders.delete("/auth")
                         .cookie(new Cookie("user_id", userId)))
                 .andExpect(status().isNoContent())
                 .andExpect(cookie().exists("user_id"))
@@ -113,7 +113,7 @@ class AuthenticationControllerTest {
                 .thenReturn(responseDto);
 
         // проверка имени и прочего
-        mockMvc.perform(MockMvcRequestBuilders.post("/auth/register")
+        mockMvc.perform(MockMvcRequestBuilders.post("/auth/registration")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
                 .andExpect(status().isCreated())

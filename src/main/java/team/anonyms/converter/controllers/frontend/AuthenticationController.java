@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.antlr.v4.runtime.misc.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,12 +26,19 @@ import javax.security.auth.login.CredentialException;
 public final class AuthenticationController {
     private static final Logger log = LoggerFactory.getLogger(AuthenticationController.class);
 
-    @Autowired
-    private AuthenticationService authenticationService;
-    @Autowired
-    private CredentialsMapper credentialsMapper;
-    @Autowired
-    private UserMapper userMapper;
+    private final AuthenticationService authenticationService;
+    private final CredentialsMapper credentialsMapper;
+    private final UserMapper userMapper;
+
+    public AuthenticationController(
+            AuthenticationService authenticationService,
+            CredentialsMapper credentialsMapper,
+            UserMapper userMapper
+    ) {
+        this.authenticationService = authenticationService;
+        this.credentialsMapper = credentialsMapper;
+        this.userMapper = userMapper;
+    }
 
     @PostMapping("/login")
     public ResponseEntity<LoginResultControllerDto> login(
@@ -58,7 +64,7 @@ public final class AuthenticationController {
         }
     }
 
-    @PostMapping("/register")
+    @PostMapping("/registration")
     public ResponseEntity<UserControllerDto> register(
             @RequestBody UserToRegisterControllerDto userToRegister,
             HttpServletResponse response
@@ -74,7 +80,7 @@ public final class AuthenticationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(userRegistered);
     }
 
-    @DeleteMapping("/logout")
+    @DeleteMapping
     public ResponseEntity<Void> logout(
             @CookieValue(value = "user_id") String userId,
             HttpServletResponse response

@@ -1,7 +1,6 @@
 package team.anonyms.converter.services.frontend;
 
 import jakarta.persistence.EntityNotFoundException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import team.anonyms.converter.dto.service.user.UserServiceDto;
 import team.anonyms.converter.dto.service.user.UserToUpdateServiceDto;
@@ -17,12 +16,15 @@ import java.util.UUID;
 
 @Service
 public final class UserService {
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private UserMapper userMapper;
-    @Autowired
-    private PatternMapper patternMapper;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
+    private final PatternMapper patternMapper;
+
+    public UserService(UserRepository userRepository, UserMapper userMapper, PatternMapper patternMapper) {
+        this.userRepository = userRepository;
+        this.userMapper = userMapper;
+        this.patternMapper = patternMapper;
+    }
 
     public UserServiceDto updateUser(UserToUpdateServiceDto userToUpdate) {
         Optional<User> userOptional = userRepository.findById(userToUpdate.id());

@@ -1,6 +1,5 @@
 package team.anonyms.converter.mappers;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import team.anonyms.converter.dto.controller.modification.ModificationControllerDto;
 import team.anonyms.converter.dto.controller.pattern.PatternControllerDto;
@@ -16,8 +15,11 @@ import java.util.UUID;
 
 @Component
 public final class PatternMapper {
-    @Autowired
-    private ModificationMapper modificationMapper;
+    private final ModificationMapper modificationMapper;
+
+    public PatternMapper(ModificationMapper modificationMapper) {
+        this.modificationMapper = modificationMapper;
+    }
 
     public PatternServiceDto patternControllerDtoToServiceDto(PatternControllerDto patternControllerDto) {
         List<ModificationServiceDto> modifications = patternControllerDto.modifications().stream().
@@ -27,7 +29,6 @@ public final class PatternMapper {
                 patternControllerDto.id(),
                 patternControllerDto.name(),
                 patternControllerDto.conversionType(),
-                patternControllerDto.instruction(),
                 modifications
         );
     }
@@ -42,7 +43,6 @@ public final class PatternMapper {
                 patternToCreateControllerDto.userId(),
                 patternToCreateControllerDto.name(),
                 patternToCreateControllerDto.conversionType(),
-                patternToCreateControllerDto.instruction(),
                 modifications
         );
     }
@@ -55,7 +55,6 @@ public final class PatternMapper {
                 patternServiceDto.id(),
                 patternServiceDto.name(),
                 patternServiceDto.conversionType(),
-                patternServiceDto.instruction(),
                 modifications
         );
     }
@@ -68,7 +67,6 @@ public final class PatternMapper {
                 patternServiceDto.id(),
                 patternServiceDto.name(),
                 patternServiceDto.conversionType(),
-                patternServiceDto.instruction(),
                 modifications
         );
     }
@@ -81,7 +79,6 @@ public final class PatternMapper {
                 UUID.randomUUID(),
                 patternToCreateServiceDto.name(),
                 patternToCreateServiceDto.conversionType(),
-                patternToCreateServiceDto.instruction(),
                 modifications
         );
     }
@@ -94,7 +91,6 @@ public final class PatternMapper {
                 pattern.getId(),
                 pattern.getName(),
                 pattern.getConversionType(),
-                pattern.getInstruction(),
                 modifications
         );
     }

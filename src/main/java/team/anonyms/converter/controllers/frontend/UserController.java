@@ -2,7 +2,6 @@ package team.anonyms.converter.controllers.frontend;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import team.anonyms.converter.dto.controller.user.UserControllerDto;
@@ -19,12 +18,15 @@ import java.util.UUID;
 public final class UserController {
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private UserMapper userMapper;
+    private final UserService userService;
+    private final UserMapper userMapper;
 
-    @PutMapping("/update")
+    public UserController(UserService userService, UserMapper userMapper) {
+        this.userService = userService;
+        this.userMapper = userMapper;
+    }
+
+    @PutMapping
     public ResponseEntity<UserControllerDto> updateUser(@RequestBody UserToUpdateControllerDto userToUpdate) {
         log.info("Called updateUser; userToUpdate={}", userToUpdate);
 
@@ -34,8 +36,8 @@ public final class UserController {
         return ResponseEntity.ok(userMapper.userServiceDtoToControllerDto(userUpdated));
     }
 
-    @DeleteMapping("/delete")
-    public ResponseEntity<Void> deleteUser(@RequestBody UUID userId) {
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
         log.info("Called deleteUser; id={}", userId.toString());
 
         userService.deleteUser(userId);

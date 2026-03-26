@@ -9,7 +9,6 @@ public record PatternControllerDto(
         UUID id,
         String name,
         String conversionType,
-        String instruction,
         List<ModificationControllerDto> modifications
 ) {
 }
