@@ -22,7 +22,7 @@ import team.anonyms.converter.services.frontend.AuthenticationService;
 import javax.security.auth.login.CredentialException;
 
 @RestController
-@CrossOrigin(origins = {"http://localhost:4200"}, allowCredentials = "true")
+@CrossOrigin(origins = {"https://cson.site"}, allowCredentials = "true")
 @RequestMapping("/auth")
 public final class AuthenticationController {
     private static final Logger log = LoggerFactory.getLogger(AuthenticationController.class);
