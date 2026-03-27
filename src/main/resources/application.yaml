@@ -27,6 +27,6 @@ logging:
     root: INFO
     team.anonyms.converter.services: DEBUG
   file:
-    name: /root/converter.log
+    name: /logs/converter.log
   pattern:
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
