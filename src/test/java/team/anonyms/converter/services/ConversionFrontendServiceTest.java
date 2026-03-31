@@ -20,7 +20,7 @@ class ConversionFrontendServiceTest {
             Mockito.mock(PatternMapper.class);
 
     private final ConversionFrontendService conversionFrontendService =
-            new ConversionFrontendService(patternMapper);
+            new ConversionFrontendService(null); // fix
 
     // тест из json в csv
     @Test
@@ -147,7 +147,7 @@ class ConversionFrontendServiceTest {
     // ненужные тесты удалены, остались три переделанных под метод валидации
     // метод приватный, поэтому тестирую через json->csv
     @Test
-    void testValidateArgumentsForConversion_EmptyFile_ThrowsException() {
+    void testValidateArgumentsForConversion_AndReturnPattern_EmptyFile_ThrowsException() {
         MockMultipartFile emptyFile = new MockMultipartFile(
                 "file",
                 "empty.json",
@@ -163,7 +163,7 @@ class ConversionFrontendServiceTest {
 
     // грозный хардкод null-имени, ибо MockMultipartFile мне не разрешает(((
     @Test
-    void testValidateArgumentsForConversion_NullFilename_ThrowsException() {
+    void testValidateArgumentsForConversion_AndReturnPattern_NullFilename_ThrowsException() {
         MultipartFile brokenFile = Mockito.mock(MultipartFile.class);
 
         Mockito.when(brokenFile.isEmpty()).thenReturn(false);
@@ -177,7 +177,7 @@ class ConversionFrontendServiceTest {
 
     // не то расширение
     @Test
-    void testValidateArgumentsForConversion_WrongExtension_ThrowsException() {
+    void testValidateArgumentsForConversion_AndReturnPattern_WrongExtension_ThrowsException() {
         // вместо json тут расширение .txt
         MockMultipartFile txtFile = new MockMultipartFile(
                 "file",

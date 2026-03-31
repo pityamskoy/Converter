@@ -57,6 +57,12 @@ public final class PatternService {
         }
 
         Pattern patternCreated = patternMapper.patternToCreateServiceDtoToEntity(patternToCreate);
+
+        for (Modification modification: patternCreated.getModifications()) {
+            modification.setId(UUID.randomUUID());
+            modificationRepository.save(modification);
+        }
+
         patternRepository.save(patternCreated);
 
         User user = userOptional.get();

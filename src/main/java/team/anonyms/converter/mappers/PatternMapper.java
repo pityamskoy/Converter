@@ -5,6 +5,7 @@ import team.anonyms.converter.dto.controller.modification.ModificationController
 import team.anonyms.converter.dto.controller.pattern.PatternControllerDto;
 import team.anonyms.converter.dto.controller.pattern.PatternToCreateControllerDto;
 import team.anonyms.converter.dto.service.modification.ModificationServiceDto;
+import team.anonyms.converter.dto.service.modification.ModificationToCreateServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternToCreateServiceDto;
 import team.anonyms.converter.entities.Modification;
@@ -36,8 +37,8 @@ public final class PatternMapper {
     public PatternToCreateServiceDto patternToCreateControllerDtoToService(
             PatternToCreateControllerDto patternToCreateControllerDto
     ) {
-        List<ModificationServiceDto> modifications = patternToCreateControllerDto.modifications().stream().
-                map(modificationMapper::modificationControllerDtoToServiceDto).toList();
+        List<ModificationToCreateServiceDto> modifications = patternToCreateControllerDto.modifications().stream().
+                map(modificationMapper::modificationToCreateControllerDtoToService).toList();
 
         return new PatternToCreateServiceDto(
                 patternToCreateControllerDto.userId(),
@@ -73,7 +74,7 @@ public final class PatternMapper {
 
     public Pattern patternToCreateServiceDtoToEntity(PatternToCreateServiceDto patternToCreateServiceDto) {
         List<Modification> modifications = patternToCreateServiceDto.modifications().stream().
-                map(modificationMapper::modificationServiceDtoToEntity).toList();
+                map(modificationMapper::modificationToCreateServiceDtoToEntity).toList();
 
         return new Pattern(
                 UUID.randomUUID(),
