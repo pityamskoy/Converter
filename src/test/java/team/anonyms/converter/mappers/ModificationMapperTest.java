@@ -41,9 +41,7 @@ class ModificationMapperTest {
 
     @Test
     void testModificationToCreateControllerDtoToService() {
-        UUID patternId = UUID.randomUUID();
         ModificationToCreateControllerDto controllerDto = new ModificationToCreateControllerDto(
-                patternId,
                 "old",
                 "new",
                 "type",
@@ -52,7 +50,6 @@ class ModificationMapperTest {
 
         ModificationToCreateServiceDto serviceDto = mapper.modificationToCreateControllerDtoToService(controllerDto);
 
-        assertEquals(patternId, serviceDto.patternId());
         assertEquals("old", serviceDto.oldName());
         assertEquals("new", serviceDto.newName());
         assertEquals("type", serviceDto.newType());
@@ -101,9 +98,7 @@ class ModificationMapperTest {
 
     @Test
     void testModificationToCreateServiceDtoToEntity() {
-        UUID patternId = UUID.randomUUID();
         ModificationToCreateServiceDto serviceDto = new ModificationToCreateServiceDto(
-                patternId,
                 "old",
                 "new",
                 "type",

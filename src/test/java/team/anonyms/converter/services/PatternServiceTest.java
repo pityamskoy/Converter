@@ -97,6 +97,7 @@ class PatternServiceTest {
         Mockito.when(patternMapper.patternToCreateServiceDtoToEntity(createDto)).thenReturn(mockPattern);
         Mockito.when(patternMapper.patternToServiceDto(mockPattern)).thenReturn(responseDto);
 
+        // fix this
         PatternServiceDto result = patternService.createPattern(createDto);
 
         // паттерн вернулся и сохранился в репы
