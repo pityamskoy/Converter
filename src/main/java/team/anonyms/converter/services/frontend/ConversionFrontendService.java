@@ -183,7 +183,9 @@ public final class ConversionFrontendService {
 
     /**
      * <p>
-     *     Applies pattern to converted data.
+     *     Applies pattern to converted data.<br>
+     *     <b>Assumption:</b> the number of additions of the same field is limited in quantity.
+     *     All new fields are added only 1 time.
      * </p>
      *
      * @param rows converted data.
@@ -200,44 +202,41 @@ public final class ConversionFrontendService {
             return rows;
         }
 
-        for (Map<String, Object> row : rows) {
-            for (int j = 0; j < pattern.getModifications().size(); j++) {
-                Modification modification = pattern.getModifications().get(j);
+        List<Modification> modifications = pattern.getModifications();
 
-                if (modification.getOldName() == null || modification.getOldName().isEmpty()) {
-                    if (modification.getNewName() == null || modification.getNewName().isEmpty()) {
+        for (Map<String, Object> row : rows) {
+            for (Modification modification : modifications) {
+                // Deleting fields
+                if (row.containsKey(modification.getOldName()) && (modification.getNewValue() == null)) {
+                    row.remove(modification.getOldName());
+                    continue;
+                }
+
+                String fieldNameForTypeConversion = "";
+                boolean isAddingIteration = false; // flag
+
+                // Adding new fields
+                if (modification.getOldName() == null) {
+                    if (modification.getNewName() == null) {
                         throw new IllegalPatternException(
                                 "Modification with null or empty OldName and NewName was provided; modification=" +
                                         modification
                         );
                     }
 
-                    if (modification.getNewType() == null || modification.getNewType().isEmpty()) {
-                        row.put(modification.getNewName(), modification.getNewValue());
-                    } else {
-                        switch (modification.getNewType()) {
-                            case "String":
-                                row.put(modification.getNewName(), modification.getNewValue());
-                                break;
-                            case "Integer":
-                                row.put(modification.getNewName(), Integer.parseInt(modification.getNewName()));
-                                break;
-                            case "Float":
-                                row.put(modification.getNewName(), Float.parseFloat(modification.getNewName()));
-                                break;
-                            case "Boolean":
-                                row.put(modification.getNewName(), Boolean.parseBoolean(modification.getNewName()));
-                                break;
-                            default:
-                                throw new IllegalPatternException(
-                                        "Unsupported newType was provided; newType=" + modification.getNewType()
-                                );
-                        }
-                    }
+                    isAddingIteration = true;
+                    fieldNameForTypeConversion = modification.getNewName();
+
+                    row.put(fieldNameForTypeConversion, modification.getNewValue());
+                    modifications.remove(modification);
                 }
 
+                // Altering existing fields
                 if (row.containsKey(modification.getOldName())) {
-                    if (modification.getNewName() != null && !modification.getNewName().isEmpty()) {
+                    fieldNameForTypeConversion = modification.getOldName();
+
+                    // Changing names of fields
+                    if (modification.getNewName() != null) {
                         Object value = row.get(modification.getOldName());
                         row.put(modification.getNewName(), value);
                         row.remove(modification.getOldName());
@@ -245,32 +244,30 @@ public final class ConversionFrontendService {
                         modification.setOldName(modification.getNewName());
                     }
 
+                    // Changing values of fields
                     if (modification.getNewValue() != null) {
                         row.put(modification.getOldName(), modification.getNewValue());
                     }
+                }
 
-                    if (modification.getNewType() != null) {
-                        Object value = row.get(modification.getOldName());
+                // Type conversion
+                if (row.containsKey(modification.getOldName()) || isAddingIteration) {
+                    Object value = row.get(fieldNameForTypeConversion);
 
-                        // Find how to remove this hard code and add enum to db.
-                        switch (modification.getNewType()) {
-                            case "String":
-                                row.put(modification.getOldName(), value.toString());
-                                break;
-                            case "Integer":
-                                row.put(modification.getOldName(), Integer.parseInt(value.toString()));
-                                break;
-                            case "Float":
-                                row.put(modification.getOldName(), Float.parseFloat(value.toString()));
-                                break;
-                            case "Boolean":
-                                row.put(modification.getOldName(), Boolean.parseBoolean(value.toString()));
-                                break;
-                            default:
-                                throw new IllegalPatternException(
-                                        "Unsupported newType was provided; newType=" + modification.getNewType()
-                                );
-                        }
+                    // Find how to remove this hard code and add enum to db.
+                    switch (modification.getNewType()) {
+                        case "Integer":
+                            row.put(fieldNameForTypeConversion, Integer.parseInt(value.toString()));
+                            break;
+                        case "Float":
+                            row.put(fieldNameForTypeConversion, Float.parseFloat(value.toString()));
+                            break;
+                        case "Boolean":
+                            row.put(fieldNameForTypeConversion, Boolean.parseBoolean(value.toString()));
+                            break;
+                        default:
+                            row.put(fieldNameForTypeConversion, value.toString());
+                            break;
                     }
                 }
             }

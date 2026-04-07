@@ -2,6 +2,7 @@ package team.anonyms.converter.services.frontend;
 
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
+import team.anonyms.converter.dto.service.modification.ModificationToCreateServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternToCreateServiceDto;
 import team.anonyms.converter.entities.Modification;
@@ -58,8 +59,10 @@ public final class PatternService {
 
         Pattern patternCreated = patternMapper.patternToCreateServiceDtoToEntity(patternToCreate);
 
-        for (Modification modification: patternCreated.getModifications()) {
+        for (ModificationToCreateServiceDto modificationDto: patternToCreate.modifications()) {
+            Modification modification = modificationMapper.modificationToCreateServiceDtoToEntity(modificationDto);
             modification.setId(UUID.randomUUID());
+
             modificationRepository.save(modification);
         }
 
