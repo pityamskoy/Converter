@@ -27,7 +27,6 @@ public final class ModificationMapper {
             ModificationToCreateControllerDto modificationToCreateControllerDto
     ) {
         return new ModificationToCreateServiceDto(
-                modificationToCreateControllerDto.patternId(),
                 modificationToCreateControllerDto.oldName(),
                 modificationToCreateControllerDto.newName(),
                 modificationToCreateControllerDto.newType(),

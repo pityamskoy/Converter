@@ -40,12 +40,10 @@ class ConversionFrontendControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     // ЭТО НУЖНО!!! вспомогательный метод для json-части запроса
-    private MockPart getPatternPart() throws Exception {
-        PatternControllerDto patternDto = new PatternControllerDto(
-                UUID.randomUUID(), "Test", "json csv", List.of()
-        );
-        MockPart part = new MockPart("pattern", objectMapper.writeValueAsBytes(patternDto));
-        part.getHeaders().setContentType(MediaType.APPLICATION_JSON);
+    private MockPart getPatternPart() {
+        UUID id = UUID.randomUUID();
+        MockPart part = new MockPart("pattern", id.toString().getBytes());
+        part.getHeaders().setContentType(MediaType.TEXT_PLAIN);
         return part;
     }
 
