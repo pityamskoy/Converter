@@ -116,7 +116,6 @@ public final class PatternService {
 
         Pattern patternUpdated = pattern.get();
         patternUpdated.setName(patternToUpdate.name());
-        patternUpdated.setConversionType(patternToUpdate.conversionType());
 
         modificationRepository.deleteAll(patternUpdated.getModifications());
         patternUpdated.setModifications(modifications);

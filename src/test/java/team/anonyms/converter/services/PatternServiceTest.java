@@ -78,7 +78,6 @@ class PatternServiceTest {
         PatternToCreateServiceDto createDto = new PatternToCreateServiceDto(
                 userId,
                 "name",
-                "type",
                 List.of()
         );
 
@@ -89,7 +88,6 @@ class PatternServiceTest {
         PatternServiceDto responseDto = new PatternServiceDto(
                 UUID.randomUUID(),
                 "name",
-                "type",
                 List.of()
         );
 
@@ -112,7 +110,6 @@ class PatternServiceTest {
         PatternToCreateServiceDto createDto = new PatternToCreateServiceDto(
                 userId,
                 "name",
-                "type",
                 List.of()
         );
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.empty());
@@ -130,7 +127,6 @@ class PatternServiceTest {
         PatternServiceDto updateDto = new PatternServiceDto(
                 patternId,
                 "name",
-                "type",
                 List.of()
         );
 
@@ -152,7 +148,6 @@ class PatternServiceTest {
         PatternServiceDto updateDto = new PatternServiceDto(
                 patternId,
                 "name",
-                "type",
                 List.of()
         );
         Mockito.when(patternRepository.findById(patternId)).thenReturn(Optional.empty());

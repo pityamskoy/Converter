@@ -36,7 +36,6 @@ class PatternMapperTest {
         PatternControllerDto controllerDto = new PatternControllerDto(
                 id,
                 "Pattern1",
-                "json_csv",
                 List.of()
         );
 
@@ -44,7 +43,6 @@ class PatternMapperTest {
 
         assertEquals(id, serviceDto.id());
         assertEquals("Pattern1", serviceDto.name());
-        assertEquals("json_csv", serviceDto.conversionType());
     }
 
     @Test
@@ -53,7 +51,6 @@ class PatternMapperTest {
         PatternToCreateControllerDto controllerDto = new PatternToCreateControllerDto(
                 userId,
                 "Pattern1",
-                "json_csv",
                 List.of()
         );
 
@@ -61,7 +58,6 @@ class PatternMapperTest {
 
         assertEquals(userId, serviceDto.userId());
         assertEquals("Pattern1", serviceDto.name());
-        assertEquals("json_csv", serviceDto.conversionType());
     }
 
     @Test
@@ -70,7 +66,6 @@ class PatternMapperTest {
         PatternServiceDto serviceDto = new PatternServiceDto(
                 id,
                 "Pattern1",
-                "json_csv",
                 List.of()
         );
 
@@ -78,7 +73,6 @@ class PatternMapperTest {
 
         assertEquals(id, controllerDto.id());
         assertEquals("Pattern1", controllerDto.name());
-        assertEquals("json_csv", controllerDto.conversionType());
     }
 
     @Test
@@ -87,7 +81,6 @@ class PatternMapperTest {
         PatternServiceDto serviceDto = new PatternServiceDto(
                 id,
                 "Pattern1",
-                "json_csv",
                 List.of()
         );
 
@@ -95,7 +88,6 @@ class PatternMapperTest {
 
         assertEquals(id, entity.getId());
         assertEquals("Pattern1", entity.getName());
-        assertEquals("json_csv", entity.getConversionType());
     }
 
     @Test
@@ -104,7 +96,6 @@ class PatternMapperTest {
         PatternToCreateServiceDto serviceDto = new PatternToCreateServiceDto(
                 userId,
                 "Pattern1",
-                "json_csv",
                 List.of()
         );
 
@@ -112,21 +103,19 @@ class PatternMapperTest {
 
         assertNotNull(entity.getId());
         assertEquals("Pattern1", entity.getName());
-        assertEquals("json_csv", entity.getConversionType());
     }
 
     @Test
     void testPatternToServiceDto() {
         UUID id = UUID.randomUUID();
-        Pattern entity = new Pattern(id,
+        Pattern entity = new Pattern(
+                id,
                 "Pattern1",
-                "json_csv",
                 List.of());
 
         PatternServiceDto serviceDto = patternMapper.patternToServiceDto(entity);
 
         assertEquals(id, serviceDto.id());
         assertEquals("Pattern1", serviceDto.name());
-        assertEquals("json_csv", serviceDto.conversionType());
     }
 }

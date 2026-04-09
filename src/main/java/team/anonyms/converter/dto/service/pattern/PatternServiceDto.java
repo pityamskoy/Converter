@@ -8,7 +8,6 @@ import java.util.UUID;
 public record PatternServiceDto(
         UUID id,
         String name,
-        String conversionType,
         List<ModificationServiceDto> modifications
 ) {
 }

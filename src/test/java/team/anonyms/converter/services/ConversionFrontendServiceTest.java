@@ -5,8 +5,8 @@ import org.mockito.Mockito;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
 import team.anonyms.converter.exceptions.UnsupportedExtensionException;
-import team.anonyms.converter.mappers.PatternMapper;
 import team.anonyms.converter.services.frontend.ConversionFrontendService;
+import team.anonyms.converter.services.frontend.PatternService;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,11 +16,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ConversionFrontendServiceTest {
 
-    private final PatternMapper patternMapper =
-            Mockito.mock(PatternMapper.class);
+    private final PatternService patternService = Mockito.mock(PatternService.class);
 
-    private final ConversionFrontendService conversionFrontendService =
-            new ConversionFrontendService(null); // fix
+    private final ConversionFrontendService conversionFrontendService = new ConversionFrontendService(patternService);
 
     // тест из json в csv
     @Test

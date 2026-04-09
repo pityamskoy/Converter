@@ -49,14 +49,12 @@ class PatternControllerTest {
         PatternServiceDto serviceDto = new PatternServiceDto(
                 patternId,
                 "Test Pattern",
-                "json_csv",
                 List.of()
         );
 
         PatternControllerDto controllerDto = new PatternControllerDto(
                 patternId,
                 "Test Pattern",
-                "json_csv",
                 List.of()
         );
 
@@ -80,28 +78,24 @@ class PatternControllerTest {
         PatternToCreateControllerDto requestDto = new PatternToCreateControllerDto(
                 userId,
                 "New Pattern",
-                "json_csv",
                 List.of()
         );
 
         PatternToCreateServiceDto serviceRequestDto = new PatternToCreateServiceDto(
                 userId,
                 "New Pattern",
-                "json_csv",
                 List.of()
         );
 
         PatternServiceDto serviceResponseDto = new PatternServiceDto(
                 patternId,
                 "New Pattern",
-                "json_csv",
                 List.of()
         );
 
         PatternControllerDto responseDto = new PatternControllerDto(
                 patternId,
                 "New Pattern",
-                "json_csv",
                 List.of()
         );
 
@@ -127,14 +121,12 @@ class PatternControllerTest {
         PatternControllerDto requestDto = new PatternControllerDto(
                 patternId,
                 "Updated Pattern",
-                "xml_json",
                 List.of()
         );
 
         PatternServiceDto serviceDto = new PatternServiceDto(
                 patternId,
                 "Updated Pattern",
-                "xml_json",
                 List.of()
         );
 
