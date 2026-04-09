@@ -79,11 +79,10 @@ Registration and login set the cookie; logout clears it.
 Every file conversion follows these steps:
 
 1. Validate the uploaded file's extension against the declared source format.
-2. If a pattern ID is provided, validate that the pattern's `conversionType` matches the requested conversion (e.g., `.json .csv`).
-3. Deserialize the file into `List<Map<String, Object>>` (one map per row/object).
-4. Apply pattern modifications to each row (if a pattern was provided).
-5. Serialize the modified list to the target format.
-6. Stream the result back to the client and delete the temporary file.
+2. Deserialize the file into `List<Map<String, Object>>` (one map per row/object).
+3. Apply pattern modifications to each row (if a pattern was provided).
+4. Serialize the modified list to the target format.
+5. Stream the result back to the client and delete the temporary file.
 
 Supported conversion pairs: `json↔csv`, `json↔xml`, `xml↔csv`.
 
@@ -203,7 +202,6 @@ Get all patterns belonging to a user.
   {
     "id": "uuid",
     "name": "My Pattern",
-    "conversionType": ".json .csv",
     "modifications": [
       {
         "oldName": "field1",
@@ -224,7 +222,6 @@ Create a new pattern.
 {
   "userId": "uuid",
   "name": "My Pattern",
-  "conversionType": ".json .csv",
   "modifications": [
     {
       "oldName": "old",
@@ -245,7 +242,6 @@ Update an existing pattern (id must be present in the body).
 {
   "id": "uuid",
   "name": "My Pattern",
-  "conversionType": ".json .csv",
   "modifications": [
     {
       "oldName": "old",
@@ -343,7 +339,7 @@ logging:
 ### With Docker Compose
 
 ```bash
-# Create a .env file with the required variables, then:
+# Create a .env file with the required variables, then run:
 docker compose up -d
 ```
 
