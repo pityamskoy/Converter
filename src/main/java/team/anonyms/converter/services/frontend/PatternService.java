@@ -1,6 +1,7 @@
 package team.anonyms.converter.services.frontend;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import team.anonyms.converter.dto.service.modification.ModificationToCreateServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternServiceDto;
@@ -48,6 +49,31 @@ public final class PatternService {
         }
 
         return userOptional.get().getPatterns().stream().map(patternMapper::patternToServiceDto).toList();
+    }
+
+    /**
+     * <p>
+     *     This method finds patterns by its IDs.
+     * </p>
+     *
+     * @param id - an ID of a pattern.
+     *
+     * @return pattern, which has been found by {@code id}. Please, note that returning pattern is null if provided {@code id} is null.
+     *
+     * @throws EntityNotFoundException if pattern is not found.
+     */
+    public @Nullable Pattern findPatternById(@Nullable UUID id) {
+        if (id == null) {
+            return null;
+        }
+
+        Optional<Pattern> patternOptional = patternRepository.findById(id);
+
+        if (patternOptional.isEmpty()) {
+            throw new EntityNotFoundException("Pattern not found; id=" + id);
+        }
+
+        return patternOptional.get();
     }
 
     public PatternServiceDto createPattern(PatternToCreateServiceDto patternToCreate) {

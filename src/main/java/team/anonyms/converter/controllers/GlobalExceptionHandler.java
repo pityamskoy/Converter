@@ -14,8 +14,7 @@ import static team.anonyms.converter.enums.ProjectVersion.RELEASE_0;
 
 /**
  * <p>
- *     {@code GlobalExceptionHandler} is supposed to handle all {@link RuntimeException}, which all controllers
- *     may throw.
+ *     {@code GlobalExceptionHandler} is supposed to handle all {@link RuntimeException}, which all controllers may throw.
  * </p>
  */
 @LastSupportedProjectVersion(RELEASE_0)
