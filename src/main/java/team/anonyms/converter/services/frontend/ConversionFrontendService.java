@@ -60,8 +60,7 @@ public final class ConversionFrontendService {
     /**
      * @param file any {@link MultipartFile}.
      * @param currentExtension current extension of {@code file}. It is supposed to have "." in itself. For example,
-     *                         ".json" or ".csv" are valid values for {@code currentExtension}, and "json", "csv" are
-     *                         not valid.
+     * {@code .json} or {@code .csv} are valid values for {@code currentExtension}, and {@code json}, {@code csv} are not valid.
      *
      * @return filename without provided {@code currentExtension}.
      *
@@ -100,16 +99,15 @@ public final class ConversionFrontendService {
      * </p>
      *
      * @param file requested file to convert.
-     * @param currentExtension current extension of {@code file}.
+     * @param currentExtension current extension of {@code file}. {@code currentExtension} is supposed to start with dot.
+     * For example, it is more preferably to send {@code .json} instead of {@code json} to this method despite the fact
+     * that the validation doesn't fail in both cases.
      *
      * @throws IllegalArgumentException if {@code file} is empty.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code file} has extension, which doesn't correspond to {@code currentExtension}.
      */
-    private void validateArgumentsForConversionAndReturnPattern(
-            @NonNull MultipartFile file,
-            @NonNull String currentExtension
-    ) {
+    private void validateArgumentsForConversion(@NonNull MultipartFile file, @NonNull String currentExtension) {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("file is empty");
         }
@@ -244,7 +242,7 @@ public final class ConversionFrontendService {
             @NonNull MultipartFile jsonFile,
             UUID patternId
     ) throws IOException {
-        validateArgumentsForConversionAndReturnPattern(jsonFile, ".json");
+        validateArgumentsForConversion(jsonFile, ".json");
 
         // Possible vulnerability here
         // Create temporarily CSV file for writing converted data
@@ -337,7 +335,7 @@ public final class ConversionFrontendService {
             @NonNull MultipartFile csvFile,
             UUID patternId
     ) throws IOException {
-        validateArgumentsForConversionAndReturnPattern(csvFile, ".csv");
+        validateArgumentsForConversion(csvFile, ".csv");
 
         // Create temporarily JSON file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(csvFile, ".csv");
@@ -426,7 +424,7 @@ public final class ConversionFrontendService {
             @NonNull MultipartFile jsonFile,
             UUID patternId
     ) throws IOException {
-        validateArgumentsForConversionAndReturnPattern(jsonFile, ".json");
+        validateArgumentsForConversion(jsonFile, ".json");
 
         // Create temporarily XML file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(jsonFile, ".json");
@@ -482,7 +480,7 @@ public final class ConversionFrontendService {
             @NonNull MultipartFile xmlFile,
             UUID patternId
     ) throws IOException {
-        validateArgumentsForConversionAndReturnPattern(xmlFile, ".xml");
+        validateArgumentsForConversion(xmlFile, ".xml");
 
         // Create temporarily JSON file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(xmlFile, ".xml");
@@ -550,7 +548,7 @@ public final class ConversionFrontendService {
             @NonNull MultipartFile xmlFile,
             UUID patternId
     ) throws IOException {
-        validateArgumentsForConversionAndReturnPattern(xmlFile, ".xml");
+        validateArgumentsForConversion(xmlFile, ".xml");
 
         // Possible vulnerability here
         // Create temporarily CSV file for writing converted data
@@ -643,7 +641,7 @@ public final class ConversionFrontendService {
             @NonNull MultipartFile csvFile,
             UUID patternId
     ) throws IOException {
-        validateArgumentsForConversionAndReturnPattern(csvFile, ".csv");
+        validateArgumentsForConversion(csvFile, ".csv");
 
         // Create temporarily XML file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(csvFile, ".csv");
