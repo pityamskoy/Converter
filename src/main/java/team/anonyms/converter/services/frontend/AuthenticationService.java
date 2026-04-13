@@ -32,7 +32,7 @@ public final class AuthenticationService {
      * @param userId a value of cookie, which {@link AuthenticationController} accepts as an argument.
      * @param credentials login credentials.
      *
-     * @return {@link Pair}<{@link Cookie}, {@link LoginResultServiceDto}>, where {@link Cookie} is null if {@code User} has been found by {@code userId}.
+     * @return {@link Pair}<{@link Cookie}, {@link LoginResultServiceDto}>, where {@link Cookie} is null if {@code User} has been found by {@code id}.
      *
      * @throws CredentialException if cookie is null, and credentials are null.
      */

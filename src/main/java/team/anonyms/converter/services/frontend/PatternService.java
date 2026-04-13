@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import team.anonyms.converter.dto.service.modification.ModificationToCreateServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternToCreateServiceDto;
+import team.anonyms.converter.dto.service.pattern.PatternToUpdateServiceDto;
 import team.anonyms.converter.entities.Modification;
 import team.anonyms.converter.entities.Pattern;
 import team.anonyms.converter.entities.User;
@@ -104,7 +105,7 @@ public final class PatternService {
         return patternMapper.patternToServiceDto(patternCreated);
     }
 
-    public PatternServiceDto updatePattern(PatternServiceDto patternToUpdate) {
+    public PatternServiceDto updatePattern(PatternToUpdateServiceDto patternToUpdate) {
         Optional<Pattern> pattern = patternRepository.findById(patternToUpdate.id());
 
         if (pattern.isEmpty()) {
@@ -112,12 +113,14 @@ public final class PatternService {
         }
 
         List<Modification> modifications = patternToUpdate.modifications().stream().
-                map(modificationMapper::modificationServiceDtoToEntity).toList();
+                map(modificationMapper::modificationToUpdateServiceDtoToEntity).toList();
+
+        for (Modification modification : modifications) {
+            modificationRepository.save(modification);
+        }
 
         Pattern patternUpdated = pattern.get();
         patternUpdated.setName(patternToUpdate.name());
-
-        modificationRepository.deleteAll(patternUpdated.getModifications());
         patternUpdated.setModifications(modifications);
 
         patternRepository.save(patternUpdated);
