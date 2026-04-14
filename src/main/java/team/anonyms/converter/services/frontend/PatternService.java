@@ -3,7 +3,6 @@ package team.anonyms.converter.services.frontend;
 import jakarta.persistence.EntityNotFoundException;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
-import team.anonyms.converter.dto.service.modification.ModificationToCreateServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternToCreateServiceDto;
 import team.anonyms.converter.entities.Modification;
@@ -85,10 +84,7 @@ public final class PatternService {
 
         Pattern patternCreated = patternMapper.patternToCreateServiceDtoToEntity(patternToCreate);
 
-        for (ModificationToCreateServiceDto modificationDto: patternToCreate.modifications()) {
-            Modification modification = modificationMapper.modificationToCreateServiceDtoToEntity(modificationDto);
-            modification.setId(UUID.randomUUID());
-
+        for (Modification modification: patternCreated.getModifications()) {
             modificationRepository.save(modification);
         }
 
@@ -127,11 +123,31 @@ public final class PatternService {
 
     public void deletePattern(UUID patternId) {
         Optional<Pattern> patternOptional = patternRepository.findById(patternId);
-
         if (patternOptional.isEmpty()) {
-            throw new EntityNotFoundException("Pattern not found; id=" + patternId);
+            throw new EntityNotFoundException("Pattern not found; patternId=" + patternId);
         }
 
+        List<User> users = userRepository.findAll();
+
+        User userForDeletion = null;
+        for (User user : users) {
+            List<Pattern> patterns = user.getPatterns();
+
+            for (Pattern pattern : patterns) {
+                if (pattern.getId().equals(patternId)) {
+                    userForDeletion = user;
+                    break;
+                }
+            }
+        }
+
+        if (userForDeletion == null) {
+            throw new EntityNotFoundException("User not found by pattern; patternId=" + patternId);
+        }
+
+        userForDeletion.setPatterns(userForDeletion.getPatterns().stream().filter(p -> !p.getId().equals(patternId)).toList());
+
+        userRepository.save(userForDeletion);
         patternRepository.delete(patternOptional.get());
     }
 }

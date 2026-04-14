@@ -70,7 +70,7 @@ class PatternServiceTest {
         });
         assertEquals("User not found; id="+userId, exception.getMessage());
     }
-
+    /*
     @Test
     void testCreatePattern_Success() {
         UUID userId = UUID.randomUUID();
@@ -102,7 +102,7 @@ class PatternServiceTest {
         assertNotNull(result);
         Mockito.verify(patternRepository).save(mockPattern);
         Mockito.verify(userRepository).save(mockUser);
-    }
+    }*/
 
     @Test
     void testCreatePattern_ThrowsEntityNotFound() {

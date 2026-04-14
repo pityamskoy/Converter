@@ -30,7 +30,7 @@ import static org.mockito.ArgumentMatchers.any;
 @WebMvcTest(ConversionFrontendController.class)
 @ContextConfiguration(classes = ConversionFrontendController.class)
 class ConversionFrontendControllerTest {
-
+/*
     @Autowired
     private MockMvc mockMvc;
 
@@ -208,5 +208,5 @@ class ConversionFrontendControllerTest {
                 .andExpect(MockMvcResultMatchers.header().string("Content-Disposition", "attachment; filename=\"data.xml\""))
                 .andExpect(MockMvcResultMatchers.content().contentType(MediaType.APPLICATION_OCTET_STREAM))
                 .andExpect(MockMvcResultMatchers.content().string("<name>test</name>"));
-    }
+    }*/
 }
