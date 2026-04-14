@@ -63,13 +63,13 @@ public final class ConversionFrontendController {
     @PostMapping(value = "/json/csv", consumes = {MULTIPART_FORM_DATA_VALUE, APPLICATION_JSON_VALUE})
     public ResponseEntity<StreamingResponseBody> convertJsonFileToCsv(
             @RequestPart(name = "file") MultipartFile file,
-            @RequestPart(name = "pattern", required = false) String patternId
+            @RequestPart(name = "pattern", required = false) UUID patternId
     ) {
         String filename = file.getOriginalFilename();
         log.info("Called convertJsonFileToCsv; filename={}; patternId={}", filename, patternId);
 
         try {
-            Path csvPath = conversionFrontendService.convertJsonFileToCsv(file, UUID.fromString(patternId));
+            Path csvPath = conversionFrontendService.convertJsonFileToCsv(file, patternId);
 
             Objects.requireNonNull(filename);
             String outputFilename = filename.substring(0, filename.length() - 5) + ".csv";
@@ -85,13 +85,13 @@ public final class ConversionFrontendController {
     @PostMapping(value = "/csv/json", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertCsvFileToJson(
             @RequestPart(name = "file") MultipartFile file,
-            @RequestPart(name = "pattern", required = false) String patternId
+            @RequestPart(name = "pattern", required = false) UUID patternId
     ) {
         String filename = file.getOriginalFilename();
         log.info("Called convertCsvFileToJson; filename={}; patternId={}", filename, patternId);
 
         try {
-            Path jsonPath = conversionFrontendService.convertCsvFileToJson(file, UUID.fromString(patternId));
+            Path jsonPath = conversionFrontendService.convertCsvFileToJson(file, patternId);
 
             Objects.requireNonNull(filename);
             String outputFilename = filename.substring(0, filename.length() - 4) + ".json";
@@ -106,13 +106,13 @@ public final class ConversionFrontendController {
     @PostMapping(value = "/json/xml", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertJsonFileToXml(
             @RequestPart(name = "file") MultipartFile file,
-            @RequestPart(name = "pattern", required = false) String patternId
+            @RequestPart(name = "pattern", required = false) UUID patternId
     ) {
         String filename = file.getOriginalFilename();
         log.info("Called convertJsonFileToXml; filename={}; patternId={}", filename, patternId);
 
         try {
-            Path xmlPath = conversionFrontendService.convertJsonFileToXml(file, UUID.fromString(patternId));
+            Path xmlPath = conversionFrontendService.convertJsonFileToXml(file, patternId);
 
             Objects.requireNonNull(filename);
             String outputFilename = filename.substring(0, filename.length() - 5) + ".xml";
@@ -127,13 +127,13 @@ public final class ConversionFrontendController {
     @PostMapping(value = "/xml/json", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertXmlFileToJson(
             @RequestPart(name = "file") MultipartFile file,
-            @RequestPart(name = "pattern", required = false) String patternId
+            @RequestPart(name = "pattern", required = false) UUID patternId
     ) {
         String filename = file.getOriginalFilename();
         log.info("Called convertXmlFileToJson; filename={}; patternId={}", filename, patternId);
 
         try {
-            Path jsonPath = conversionFrontendService.convertXmlFileToJson(file, UUID.fromString(patternId));
+            Path jsonPath = conversionFrontendService.convertXmlFileToJson(file, patternId);
 
             Objects.requireNonNull(filename);
             String outputFilename = filename.substring(0, filename.length() - 4) + ".json";
@@ -149,13 +149,13 @@ public final class ConversionFrontendController {
     @PostMapping(value = "/xml/csv", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertXmlFileToCsv(
             @RequestPart(name = "file") MultipartFile file,
-            @RequestPart(name = "pattern", required = false) String patternId
+            @RequestPart(name = "pattern", required = false) UUID patternId
     ) {
         String filename = file.getOriginalFilename();
         log.info("Called convertXmlFileToCsv; filename={}; patternId={}", filename, patternId);
 
         try {
-            Path csvPath = conversionFrontendService.convertXmlFileToCsv(file, UUID.fromString(patternId));
+            Path csvPath = conversionFrontendService.convertXmlFileToCsv(file, patternId);
 
             Objects.requireNonNull(filename);
             String outputFilename = filename.substring(0, filename.length() - 4) + ".csv";
@@ -171,13 +171,13 @@ public final class ConversionFrontendController {
     @PostMapping(value = "/csv/xml", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertCsvFileToXml(
             @RequestPart(name = "file") MultipartFile file,
-            @RequestPart(name = "pattern", required = false) String patternId
+            @RequestPart(name = "pattern", required = false) UUID patternId
     ) {
         String filename = file.getOriginalFilename();
         log.info("Called convertCsvFileToXml; filename={}; pattern={}", filename, patternId);
 
         try {
-            Path xmlPath = conversionFrontendService.convertCsvFileToXml(file, UUID.fromString(patternId));
+            Path xmlPath = conversionFrontendService.convertCsvFileToXml(file, patternId);
 
             Objects.requireNonNull(filename);
             String outputFilename = filename.substring(0, filename.length() - 4) + ".xml";
