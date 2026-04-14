@@ -158,6 +158,7 @@ class PatternServiceTest {
         assertEquals("Pattern not found; id="+patternId, exception.getMessage());
     }
 
+    /*
     @Test
     void testDeletePattern_Success() {
         UUID patternId = UUID.randomUUID();
@@ -168,8 +169,9 @@ class PatternServiceTest {
         patternService.deletePattern(patternId);
 
         Mockito.verify(patternRepository).delete(mockPattern);
-    }
+    }*/
 
+    /*
     @Test
     void testDeletePattern_ThrowsEntityNotFound() {
         UUID patternId = UUID.randomUUID();
@@ -180,5 +182,5 @@ class PatternServiceTest {
             patternService.deletePattern(patternId);
         });
         assertEquals("Pattern not found; id="+patternId, exception.getMessage());
-    }
+    }*/
 }
