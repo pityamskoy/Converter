@@ -113,7 +113,12 @@ public final class PatternService {
         Pattern patternUpdated = pattern.get();
         patternUpdated.setName(patternToUpdate.name());
 
-        modificationRepository.deleteAll(patternUpdated.getModifications());
+        List<Modification> currentModifications = patternUpdated.getModifications();
+
+        patternUpdated.setModifications(List.of());
+        patternRepository.save(patternUpdated);
+
+        modificationRepository.deleteAll(currentModifications);
         patternUpdated.setModifications(modifications);
 
         patternRepository.save(patternUpdated);
