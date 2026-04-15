@@ -19,7 +19,6 @@ import team.anonyms.converter.entities.Pattern;
 import team.anonyms.converter.exceptions.IllegalPatternException;
 import team.anonyms.converter.exceptions.UnsupportedExtensionException;
 import com.fasterxml.jackson.databind.JsonNode;
-import team.anonyms.converter.repositories.PatternRepository;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -30,13 +29,10 @@ import java.util.*;
 public final class ConversionFrontendService {
     private static final Logger log = LoggerFactory.getLogger(ConversionFrontendService.class);
 
-    // Project directory on the server for deployment
-    private static final String PROJECT_DIRECTORY = "/root/projects/converter/";
+    private final PatternService patternService;
 
-    private final PatternRepository patternRepository;
-
-    public ConversionFrontendService(PatternRepository patternRepository) {
-        this.patternRepository = patternRepository;
+    public ConversionFrontendService(PatternService patternService) {
+        this.patternService = patternService;
     }
 
     /**
@@ -64,13 +60,11 @@ public final class ConversionFrontendService {
     /**
      * @param file any {@link MultipartFile}.
      * @param currentExtension current extension of {@code file}. It is supposed to have "." in itself. For example,
-     *                         ".json" or ".csv" are valid values for {@code currentExtension}, and "json", "csv" are
-     *                         not valid.
+     * {@code .json} or {@code .csv} are valid values for {@code currentExtension}, and {@code json}, {@code csv} are not valid.
      *
      * @return filename without provided {@code currentExtension}.
      *
-     * @throws IllegalArgumentException if {@code currentExtension} doesn't contain the only "." at the beginning
-     * of itself.
+     * @throws IllegalArgumentException if {@code currentExtension} doesn't contain the only "." at the beginning of itself.
      * @throws NullPointerException if the filename of {@code file} is null.
      * @throws UnsupportedExtensionException if {@code currentExtension} is not extension of the {@code file}.
      */
@@ -101,38 +95,19 @@ public final class ConversionFrontendService {
 
     /**
      * <p>
-     *     This method validates arguments for a conversion and throw an exception if some argument is not correct.
+     *     This method validates arguments for a conversion. It throws an exception if validation doesn't pass.
      * </p>
      *
      * @param file requested file to convert.
-     * @param currentExtension current extension of {@code file}.
-     * @param conversionExtension extension, to which the application converting to.
-     * @param patternId ID of a pattern, which already exists in database.
+     * @param currentExtension current extension of {@code file}. {@code currentExtension} is supposed to start with dot.
+     * For example, it is more preferably to send {@code .json} instead of {@code json} to this method despite the fact
+     * that the validation doesn't fail in both cases.
      *
-     * @return pattern, which has been found by {@code patternId}. Please, note that return pattern is null if
-     * {@code patternId} is null
-     *
-     * @throws IllegalArgumentException either if {@code file} is empty or {@code currentExtension}
-     * and {@code conversionExtension} are the same.
+     * @throws IllegalArgumentException if {@code file} is empty.
      * @throws NullPointerException if filename is null.
-     * @throws UnsupportedExtensionException if {@code file} has extension, which doesn't correspond to
-     * {@code currentExtension}.
-     * @throws EntityNotFoundException if pattern is not found in database by {@code patternId}.
-     * @throws IllegalPatternException if pattern has type, which doesn't match with
-     * {@code currentExtension} and {@code conversionExtension}.
+     * @throws UnsupportedExtensionException if {@code file} has extension, which doesn't correspond to {@code currentExtension}.
      */
-    private @Nullable Pattern validateArgumentsForConversionAndReturnPattern(
-            @NonNull MultipartFile file,
-            @NonNull String currentExtension,
-            @NonNull String conversionExtension,
-            UUID patternId
-    ) {
-        if (currentExtension.equals(conversionExtension)) {
-            throw new IllegalArgumentException(String.format("currentExtension and conversionExtension are the same; " +
-                    "currentExtension=%s; conversionExtension=%s", currentExtension, conversionExtension)
-            );
-        }
-
+    private void validateArgumentsForConversion(@NonNull MultipartFile file, @NonNull String currentExtension) {
         if (file.isEmpty()) {
             throw new IllegalArgumentException("file is empty");
         }
@@ -145,40 +120,6 @@ public final class ConversionFrontendService {
         if (!filename.endsWith(currentExtension)) {
             throw new UnsupportedExtensionException("Provided file doesn't have '" + currentExtension + "' extension");
         }
-
-        if (patternId == null) {
-            return null;
-        }
-
-        Optional<Pattern> patternOptional = patternRepository.findById(patternId);
-
-        if (patternOptional.isEmpty()) {
-            throw new EntityNotFoundException("Pattern not found; id=" + patternId);
-        }
-
-        Pattern pattern = patternOptional.get();
-
-        String patternCurrentExtension = pattern.getConversionType().split(" ")[0];
-        String patternConversionExtension = pattern.getConversionType().split(" ")[1];
-
-        if (!currentExtension.equals(patternCurrentExtension)) {
-            throw new IllegalPatternException(
-                    String.format("currentExtensions of pattern and conversion don't match; " +
-                    "currentExtension=%s; patternCurrentExtension=%s", currentExtension, patternCurrentExtension
-                    )
-            );
-        }
-
-        if (!conversionExtension.equals(patternConversionExtension)) {
-            throw new IllegalPatternException(
-                    String.format("conversionExtensions of pattern and conversion don't match; " +
-                    "conversionExtension=%s; patternConversionExtension=%s",
-                            conversionExtension, patternConversionExtension
-                    )
-            );
-        }
-
-        return pattern;
     }
 
     /**
@@ -193,6 +134,8 @@ public final class ConversionFrontendService {
      *
      * @return {@code rows} after applying {@code pattern}.
      * If {@code pattern} is null provided {@code rows} will be returned.
+     *
+     * @throws IllegalPatternException if pattern contains modification with null or empty {@code oldName} and {@code newName} fields.
      */
     private @NonNull List<Map<String,Object>> applyPatterns(
             @NonNull List<Map<String,Object>> rows,
@@ -292,19 +235,14 @@ public final class ConversionFrontendService {
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code jsonFile} was provided without '.json' extension.
      * @throws EntityNotFoundException if pattern is not found in database by {@code patternId}.
-     * @throws IllegalPatternException if pattern does not have type equal to '.json .csv'.
+     * @throws IllegalPatternException if pattern contains modification with null or empty {@code oldName} and {@code newName} fields.
      */
     @SuppressWarnings(value = {"unchecked"})
     public @NonNull Path convertJsonFileToCsv(
             @NonNull MultipartFile jsonFile,
             UUID patternId
     ) throws IOException {
-        Pattern pattern = validateArgumentsForConversionAndReturnPattern(
-                jsonFile,
-                ".json",
-                ".csv",
-                patternId
-        );
+        validateArgumentsForConversion(jsonFile, ".json");
 
         // Possible vulnerability here
         // Create temporarily CSV file for writing converted data
@@ -337,7 +275,7 @@ public final class ConversionFrontendService {
             throw new IllegalArgumentException("JSON file contains no rows to convert");
         }
 
-        rows = applyPatterns(rows, pattern);
+        rows = applyPatterns(rows, patternService.findPatternById(patternId));
 
         CsvSchema.Builder csvSchemaBuilder = CsvSchema.builder();
         for (String column : rows.getFirst().keySet()) {
@@ -390,19 +328,14 @@ public final class ConversionFrontendService {
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code csvFile} was provided without '.csv' extension.
      * @throws EntityNotFoundException if pattern is not found in database by {@code patternId}.
-     * @throws IllegalPatternException if pattern does not have type equal to '.csv .json'.
+     * @throws IllegalPatternException if pattern contains modification with null or empty {@code oldName} and {@code newName} fields.
      */
     //fix separator problem
     public @NonNull Path convertCsvFileToJson(
             @NonNull MultipartFile csvFile,
             UUID patternId
     ) throws IOException {
-        Pattern pattern = validateArgumentsForConversionAndReturnPattern(
-                csvFile,
-                ".csv",
-                ".json",
-                patternId
-        );
+        validateArgumentsForConversion(csvFile, ".csv");
 
         // Create temporarily JSON file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(csvFile, ".csv");
@@ -452,7 +385,7 @@ public final class ConversionFrontendService {
             rows.add(convertedRow);
         }
 
-        rows = applyPatterns(rows, pattern);
+        rows = applyPatterns(rows, patternService.findPatternById(patternId));
 
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("CSV file contains no rows to convert");
@@ -484,19 +417,14 @@ public final class ConversionFrontendService {
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code jsonFile} was provided without '.json' extension.
      * @throws EntityNotFoundException if pattern is not found in database by {@code patternId}.
-     * @throws IllegalPatternException if pattern does not have type equal to '.json .xml'.
+     * @throws IllegalPatternException if pattern contains modification with null or empty {@code oldName} and {@code newName} fields.
      */
     @SuppressWarnings(value = {"unchecked"})
     public @NonNull Path convertJsonFileToXml(
             @NonNull MultipartFile jsonFile,
             UUID patternId
     ) throws IOException {
-        Pattern pattern = validateArgumentsForConversionAndReturnPattern(
-                jsonFile,
-                ".json",
-                ".xml",
-                patternId
-        );
+        validateArgumentsForConversion(jsonFile, ".json");
 
         // Create temporarily XML file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(jsonFile, ".json");
@@ -517,7 +445,7 @@ public final class ConversionFrontendService {
             throw new IllegalArgumentException("Unsupported JSON structure for XML conversion");
         }
 
-        rows = applyPatterns(rows, pattern);
+        rows = applyPatterns(rows, patternService.findPatternById(patternId));
 
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("JSON file contains no rows to convert");
@@ -545,19 +473,14 @@ public final class ConversionFrontendService {
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code xmlFile} was provided without '.xml' extension.
      * @throws EntityNotFoundException if pattern is not found in database by {@code patternId}.
-     * @throws IllegalPatternException if pattern does not have type equal to '.xml .json'.
+     * @throws IllegalPatternException if pattern contains modification with null or empty {@code oldName} and {@code newName} fields.
      */
     @SuppressWarnings(value = {"unchecked"})
     public @NonNull Path convertXmlFileToJson(
             @NonNull MultipartFile xmlFile,
             UUID patternId
     ) throws IOException {
-        Pattern pattern = validateArgumentsForConversionAndReturnPattern(
-                xmlFile,
-                ".xml",
-                ".json",
-                patternId
-        );
+        validateArgumentsForConversion(xmlFile, ".xml");
 
         // Create temporarily JSON file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(xmlFile, ".xml");
@@ -585,7 +508,7 @@ public final class ConversionFrontendService {
             throw new IllegalArgumentException("Unsupported XML structure for JSON conversion");
         }
 
-        rows = applyPatterns(rows, pattern);
+        rows = applyPatterns(rows, patternService.findPatternById(patternId));
 
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("XML file contains no rows to convert");
@@ -614,23 +537,18 @@ public final class ConversionFrontendService {
      * @return path to converted CSV file.
      *
      * @throws IllegalArgumentException if either {@code xmlFile} is empty or it consists of
-     * unsupported structure for conversion from XML to JSON.
+     * unsupported structure for conversion from XML to CSV.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code xmlFile} was provided without '.xml' extension.
      * @throws EntityNotFoundException if pattern is not found in database by {@code patternId}.
-     * @throws IllegalPatternException if pattern does not have type equal to '.xml .csv'.
+     * @throws IllegalPatternException if pattern contains modification with null or empty {@code oldName} and {@code newName} fields.
      */
     @SuppressWarnings(value = {"unchecked"})
     public @NonNull Path convertXmlFileToCsv(
             @NonNull MultipartFile xmlFile,
             UUID patternId
     ) throws IOException {
-        Pattern pattern = validateArgumentsForConversionAndReturnPattern(
-                xmlFile,
-                ".xml",
-                ".csv",
-                patternId
-        );
+        validateArgumentsForConversion(xmlFile, ".xml");
 
         // Possible vulnerability here
         // Create temporarily CSV file for writing converted data
@@ -685,7 +603,7 @@ public final class ConversionFrontendService {
             }
         }
 
-        rows = applyPatterns(rows, pattern);
+        rows = applyPatterns(rows, patternService.findPatternById(patternId));
 
         // Writing converted data
         CsvMapper csvMapper = new CsvMapper();
@@ -716,19 +634,14 @@ public final class ConversionFrontendService {
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code csvFile} was provided without '.csv' extension.
      * @throws EntityNotFoundException if pattern is not found in database by {@code patternId}.
-     * @throws IllegalPatternException if pattern does not have type equal to '.csv .xml'.
+     * @throws IllegalPatternException if pattern contains modification with null or empty {@code oldName} and {@code newName} fields.
      */
     //fix separator problem
     public @NonNull Path convertCsvFileToXml(
             @NonNull MultipartFile csvFile,
             UUID patternId
     ) throws IOException {
-        Pattern pattern = validateArgumentsForConversionAndReturnPattern(
-                csvFile,
-                ".csv",
-                ".xml",
-                patternId
-        );
+        validateArgumentsForConversion(csvFile, ".csv");
 
         // Create temporarily XML file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(csvFile, ".csv");
@@ -778,7 +691,7 @@ public final class ConversionFrontendService {
             rows.add(convertedRow);
         }
 
-        rows = applyPatterns(rows, pattern);
+        rows = applyPatterns(rows, patternService.findPatternById(patternId));
 
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("CSV file contains no rows to convert");

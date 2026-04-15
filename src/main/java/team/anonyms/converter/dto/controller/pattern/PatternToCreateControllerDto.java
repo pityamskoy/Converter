@@ -8,7 +8,6 @@ import java.util.UUID;
 public record PatternToCreateControllerDto(
         UUID userId,
         String name,
-        String conversionType,
         List<ModificationToCreateControllerDto> modifications
 ) {
 }

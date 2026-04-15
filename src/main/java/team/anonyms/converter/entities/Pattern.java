@@ -21,10 +21,6 @@ public final class Pattern {
     @Column(name = "name")
     private String name;
 
-    // Example: .csv .json or .json .xml.
-    @Column(name = "conversion_type", nullable = false)
-    private String conversionType;
-
     @OneToMany(fetch = FetchType.EAGER)
     private List<Modification> modifications;
 }
