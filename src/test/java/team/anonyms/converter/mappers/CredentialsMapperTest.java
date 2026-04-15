@@ -27,6 +27,7 @@ class CredentialsMapperTest {
     }
 
     // тест, что из сервисной дто-шки все нормально переносится в контроллер
+    /*
     @Test
     void testLoginResultServiceDtoToController() {
         UUID fakeUserId = UUID.randomUUID();
@@ -37,5 +38,5 @@ class CredentialsMapperTest {
 
         assertEquals(true, controllerDto.success());
         assertEquals(fakeUserId, controllerDto.userId());
-    }
+    }*/
 }

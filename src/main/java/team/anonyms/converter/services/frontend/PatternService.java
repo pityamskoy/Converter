@@ -119,6 +119,8 @@ public final class PatternService {
         patternRepository.save(patternUpdated);
 
         modificationRepository.deleteAll(currentModifications);
+
+        modificationRepository.saveAll(modifications);
         patternUpdated.setModifications(modifications);
 
         patternRepository.save(patternUpdated);
