@@ -3,8 +3,10 @@ package team.anonyms.converter.mappers;
 import org.springframework.stereotype.Component;
 import team.anonyms.converter.dto.controller.modification.ModificationControllerDto;
 import team.anonyms.converter.dto.controller.modification.ModificationToCreateControllerDto;
+import team.anonyms.converter.dto.controller.modification.ModificationToUpdateControllerDto;
 import team.anonyms.converter.dto.service.modification.ModificationServiceDto;
 import team.anonyms.converter.dto.service.modification.ModificationToCreateServiceDto;
+import team.anonyms.converter.dto.service.modification.ModificationToUpdateServiceDto;
 import team.anonyms.converter.entities.Modification;
 
 import java.util.UUID;
@@ -31,6 +33,18 @@ public final class ModificationMapper {
                 modificationToCreateControllerDto.newName(),
                 modificationToCreateControllerDto.newType(),
                 modificationToCreateControllerDto.newValue()
+        );
+    }
+
+    public ModificationToUpdateServiceDto modificationToUpdateControllerDtoToService(
+            ModificationToUpdateControllerDto modificationToUpdateControllerDto
+    ) {
+        return new ModificationToUpdateServiceDto(
+                modificationToUpdateControllerDto.id(),
+                modificationToUpdateControllerDto.oldName(),
+                modificationToUpdateControllerDto.newName(),
+                modificationToUpdateControllerDto.newType(),
+                modificationToUpdateControllerDto.newValue()
         );
     }
 
@@ -65,6 +79,25 @@ public final class ModificationMapper {
                 modificationToCreateServiceDto.newName(),
                 modificationToCreateServiceDto.newType(),
                 modificationToCreateServiceDto.newValue()
+        );
+    }
+
+    public Modification modificationToUpdateServiceDtoToEntity(
+            ModificationToUpdateServiceDto modificationToUpdateServiceDto
+    ) {
+        UUID id;
+        if (modificationToUpdateServiceDto.id() == null) {
+            id = UUID.randomUUID();
+        } else {
+            id = modificationToUpdateServiceDto.id();
+        }
+
+        return new Modification(
+                id,
+                modificationToUpdateServiceDto.oldName(),
+                modificationToUpdateServiceDto.newName(),
+                modificationToUpdateServiceDto.newType(),
+                modificationToUpdateServiceDto.newValue()
         );
     }
 

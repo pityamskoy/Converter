@@ -9,6 +9,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import team.anonyms.converter.dto.service.pattern.PatternServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternToCreateServiceDto;
+import team.anonyms.converter.dto.service.pattern.PatternToUpdateServiceDto;
 import team.anonyms.converter.entities.Pattern;
 import team.anonyms.converter.entities.User;
 import team.anonyms.converter.mappers.ModificationMapper;
@@ -87,8 +88,7 @@ class PatternServiceTest {
         Pattern mockPattern = new Pattern();
         PatternServiceDto responseDto = new PatternServiceDto(
                 UUID.randomUUID(),
-                "name",
-                List.of()
+                "name"
         );
 
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
@@ -125,16 +125,21 @@ class PatternServiceTest {
     void testUpdatePattern_Success() {
         UUID patternId = UUID.randomUUID();
         // данные для обновления паттерна
-        PatternServiceDto updateDto = new PatternServiceDto(
+        PatternToUpdateServiceDto updateDto = new PatternToUpdateServiceDto(
                 patternId,
                 "name",
                 List.of()
         );
 
+        PatternServiceDto dtoUpdated = new PatternServiceDto(
+                patternId,
+                "name"
+        );
+
         Pattern mockPattern = new Pattern();
 
         Mockito.when(patternRepository.findById(patternId)).thenReturn(Optional.of(mockPattern));
-        Mockito.when(patternMapper.patternToServiceDto(mockPattern)).thenReturn(updateDto);
+        Mockito.when(patternMapper.patternToServiceDto(mockPattern)).thenReturn(dtoUpdated);
 
         PatternServiceDto result = patternService.updatePattern(updateDto);
 
@@ -146,7 +151,7 @@ class PatternServiceTest {
     @Test
     void testUpdatePattern_ThrowsEntityNotFound() {
         UUID patternId = UUID.randomUUID();
-        PatternServiceDto updateDto = new PatternServiceDto(
+        PatternToUpdateServiceDto updateDto = new PatternToUpdateServiceDto(
                 patternId,
                 "name",
                 List.of()

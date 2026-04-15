@@ -5,8 +5,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import team.anonyms.converter.controllers.frontend.pagination.PaginationHandler;
 import team.anonyms.converter.dto.controller.pattern.PatternControllerDto;
 import team.anonyms.converter.dto.controller.pattern.PatternToCreateControllerDto;
+import team.anonyms.converter.dto.controller.pattern.PatternToUpdateControllerDto;
 import team.anonyms.converter.dto.service.pattern.PatternServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternToCreateServiceDto;
 import team.anonyms.converter.mappers.PatternMapper;
@@ -23,18 +25,30 @@ public final class PatternController {
 
     private final PatternService patternService;
     private final PatternMapper patternMapper;
+    private final PaginationHandler<PatternControllerDto> paginationHandler;
 
-    public PatternController(PatternService patternService, PatternMapper patternMapper) {
+    public PatternController(
+            PatternService patternService,
+            PatternMapper patternMapper,
+            PaginationHandler<PatternControllerDto> paginationHandler
+    ) {
         this.patternService = patternService;
         this.patternMapper = patternMapper;
+        this.paginationHandler = paginationHandler;
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<List<PatternControllerDto>> getAllPatternsByUserId(@PathVariable UUID userId) {
+    @GetMapping("/{userId}/{limit}/{offset}")
+    public ResponseEntity<List<PatternControllerDto>> getAllPatternsByUserId(
+            @PathVariable UUID userId,
+            @PathVariable int limit,
+            @PathVariable int offset
+    ) {
         log.info("Called getAllPatternsByUserId; id={}", userId);
 
-        return ResponseEntity.ok(patternService.getAllPatternsByUserId(userId).stream().
-                map(patternMapper::patternServiceDtoToControllerDto).toList());
+        List<PatternControllerDto> allPatterns = patternService.getAllPatternsByUserId(userId).
+                stream().map(patternMapper::patternServiceDtoToControllerDto).toList();
+
+        return ResponseEntity.ok(paginationHandler.makeSliceFromList(allPatterns, offset, limit));
     }
 
     @PostMapping
@@ -53,11 +67,14 @@ public final class PatternController {
     }
 
     @PutMapping
-    public ResponseEntity<PatternControllerDto> updatePattern(@RequestBody PatternControllerDto patternToUpdate) {
-        log.info("Called updatePattern; patternToUpdate={}", patternToUpdate);
+    public ResponseEntity<PatternControllerDto> updatePattern(
+            @RequestBody PatternToUpdateControllerDto patternToUpdate
+    ) {
+        log.info("Called updatePattern; patternToUpdateControllerDto={}", patternToUpdate);
 
         PatternServiceDto patternUpdated = patternService.updatePattern(
-                patternMapper.patternControllerDtoToServiceDto(patternToUpdate));
+                patternMapper.patternToUpdateControllerDtoToService(patternToUpdate)
+        );
 
         return ResponseEntity.ok(patternMapper.patternServiceDtoToControllerDto(patternUpdated));
     }
