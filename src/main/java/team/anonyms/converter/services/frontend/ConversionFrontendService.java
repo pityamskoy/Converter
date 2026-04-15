@@ -176,7 +176,11 @@ public final class ConversionFrontendService {
 
                 // Altering existing fields
                 if (row.containsKey(modification.getOldName())) {
-                    fieldNameForTypeConversion = modification.getOldName();
+                    // Changing values of fields
+                    if (modification.getNewValue() != null) {
+                        row.put(modification.getOldName(), modification.getNewValue());
+                        fieldNameForTypeConversion = modification.getOldName();
+                    }
 
                     // Changing names of fields
                     if (modification.getNewName() != null) {
@@ -185,16 +189,12 @@ public final class ConversionFrontendService {
                         row.remove(modification.getOldName());
 
                         modification.setOldName(modification.getNewName());
-                    }
-
-                    // Changing values of fields
-                    if (modification.getNewValue() != null) {
-                        row.put(modification.getOldName(), modification.getNewValue());
+                        fieldNameForTypeConversion = modification.getNewName();
                     }
                 }
 
                 // Type conversion
-                if (row.containsKey(modification.getOldName()) || isAddingIteration) {
+                if ((row.containsKey(modification.getOldName()) && (modification.getNewType() != null)) || isAddingIteration) {
                     Object value = row.get(fieldNameForTypeConversion);
 
                     // Find how to remove this hard code and add enum to db.
