@@ -1,6 +1,6 @@
-package team.anonyms.converter.annotations;
+package team.anonyms.converter.utility.annotations;
 
-import team.anonyms.converter.enums.ProjectVersion;
+import team.anonyms.converter.utility.enums.ProjectVersion;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.Retention;

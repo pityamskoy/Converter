@@ -6,11 +6,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import team.anonyms.converter.annotations.LastSupportedProjectVersion;
-import team.anonyms.converter.exceptions.IllegalPatternException;
-import team.anonyms.converter.exceptions.UnsupportedExtensionException;
+import team.anonyms.converter.utility.annotations.LastSupportedProjectVersion;
+import team.anonyms.converter.utility.exceptions.IllegalPatternException;
+import team.anonyms.converter.utility.exceptions.UnsupportedExtensionException;
 
-import static team.anonyms.converter.enums.ProjectVersion.RELEASE_0;
+import static team.anonyms.converter.utility.enums.ProjectVersion.RELEASE_0;
 
 /**
  * <p>

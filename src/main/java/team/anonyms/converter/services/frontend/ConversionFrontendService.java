@@ -16,8 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import team.anonyms.converter.entities.Modification;
 import team.anonyms.converter.entities.Pattern;
-import team.anonyms.converter.exceptions.IllegalPatternException;
-import team.anonyms.converter.exceptions.UnsupportedExtensionException;
+import team.anonyms.converter.utility.exceptions.IllegalPatternException;
+import team.anonyms.converter.utility.exceptions.UnsupportedExtensionException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.*;
@@ -31,8 +31,21 @@ public final class ConversionFrontendService {
 
     private final PatternService patternService;
 
-    public ConversionFrontendService(PatternService patternService) {
+    private final JsonMapper jsonMapper;
+    private final CsvMapper csvMapper;
+    private final XmlMapper xmlMapper;
+
+    public ConversionFrontendService(
+            PatternService patternService,
+            JsonMapper jsonMapper,
+            CsvMapper csvMapper,
+            XmlMapper xmlMapper
+    ) {
         this.patternService = patternService;
+
+        this.jsonMapper = jsonMapper;
+        this.csvMapper = csvMapper;
+        this.xmlMapper = xmlMapper;
     }
 
     /**
@@ -250,7 +263,6 @@ public final class ConversionFrontendService {
         Path csvPath = Files.createTempFile(filenameWithoutExtension, ".csv");
 
         // Start converting
-        JsonMapper jsonMapper = new JsonMapper();
         List<Map<String,Object>> rows = new ArrayList<>();
 
         JsonNode root;
@@ -300,7 +312,6 @@ public final class ConversionFrontendService {
         }
 
         // Writing converted data
-        CsvMapper csvMapper = new CsvMapper();
         CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
 
         try {
@@ -342,7 +353,6 @@ public final class ConversionFrontendService {
         Path jsonPath = Files.createTempFile(filenameWithoutExtension, ".json");
 
         // Start converting
-        CsvMapper csvMapper = new CsvMapper();
         CsvSchema csvSchema = CsvSchema.emptySchema().withHeader();
 
         List<Map<String, Object>> rows = new ArrayList<>();
@@ -392,7 +402,6 @@ public final class ConversionFrontendService {
         }
 
         // Writing converted data
-        JsonMapper jsonMapper = new JsonMapper();
         if (rows.size() == 1) {
             jsonMapper.writeValue(jsonPath.toFile(), rows.getFirst());
         } else {
@@ -431,7 +440,6 @@ public final class ConversionFrontendService {
         Path xmlPath = Files.createTempFile(filenameWithoutExtension, ".xml");
 
         // Start converting
-        JsonMapper jsonMapper = new JsonMapper();
         List<Map<String,Object>> rows = new ArrayList<>();
         JsonNode root = jsonMapper.readTree(jsonFile.getInputStream());
 
@@ -452,7 +460,6 @@ public final class ConversionFrontendService {
         }
 
         // Writing converted data
-        XmlMapper xmlMapper = new XmlMapper();
         xmlMapper.writeValue(xmlPath.toFile(), rows);
 
         return xmlPath;
@@ -487,7 +494,6 @@ public final class ConversionFrontendService {
         Path jsonPath = Files.createTempFile(filenameWithoutExtension, ".json");
 
         // Start converting
-        XmlMapper xmlMapper = new XmlMapper();
         List<Map<String,Object>> rows = new ArrayList<>();
 
         JsonNode root;
@@ -518,7 +524,6 @@ public final class ConversionFrontendService {
         }
 
         // Writing converted data
-        JsonMapper jsonMapper = new JsonMapper();
         if (rows.size() == 1) {
             jsonMapper.writeValue(jsonPath.toFile(), rows.getFirst());
         } else {
@@ -559,7 +564,6 @@ public final class ConversionFrontendService {
         Path csvPath = Files.createTempFile(filenameWithoutExtension, ".csv");
 
         // Start converting
-        XmlMapper xmlMapper = new XmlMapper();
         List<Map<String,Object>> rows = new ArrayList<>();
 
         JsonNode root;
@@ -609,8 +613,6 @@ public final class ConversionFrontendService {
         rows = applyPatterns(rows, patternService.findPatternById(patternId));
 
         // Writing converted data
-        CsvMapper csvMapper = new CsvMapper();
-
         try {
             CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
             csvMapper.writerFor(List.class).with(csvSchema).writeValue(csvPath.toFile(), rows);
@@ -651,7 +653,6 @@ public final class ConversionFrontendService {
         Path xmlPath = Files.createTempFile(filenameWithoutExtension, ".xml");
 
         // Start converting
-        CsvMapper csvMapper = new CsvMapper();
         CsvSchema csvSchema = CsvSchema.emptySchema().withHeader();
 
         List<Map<String, Object>> rows = new ArrayList<>();
@@ -701,7 +702,6 @@ public final class ConversionFrontendService {
         }
 
         // Writing converted data
-        XmlMapper xmlMapper = new XmlMapper();
         if (rows.size() == 1) {
             xmlMapper.writeValue(xmlPath.toFile(), rows.getFirst());
         } else {
