@@ -1,4 +1,4 @@
-package team.anonyms.converter.config;
+package team.anonyms.converter.configs;
 
 import org.jspecify.annotations.NonNull;
 import org.springframework.context.annotation.Bean;

@@ -1,4 +1,4 @@
-package team.anonyms.converter.config;
+package team.anonyms.converter.configs;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;

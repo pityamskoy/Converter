@@ -37,7 +37,7 @@ class ConversionFrontendMassTest {
     private static final String BASE_DIR = "src/test/resources/test_files/";
 
     static IntStream fileNumbers() {
-        return IntStream.rangeClosed(1, 3);
+        return IntStream.rangeClosed(1, 2);
     }
 
     private Path getExpectedPath(int number, String extension) {

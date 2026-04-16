@@ -76,7 +76,7 @@ src/main/java/team/anonyms/converter/
 │
 ├── Main.java                          # Application entry point
 │
-├── config/
+├── configs/
 │   ├── CorsConfiguration.java         # Global CORS setup
 │   └── JacksonConfiguration.java      # Jackson mapper beans
 │
