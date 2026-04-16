@@ -24,7 +24,10 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-
+/*
+There is arguably needed fix of how to convert something -> JSON
+due to possible misinterpretation of formats.
+ */
 @Service
 public final class ConversionFrontendService {
     private static final Logger log = LoggerFactory.getLogger(ConversionFrontendService.class);
@@ -32,20 +35,20 @@ public final class ConversionFrontendService {
     private final PatternService patternService;
 
     private final JsonMapper jsonMapper;
-    private final CsvMapper csvMapper;
     private final XmlMapper xmlMapper;
+    private final CsvMapper csvMapper;
 
     public ConversionFrontendService(
             PatternService patternService,
             JsonMapper jsonMapper,
-            CsvMapper csvMapper,
-            XmlMapper xmlMapper
+            XmlMapper xmlMapper,
+            CsvMapper csvMapper
     ) {
         this.patternService = patternService;
 
         this.jsonMapper = jsonMapper;
-        this.csvMapper = csvMapper;
         this.xmlMapper = xmlMapper;
+        this.csvMapper = csvMapper;
     }
 
     /**
@@ -363,6 +366,7 @@ public final class ConversionFrontendService {
             Map<String, String> row = iterator.next();
             Map<String, Object> convertedRow = new LinkedHashMap<>();
 
+            // Convert data types
             for (Map.Entry<String, String> entry : row.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
@@ -504,7 +508,6 @@ public final class ConversionFrontendService {
             throw new IllegalArgumentException(e.getMessage());
         }
 
-        // XML wrapping is terrible, unpacking it
         if (root.isObject() && root.size() == 1 && root.has("item")) {
             root = root.get("item");
         }
@@ -522,23 +525,23 @@ public final class ConversionFrontendService {
             throw new IllegalArgumentException("Unsupported XML structure for JSON conversion");
         }
 
-        // Fix: XML -> JSON types converted incorrectly (NULL and int)
+        // Convert data types
         for (Map<String, Object> row : rows) {
             for (Map.Entry<String, Object> entry : row.entrySet()) {
-                Object val = entry.getValue();
-                if (val instanceof String) {
-                    String strVal = (String) val;
-                    if (strVal.isEmpty()) {
+                Object value = entry.getValue();
+                if (value instanceof String stringValue) {
+                    if (stringValue.isEmpty()) {
                         entry.setValue(null);
                         continue;
                     }
+
                     try {
-                        if (strVal.matches("-?\\d+")) {
-                            entry.setValue(Long.parseLong(strVal));
-                        } else if (strVal.matches("-?\\d*\\.\\d+")) {
-                            entry.setValue(Double.parseDouble(strVal));
+                        if (stringValue.matches("-?\\d+")) {
+                            entry.setValue(Long.parseLong(stringValue));
+                        } else if (stringValue.matches("-?\\d*\\.\\d+")) {
+                            entry.setValue(Double.parseDouble(stringValue));
                         }
-                    } catch (NumberFormatException ignored) {}
+                    } catch (NumberFormatException _) {}
                 }
             }
         }
@@ -600,7 +603,6 @@ public final class ConversionFrontendService {
             throw new IllegalArgumentException(e.getMessage());
         }
 
-        // XML wrapping is terrible, unpacking it
         if (root.isObject() && root.size() == 1 && root.has("item")) {
             root = root.get("item");
         }

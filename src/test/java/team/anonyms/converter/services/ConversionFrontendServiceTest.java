@@ -22,7 +22,7 @@ class ConversionFrontendServiceTest {
     private final PatternService patternService = Mockito.mock(PatternService.class);
 
     private final ConversionFrontendService conversionFrontendService = new ConversionFrontendService(
-            patternService, new JsonMapper(), new CsvMapper(), new XmlMapper()
+            patternService, new JsonMapper(), new XmlMapper(), new CsvMapper()
     );
 
     // тест из json в csv

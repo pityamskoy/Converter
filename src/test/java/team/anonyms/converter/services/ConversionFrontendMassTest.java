@@ -2,6 +2,7 @@ package team.anonyms.converter.services;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
@@ -25,7 +26,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class ConversionFrontendMassTest {
     private final PatternService patternService = Mockito.mock(PatternService.class);
 
-    private final ConversionFrontendService service = new ConversionFrontendService(patternService);
+    private final ConversionFrontendService service = new ConversionFrontendService(
+            patternService, new JsonMapper(), new XmlMapper(), new CsvMapper()
+    );
 
     private final ObjectMapper jsonMapper = new ObjectMapper();
     private final XmlMapper xmlMapper = new XmlMapper();

@@ -14,12 +14,12 @@ public class JacksonConfiguration {
     }
 
     @Bean
-    public static CsvMapper csvMapper() {
-        return new CsvMapper();
+    public static XmlMapper xmlMapper() {
+        return new XmlMapper();
     }
 
     @Bean
-    public static XmlMapper xmlMapper() {
-        return new XmlMapper();
+    public static CsvMapper csvMapper() {
+        return new CsvMapper();
     }
 }
