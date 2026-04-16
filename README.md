@@ -9,8 +9,10 @@ with support for pattern-based field transformations applied during conversion.
 
 - [Technology Stack](#technology-stack)
 - [Architecture](#architecture)
+- [Project Structure](#project-structure)
 - [Inner Logic](#inner-logic)
 - [API Endpoints](#api-endpoints)
+- [Error Responses](#error-responses)
 - [Configuration & Environment](#configuration--environment)
 - [Running Locally](#running-locally)
 
@@ -44,7 +46,7 @@ HTTP Request
 Controllers (controllers/frontend/, controllers/api/)
     │  DTO mapping via Mappers
     ▼
-Services (services/frontend/, services/api)
+Services (services/frontend/, services/api/)
     │  Entity mapping via Mappers
     ▼
 Repositories (Spring Data JPA)
@@ -56,13 +58,103 @@ Database (PostgreSQL)
 ### Layer responsibilities
 
 - **Controllers** — parse HTTP requests, delegate to services, serialize responses. Split into two groups:
-  - `frontend/` — multipart file upload endpoints + auth + user/pattern CRUD. CORS configured for `https://cson.site`.
+  - `frontend/` — multipart file upload endpoints + auth + user/pattern/modification CRUD. 
+CORS configured for `https://cson.site`.
   - `api/` — direct body-based JSON↔XML conversion.
 - **Services** — business logic: file parsing, format conversion, pattern application, user auth with cookie management.
-- **Repositories** — Spring Data JPA repositories for User, Pattern, Modification entities.
+- **Repositories** — Spring Data JPA repositories for `User`, `Pattern`, `Modification` entities.
 - **Mappers** — bidirectional conversion between entities and DTOs.
 - **DTOs** — separate controller DTOs (exchanged with clients) and service DTOs (passed between layers).
-Creation and update operations use dedicated `ToCreate` / `ToUpdate` variants.
+  Creation and update operations use dedicated `ToCreate` / `ToUpdate` variants.
+
+---
+
+## Project Structure
+
+```
+src/main/java/team/anonyms/converter/
+│
+├── Main.java                          # Application entry point
+│
+├── config/
+│   ├── CorsConfiguration.java         # Global CORS setup
+│   └── JacksonConfiguration.java      # Jackson mapper beans
+│
+├── controllers/
+│   ├── GlobalExceptionHandler.java    # @RestControllerAdvice for all exceptions
+│   ├── api/
+│   │   └── ConversionApiController.java   # POST /direct/conversion (JSON↔XML, no auth)
+│   └── frontend/
+│       ├── AuthenticationController.java  # POST /auth/login, POST /auth/registration, DELETE /auth
+│       ├── ConversionFrontendController.java # POST /conversion/* (multipart file upload)
+│       ├── ModificationController.java    # GET /modifications/{patternId}/{limit}/{offset}
+│       ├── PatternController.java         # CRUD /patterns
+│       ├── UserController.java            # PUT /users, DELETE /users/{userId}
+│       └── pagination/
+│           └── PaginationHandler.java     # Generic slice helper for paginated responses
+│
+├── dto/
+│   ├── controller/
+│   │   ├── credentials/
+│   │   ├── modification/
+│   │   ├── pattern/
+│   │   ├── responses/errors/
+│   │   └── user/
+│   │     
+│   └── service/    # Mirrors some of controller dtos to be used in service layer
+│       ├── credentials/
+│       ├── modification/
+│       ├── pattern/
+│       └── user/
+│
+├── entities/
+│   ├── Modification.java
+│   ├── Pattern.java
+│   └── User.java
+│
+├── mappers/
+│   ├── CredentialsMapper.java
+│   ├── ModificationMapper.java
+│   ├── PatternMapper.java
+│   └── UserMapper.java
+│
+├── repositories/
+│   ├── ModificationRepository.java
+│   ├── PatternRepository.java
+│   └── UserRepository.java
+│
+├── services/
+│   ├── api/
+│   │   └── ConversionApiService.java       # JSON↔XML conversion (no file I/O)
+│   └── frontend/
+│       ├── AuthenticationService.java      # Login / register / logout + cookie management
+│       ├── ConversionFrontendService.java  # File-based conversions (all 6 pairs)
+│       ├── ModificationService.java
+│       ├── PatternService.java
+│       └── UserService.java
+│
+└── utility/
+    ├── annotations/
+    │   └── LastSupportedProjectVersion.java
+    ├── enums/
+    │   └── ProjectVersion.java
+    └── exceptions/
+        ├── IllegalPatternException.java
+        └── UnsupportedExtensionException.java
+```
+
+---
+
+### DTOs
+
+DTOs are split into two layers: **controller DTOs** (used in HTTP requests/responses) and **service DTOs** 
+(used for service layer). The naming convention is:
+
+| Suffix         | Purpose                                    |
+|----------------|--------------------------------------------|
+| `Dto`          | Read / response DTO                        |
+| `ToCreateDto`  | Request body for creation (no `id` field)  |
+| `ToUpdateDto`  | Request body for updates                   |
 
 ---
 
@@ -88,20 +180,23 @@ Supported conversion pairs: `json↔csv`, `json↔xml`, `xml↔csv`.
 
 ### Pattern & modification system
 
-A **Pattern** belongs to a user and targets a specific conversion type (e.g., `.json .csv`).
+A **Pattern** belongs to a user and targets all conversion types.
 It contains an ordered list of **Modifications**, each capable of:
 
-| `oldName` | `newName`    | `newValue` | `newType`   | Effect                             |
-|-----------|--------------|------------|-------------|------------------------------------|
-| `"field"` | `null`       | `null`     | `null`      | Delete the field                   |
-| `"field"` | `"renamed"`  | `null`     | `null`      | Rename the field                   |
-| `"field"` | `"field"`    | `"value"`  | `null`      | Replace the field's value          |
-| `"field"` | `"field"`    | `null`     | `"Integer"` | Cast the value to a different type |
-| `null`    | `"newField"` | `"value"`  | `null`      | Add a new field                    |
+| `oldName` | `newName`    | `newType` | `newValue` | Effect                             |
+|-----------|--------------|-----------|------------|------------------------------------|
+| `"field"` | `null`       | `null`    | `null`     | Delete the field                   |
+| `"field"` | `"renamed"`  | `null`    | `null`     | Rename the field                   |
+| `"field"` | `null`       | `null`    | `value`    | Replace the field's value          |
+| `"field"` | `null`       | `Integer` | `null`     | Cast the value to a different type |
+| `null`    | `"newField"` | `null`    | `value`    | Add a new field                    |
 
 Supported `newType` values: `Integer`, `Float`, `Boolean`, `String`.
 
-When serializing to CSV, nested objects and arrays are stringified as JSON.
+It is important to know that ***it is possible to combine*** in one modification
+renaming field with reassigning a new value and with changing field's data type.
+
+Please, note that when serializing to CSV, nested objects and arrays are stringified as JSON/XML.
 
 ### CSV auto-type detection
 
@@ -118,31 +213,39 @@ When reading a CSV file, each cell value is inspected and cast:
 
 ## API Endpoints
 
+All endpoints are served under the base path `/api/v1`
+
 ### Authentication — `/auth`
 
 #### `POST /auth/login`
 Log in with credentials.
 
-**Request body:**
+**Request body** (`application/json`):
 ```json
 {
   "email": "user@example.com",
   "password": "secret"
 }
 ```
-**Response:** `200 OK` — sets `user_id` cookie.
+
+**Response `200 OK`** — sets `user_id` cookie:
 ```json
 {
   "success": true,
   "username": "john",
+  "email": "john@example.com",
   "userId": "uuid"
 }
 ```
 
+**Response `400 Bad Request`** — invalid credentials.
+
+---
+
 #### `POST /auth/registration`
 Create a new account.
 
-**Request body:**
+**Request body** (`application/json`):
 ```json
 {
   "username": "john",
@@ -150,7 +253,8 @@ Create a new account.
   "password": "secret"
 }
 ```
-**Response:** `201 Created` — sets `user_id` cookie, returns created user.
+
+**Response `201 Created`** — sets `user_id` cookie:
 ```json
 {
   "id": "uuid",
@@ -160,10 +264,14 @@ Create a new account.
 }
 ```
 
-#### `DELETE /auth`
-Log out the current user (requires `user_id` cookie).
+---
 
-**Response:** `204 No Content` — clears `user_id` cookie.
+#### `DELETE /auth`
+Log out the current user.
+
+**Cookie required:** `user_id`
+
+**Response `204 No Content`** — clears `user_id` cookie.
 
 ---
 
@@ -172,119 +280,205 @@ Log out the current user (requires `user_id` cookie).
 #### `PUT /users`
 Update the current user's profile.
 
-**Request body:**
+**Request body** (`application/json`):
 ```json
 {
   "id": "uuid",
   "username": "new_name",
   "email": "new@example.com",
-  "password": "newpass",
-  "patterns": []
+  "password": "newPassword",
+  "patterns": [
+    { 
+      "id": "uuid",
+      "name": "My Pattern"
+    }
+  ]
 }
 ```
-**Response:** `200 OK` — returns updated user object.
+
+**Response `200 OK`**:
+```json
+{
+  "id": "uuid",
+  "username": "new_name",
+  "email": "new@example.com",
+  "patterns": [
+    { 
+      "id": "uuid", 
+      "name": "My Pattern"
+    }
+  ]
+}
+```
+
+**Response `404 Not Found`** — user not found.
+
+---
 
 #### `DELETE /users/{userId}`
 Delete a user account.
 
-**Response:** `204 No Content`
+**Path variable:** `userId` (UUID)
+
+**Response `204 No Content`**
+
+**Response `404 Not Found`** — user not found.
 
 ---
 
 ### Patterns — `/patterns`
 
-#### `GET /patterns/{userId}`
-Get all patterns belonging to a user.
+#### `GET /patterns/{userId}/{limit}/{offset}`
+Get a paginated slice of patterns belonging to a user.
 
-**Response:** `200 OK`
+**Path variables:**
+- `userId` — UUID of the user
+- `limit` — maximum number of items to return
+- `offset` — number of items to skip
+
+**Response `200 OK`**:
 ```json
 [
+  { 
+    "id": "uuid",
+    "name": "My Pattern"
+  },
   {
     "id": "uuid",
-    "name": "My Pattern",
-    "modifications": [
-      {
-        "oldName": "field1",
-        "newName": "renamed",
-        "newType": null,
-        "newValue": null
-      }
-    ]
+    "name": "Another Pattern"
   }
 ]
 ```
 
+**Response `404 Not Found`** — user not found.
+
+---
+
 #### `POST /patterns`
 Create a new pattern.
 
-**Request body:**
+**Request body** (`application/json`):
 ```json
 {
   "userId": "uuid",
   "name": "My Pattern",
   "modifications": [
     {
-      "oldName": "old",
-      "newName": "new",
+      "oldName": "field",
+      "newName": "renamed field",
       "newType": null,
       "newValue": null
     }
   ]
 }
 ```
-**Response:** `201 Created` — returns created pattern.
 
-#### `PUT /patterns`
-Update an existing pattern (id must be present in the body).
-
-**Request body:**
+**Response `201 Created`**:
 ```json
 {
   "id": "uuid",
-  "name": "My Pattern",
+  "name": "My Pattern"
+}
+```
+
+**Response `404 Not Found`** — user not found.
+
+---
+
+#### `PUT /patterns`
+Update an existing pattern. The `id` must be present in the body. 
+Note that this API endpoint is the only way to update modifications. Modification are updated only through updating a pattern they belong to.
+
+**Request body** (`application/json`):
+```json
+{
+  "id": "uuid",
+  "name": "Updated Pattern",
   "modifications": [
     {
-      "oldName": "old",
-      "newName": "new",
+      "id": "uuid",
+      "oldName": "field",
+      "newName": "renamed field",
       "newType": null,
       "newValue": null
     }
   ]
 }
 ```
+> If a modification in the list has `id: null`, it is treated as a new modification to create.
 
-**Response:** `200 OK` — returns updated pattern.
+**Response `200 OK`**:
+```json
+{ 
+  "id": "uuid",
+  "name": "Updated Pattern"
+}
+```
+
+**Response `404 Not Found`** — pattern not found.
+
+---
 
 #### `DELETE /patterns/{patternId}`
-Delete a pattern.
+Delete a pattern and all its modifications.
 
-**Response:** `204 No Content`
+**Path variable:** `patternId` (UUID)
+
+**Response `204 No Content`**
+
+**Response `404 Not Found`** — pattern not found.
+
+---
+
+### Modifications — `/modifications`
+
+#### `GET /modifications/{patternId}/{limit}/{offset}`
+Get a paginated slice of modifications belonging to a pattern.
+
+**Path variables:**
+- `patternId` — UUID of the pattern
+- `limit` — maximum number of items to return
+- `offset` — number of items to skip
+
+**Response `200 OK`**:
+```json
+[
+  {
+    "id": "uuid",
+    "oldName": "field",
+    "newName": "renamed field",
+    "newType": null,
+    "newValue": null
+  }
+]
+```
+
+**Response `404 Not Found`** — pattern not found.
 
 ---
 
 ### File Conversion — `/conversion`
 
-All endpoints accept `multipart/form-data` with:
-- `file` (required) — the file to convert.
-- `pattern` (optional) — UUID of a pattern to apply.
+All endpoints consume `multipart/form-data` and stream the converted file back as an attachment.
 
-#### `POST /conversion/json/csv`
-Convert JSON → CSV. Returns `text/csv`.
+**Form parts:**
+- `file` (required) — the source file to convert.
+- `pattern` (optional, query param) — UUID of a saved pattern to apply during conversion.
 
-#### `POST /conversion/csv/json`
-Convert CSV → JSON. Returns `application/octet-stream`.
+**Common error responses:**
+- `400 Bad Request` — file extension does not match the declared source format.
+- `500 Internal Server Error` — I/O error during conversion.
 
-#### `POST /conversion/json/xml`
-Convert JSON → XML. Returns `application/octet-stream`.
+| Endpoint                    | Source format | Target format | Response `Content-Type`    |
+|-----------------------------|---------------|---------------|----------------------------|
+| `POST /conversion/json/csv` | `.json`       | `.csv`        | `text/csv`                 |
+| `POST /conversion/csv/json` | `.csv`        | `.json`       | `application/octet-stream` |
+| `POST /conversion/json/xml` | `.json`       | `.xml`        | `application/octet-stream` |
+| `POST /conversion/xml/json` | `.xml`        | `.json`       | `application/octet-stream` |
+| `POST /conversion/xml/csv`  | `.xml`        | `.csv`        | `text/csv`                 |
+| `POST /conversion/csv/xml`  | `.csv`        | `.xml`        | `application/octet-stream` |
 
-#### `POST /conversion/xml/json`
-Convert XML → JSON. Returns `application/octet-stream`.
-
-#### `POST /conversion/xml/csv`
-Convert XML → CSV. Returns `text/csv`.
-
-#### `POST /conversion/csv/xml`
-Convert CSV → XML. Returns `application/octet-stream`.
+All conversion responses include a `Content-Disposition: attachment; filename="<original_name>.<target_format>"` header.
 
 ---
 
@@ -295,14 +489,36 @@ No authentication required. Accepts and returns raw content bodies.
 #### `POST /direct/conversion/json/xml`
 Convert a JSON body to XML.
 
-- **Request:** `Content-Type: application/json` — any JSON object.
-- **Response:** `Content-Type: application/xml` — XML string.
+**Request:** `Content-Type: application/json` — any JSON object.
+
+**Response `200 OK`:** `Content-Type: application/xml` — XML string.
+
+---
 
 #### `POST /direct/conversion/xml/json`
 Convert an XML body to JSON.
 
-- **Request:** `Content-Type: application/xml` — any XML document.
-- **Response:** `Content-Type: application/json` — JSON string.
+**Request:** `Content-Type: application/xml` — any XML document.
+
+**Response `200 OK`:** `Content-Type: application/json` — JSON string.
+
+---
+
+## Error Responses
+
+All unhandled exceptions are caught by `GlobalExceptionHandler`. The mapping is:
+
+| Exception                       | HTTP Status                  |
+|---------------------------------|------------------------------|
+| `EntityNotFoundException`       | `404 Not Found`              |
+| `UnsupportedExtensionException` | `400 Bad Request`            |
+| `IllegalArgumentException`      | `400 Bad Request`            |
+| `IllegalPatternException`       | `400 Bad Request`            |
+| `NullPointerException`          | `500 Internal Server Error`  |
+| Login `CredentialException`     | `400 Bad Request`            |
+| File I/O `IOException`          | `500 Internal Server Error`  |
+
+All error responses return an empty body (no JSON error envelope).
 
 ---
 
@@ -312,12 +528,10 @@ Convert an XML body to JSON.
 
 | Variable            | Description                            |
 |---------------------|----------------------------------------|
-| `DB_URL`            | PostgreSQL JDBC URL                    |
-| `DB_USERNAME`       | Database username                      |
-| `DB_PASSWORD`       | Database password                      |
-| `POSTGRES_DB`       | Database name (used by Docker Compose) |
 | `POSTGRES_USERNAME` | PostgreSQL superuser (Docker Compose)  |
 | `POSTGRES_PASSWORD` | PostgreSQL password (Docker Compose)   |
+| `POSTGRES_DB`       | Database name (used by Docker Compose) |
+| `DATABASE_URL`      | PostgreSQL JDBC URL                    |
 
 ### Key application settings (`application.yaml`)
 
