@@ -504,6 +504,11 @@ public final class ConversionFrontendService {
             throw new IllegalArgumentException(e.getMessage());
         }
 
+        // XML wrapping is terrible, unpacking it
+        if (root.isObject() && root.size() == 1 && root.has("item")) {
+            root = root.get("item");
+        }
+
         if (root.isArray()) {
             for (JsonNode node : root) {
                 rows.add(xmlMapper.convertValue(node, Map.class));
@@ -515,6 +520,27 @@ public final class ConversionFrontendService {
             }
         } else {
             throw new IllegalArgumentException("Unsupported XML structure for JSON conversion");
+        }
+
+        // Fix: XML -> JSON types converted incorrectly (NULL and int)
+        for (Map<String, Object> row : rows) {
+            for (Map.Entry<String, Object> entry : row.entrySet()) {
+                Object val = entry.getValue();
+                if (val instanceof String) {
+                    String strVal = (String) val;
+                    if (strVal.isEmpty()) {
+                        entry.setValue(null);
+                        continue;
+                    }
+                    try {
+                        if (strVal.matches("-?\\d+")) {
+                            entry.setValue(Long.parseLong(strVal));
+                        } else if (strVal.matches("-?\\d*\\.\\d+")) {
+                            entry.setValue(Double.parseDouble(strVal));
+                        }
+                    } catch (NumberFormatException ignored) {}
+                }
+            }
         }
 
         rows = applyPatterns(rows, patternService.findPatternById(patternId));
@@ -572,6 +598,11 @@ public final class ConversionFrontendService {
         } catch (JsonProcessingException e) {
             log.error("convertXmlFileToCsv: JsonProcessingException has been thrown");
             throw new IllegalArgumentException(e.getMessage());
+        }
+
+        // XML wrapping is terrible, unpacking it
+        if (root.isObject() && root.size() == 1 && root.has("item")) {
+            root = root.get("item");
         }
 
         if (root.isArray()) {
