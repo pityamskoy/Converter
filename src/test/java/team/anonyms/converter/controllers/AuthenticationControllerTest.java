@@ -119,12 +119,13 @@ class AuthenticationControllerTest {
                 .andExpect(status().isCreated())
                 .andExpect(cookie().value("user_id", "new-user-123"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.username").value("testuser"));
-    }/*
+    }
     @Test
     void testLogin_Success() throws Exception {
         String existingUserId = "old-session-123";
         UUID fakeTokenId = UUID.randomUUID();
         String fakeUsername = "fakeUsername";
+        String fakeEmail = "fakeEmail";
 
         CredentialsControllerDto requestDto = new CredentialsControllerDto(
                 "testuser",
@@ -136,8 +137,18 @@ class AuthenticationControllerTest {
                         "password123"
         );
 
-        LoginResultServiceDto mockServiceResult = new LoginResultServiceDto(true, fakeUsername, fakeTokenId);
-        LoginResultControllerDto responseDto = new LoginResultControllerDto(true, fakeUsername, fakeTokenId);
+        LoginResultServiceDto mockServiceResult = new LoginResultServiceDto(
+                true,
+                fakeUsername,
+                fakeEmail,
+                fakeTokenId
+        );
+        LoginResultControllerDto responseDto = new LoginResultControllerDto(
+                true,
+                fakeUsername,
+                fakeEmail,
+                fakeTokenId
+        );
 
         // кукис
         Cookie newSessionCookie = new Cookie("user_id", "new-session-456");
@@ -161,7 +172,7 @@ class AuthenticationControllerTest {
                 .andExpect(cookie().value("user_id", "new-session-456"))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.success").value(true));
     }
-*/
+
     @Test
     void testLogin_BadCredentials() throws Exception {
         CredentialsControllerDto requestDto = new CredentialsControllerDto("wronguser", "wrongpass");

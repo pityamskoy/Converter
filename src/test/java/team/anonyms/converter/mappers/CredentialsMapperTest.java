@@ -27,16 +27,16 @@ class CredentialsMapperTest {
     }
 
     // тест, что из сервисной дто-шки все нормально переносится в контроллер
-    /*
     @Test
     void testLoginResultServiceDtoToController() {
         UUID fakeUserId = UUID.randomUUID();
         String fakeUsername = "fakeUsername";
-        LoginResultServiceDto serviceDto = new LoginResultServiceDto(true, fakeUsername, fakeUserId);
+        String fakeEmail = "fakeEmail";
+        LoginResultServiceDto serviceDto = new LoginResultServiceDto(true, fakeUsername, fakeEmail, fakeUserId);
 
         LoginResultControllerDto controllerDto = mapper.loginResultServiceDtoToController(serviceDto);
 
         assertEquals(true, controllerDto.success());
         assertEquals(fakeUserId, controllerDto.userId());
-    }*/
+    }
 }

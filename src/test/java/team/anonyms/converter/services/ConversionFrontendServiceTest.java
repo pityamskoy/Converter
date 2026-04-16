@@ -318,7 +318,6 @@ class ConversionFrontendServiceTest {
         });
     }
 
-    // Either it always converts correctly or try to find out new breaking XML content.
     @Test
     void testConvertXmlFileToJson_NoRows_ThrowsException() {
         String xmlContent = "<root>" +
@@ -330,6 +329,12 @@ class ConversionFrontendServiceTest {
                 "application/xml",
                 xmlContent.getBytes()
         );
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            conversionFrontendService.convertXmlFileToJson(noRowsFile, null);
+        });
+
+        assertEquals("XML file contains no rows to convert", exception.getMessage());
     }
 
     @Test

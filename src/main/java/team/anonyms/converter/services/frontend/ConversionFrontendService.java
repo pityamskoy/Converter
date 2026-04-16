@@ -503,7 +503,10 @@ public final class ConversionFrontendService {
                 rows.add(xmlMapper.convertValue(node, Map.class));
             }
         } else if (root.isObject()) {
-            rows.add(xmlMapper.convertValue(root, Map.class));
+            Map<String, Object> map = xmlMapper.convertValue(root, Map.class);
+            if (!map.isEmpty()) {
+                rows.add(map);
+            }
         } else {
             throw new IllegalArgumentException("Unsupported XML structure for JSON conversion");
         }

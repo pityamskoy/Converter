@@ -1,5 +1,6 @@
 package team.anonyms.converter.mappers;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -14,10 +15,10 @@ import team.anonyms.converter.entities.Pattern;
 import team.anonyms.converter.repositories.PatternRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 class PatternMapperTest {
@@ -88,14 +89,14 @@ class PatternMapperTest {
 
         Pattern entityToSave = new Pattern(id, "Pattern1", List.of());
 
-        /* fix needed
-        Mockito.when(patternRepository.save(entityToSave)).thenReturn(entityToSave);
+
+        Mockito.when(patternRepository.findById(id)).thenReturn(Optional.of(entityToSave));
         Pattern entity = patternMapper.patternServiceDtoToEntity(serviceDto);
 
         assertEquals(id, entity.getId());
         assertEquals("Pattern1", entity.getName());
 
-        */
+
         assert(true);
     }
 
@@ -126,5 +127,20 @@ class PatternMapperTest {
 
         assertEquals(id, serviceDto.id());
         assertEquals("Pattern1", serviceDto.name());
+    }
+
+    @Test
+    void testPatternServiceDtoToEntity_ThrowsEntityNotFound() {
+        UUID id = UUID.randomUUID();
+        PatternServiceDto serviceDto = new PatternServiceDto(id, "Pattern1");
+
+        Mockito.when(patternRepository.findById(id)).thenReturn(Optional.empty());
+
+        EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> patternMapper.patternServiceDtoToEntity(serviceDto)
+        );
+
+        assertEquals("Pattern not found; id=" + id, exception.getMessage());
     }
 }

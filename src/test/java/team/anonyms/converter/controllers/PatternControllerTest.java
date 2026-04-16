@@ -15,6 +15,7 @@ import team.anonyms.converter.controllers.frontend.PatternController;
 import team.anonyms.converter.controllers.frontend.pagination.PaginationHandler;
 import team.anonyms.converter.dto.controller.pattern.PatternControllerDto;
 import team.anonyms.converter.dto.controller.pattern.PatternToCreateControllerDto;
+import team.anonyms.converter.dto.controller.pattern.PatternToUpdateControllerDto;
 import team.anonyms.converter.dto.service.pattern.PatternServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternToCreateServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternToUpdateServiceDto;
@@ -24,7 +25,7 @@ import team.anonyms.converter.services.frontend.PatternService;
 import java.util.List;
 import java.util.UUID;
 
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -64,15 +65,14 @@ class PatternControllerTest {
         Mockito.when(patternService.getAllPatternsByUserId(userId)).thenReturn(List.of(serviceDto));
         Mockito.when(patternMapper.patternServiceDtoToControllerDto(any(PatternServiceDto.class)))
                 .thenReturn(controllerDto);
-        Mockito.when(paginationHandler.makeSliceFromList(List.of(controllerDto), 1, 10)).thenReturn(List.of(controllerDto));
 
-        // в get передаем uuid, должен вернуться массив и первый элемент с тем же именем
-        mockMvc.perform(MockMvcRequestBuilders.get(String.format("/patterns/%s/%s/%s", userId, "1", "10"))
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(userId)))
-                .andExpect(status().isOk());
-                // Прошу пофиксить ожидание снизу
-                //.andExpect(jsonPath("$[0].name").value("Test Pattern"));
+        Mockito.when(paginationHandler.makeSliceFromList(anyList(), anyInt(), anyInt()))
+                .thenReturn(List.of(controllerDto));
+
+        mockMvc.perform(MockMvcRequestBuilders.get(String.format("/patterns/%s/%d/%d", userId, 10, 0))
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].name").value("Test Pattern"));
     }
 
     @Test
@@ -85,18 +85,15 @@ class PatternControllerTest {
                 "New Pattern",
                 List.of()
         );
-
         PatternToCreateServiceDto serviceRequestDto = new PatternToCreateServiceDto(
                 userId,
                 "New Pattern",
                 List.of()
         );
-
         PatternServiceDto serviceResponseDto = new PatternServiceDto(
                 patternId,
                 "New Pattern"
         );
-
         PatternControllerDto responseDto = new PatternControllerDto(
                 patternId,
                 "New Pattern"
@@ -122,41 +119,47 @@ class PatternControllerTest {
     void testUpdatePattern_Success() throws Exception {
         UUID patternId = UUID.randomUUID();
 
-        PatternControllerDto requestDto = new PatternControllerDto(
+        PatternToUpdateControllerDto requestDto = new PatternToUpdateControllerDto(
                 patternId,
-                "Updated Pattern"
+                "Updated Pattern",
+                List.of()
         );
-
+        PatternToUpdateServiceDto serviceRequestDto = new PatternToUpdateServiceDto(
+                patternId,
+                "Updated Pattern",
+                List.of()
+        );
         PatternServiceDto serviceDto = new PatternServiceDto(
                 patternId,
                 "Updated Pattern"
         );
+        PatternControllerDto responseDto = new PatternControllerDto(
+                patternId,
+                "Updated Pattern"
+        );
 
-        // Даня, нужно добавить регистрацию пользователя перед тем, как брать все шаблоны !!!
-        Mockito.when(patternMapper.patternControllerDtoToServiceDto(any(PatternControllerDto.class)))
-                .thenReturn(serviceDto);
+        Mockito.when(patternMapper.patternToUpdateControllerDtoToService(any(PatternToUpdateControllerDto.class)))
+                .thenReturn(serviceRequestDto);
         Mockito.when(patternService.updatePattern(any(PatternToUpdateServiceDto.class)))
                 .thenReturn(serviceDto);
         Mockito.when(patternMapper.patternServiceDtoToControllerDto(any(PatternServiceDto.class)))
-                .thenReturn(requestDto);
+                .thenReturn(responseDto);
 
-        mockMvc.perform(MockMvcRequestBuilders.put("/patterns/")
+        mockMvc.perform(MockMvcRequestBuilders.put("/patterns")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDto)))
-                .andExpect(status().isNotFound()); // Заменил временно status.isOk() на isNotFound();
-                //.andExpect(jsonPath("$.name").value("Updated Pattern"));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value("Updated Pattern"));
     }
 
     @Test
     void testDeletePattern_Success() throws Exception {
         UUID patternId = UUID.randomUUID();
 
-        // void и возвращает 204
         Mockito.doNothing().when(patternService).deletePattern(patternId);
 
         mockMvc.perform(MockMvcRequestBuilders.delete("/patterns/" + patternId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(patternId)))
+                        .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
     }
 }
