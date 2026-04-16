@@ -9,6 +9,7 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import team.anonyms.converter.dto.service.pattern.PatternServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternToCreateServiceDto;
+import team.anonyms.converter.dto.service.pattern.PatternToUpdateServiceDto;
 import team.anonyms.converter.entities.Pattern;
 import team.anonyms.converter.entities.User;
 import team.anonyms.converter.mappers.ModificationMapper;
@@ -70,7 +71,7 @@ class PatternServiceTest {
         });
         assertEquals("User not found; id="+userId, exception.getMessage());
     }
-    /*
+
     @Test
     void testCreatePattern_Success() {
         UUID userId = UUID.randomUUID();
@@ -85,24 +86,24 @@ class PatternServiceTest {
         mockUser.setPatterns(new ArrayList<>());
 
         Pattern mockPattern = new Pattern();
+        mockPattern.setModifications(new ArrayList<>());
+
         PatternServiceDto responseDto = new PatternServiceDto(
                 UUID.randomUUID(),
-                "name",
-                List.of()
+                "name"
         );
 
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
         Mockito.when(patternMapper.patternToCreateServiceDtoToEntity(createDto)).thenReturn(mockPattern);
         Mockito.when(patternMapper.patternToServiceDto(mockPattern)).thenReturn(responseDto);
 
-        // fix this
         PatternServiceDto result = patternService.createPattern(createDto);
 
         // паттерн вернулся и сохранился в репы
         assertNotNull(result);
         Mockito.verify(patternRepository).save(mockPattern);
         Mockito.verify(userRepository).save(mockUser);
-    }*/
+    }
 
     @Test
     void testCreatePattern_ThrowsEntityNotFound() {
@@ -120,32 +121,39 @@ class PatternServiceTest {
         assertEquals("User not found; id="+userId, exception.getMessage());
     }
 
+
     @Test
     void testUpdatePattern_Success() {
         UUID patternId = UUID.randomUUID();
         // данные для обновления паттерна
-        PatternServiceDto updateDto = new PatternServiceDto(
+        PatternToUpdateServiceDto updateDto = new PatternToUpdateServiceDto(
                 patternId,
                 "name",
                 List.of()
         );
 
+        PatternServiceDto dtoUpdated = new PatternServiceDto(
+                patternId,
+                "name"
+        );
+
         Pattern mockPattern = new Pattern();
+        mockPattern.setModifications(new ArrayList<>());
 
         Mockito.when(patternRepository.findById(patternId)).thenReturn(Optional.of(mockPattern));
-        Mockito.when(patternMapper.patternToServiceDto(mockPattern)).thenReturn(updateDto);
+        Mockito.when(patternMapper.patternToServiceDto(mockPattern)).thenReturn(dtoUpdated);
 
         PatternServiceDto result = patternService.updatePattern(updateDto);
 
         // паттерн обновился и сохранился
         assertNotNull(result);
-        Mockito.verify(patternRepository).save(mockPattern);
+        Mockito.verify(patternRepository, Mockito.times(2)).save(mockPattern);
     }
 
     @Test
     void testUpdatePattern_ThrowsEntityNotFound() {
         UUID patternId = UUID.randomUUID();
-        PatternServiceDto updateDto = new PatternServiceDto(
+        PatternToUpdateServiceDto updateDto = new PatternToUpdateServiceDto(
                 patternId,
                 "name",
                 List.of()
@@ -158,20 +166,27 @@ class PatternServiceTest {
         assertEquals("Pattern not found; id="+patternId, exception.getMessage());
     }
 
-    /*
+
     @Test
     void testDeletePattern_Success() {
         UUID patternId = UUID.randomUUID();
+
         Pattern mockPattern = new Pattern();
+        mockPattern.setId(patternId);
+
+        User mockUser = new User();
+        mockUser.setPatterns(new ArrayList<>(List.of(mockPattern)));
 
         Mockito.when(patternRepository.findById(patternId)).thenReturn(Optional.of(mockPattern));
+        Mockito.when(userRepository.findAll()).thenReturn(List.of(mockUser));
 
         patternService.deletePattern(patternId);
 
+        Mockito.verify(userRepository).save(mockUser);
         Mockito.verify(patternRepository).delete(mockPattern);
-    }*/
+    }
 
-    /*
+
     @Test
     void testDeletePattern_ThrowsEntityNotFound() {
         UUID patternId = UUID.randomUUID();
@@ -181,6 +196,6 @@ class PatternServiceTest {
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
             patternService.deletePattern(patternId);
         });
-        assertEquals("Pattern not found; id="+patternId, exception.getMessage());
-    }*/
+        assertEquals("Pattern not found; patternId="+patternId, exception.getMessage());
+    }
 }

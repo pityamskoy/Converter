@@ -1,4 +1,4 @@
-package team.anonyms.converter.enums;
+package team.anonyms.converter.utility.enums;
 
 /**
  * <p>

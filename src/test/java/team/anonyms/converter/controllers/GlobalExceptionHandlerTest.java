@@ -8,7 +8,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
-import team.anonyms.converter.exceptions.UnsupportedExtensionException;
+import team.anonyms.converter.utility.exceptions.UnsupportedExtensionException;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 

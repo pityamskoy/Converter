@@ -1,35 +1,37 @@
 package team.anonyms.converter.mappers;
 
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Component;
-import team.anonyms.converter.dto.controller.modification.ModificationControllerDto;
 import team.anonyms.converter.dto.controller.pattern.PatternControllerDto;
 import team.anonyms.converter.dto.controller.pattern.PatternToCreateControllerDto;
-import team.anonyms.converter.dto.service.modification.ModificationServiceDto;
+import team.anonyms.converter.dto.controller.pattern.PatternToUpdateControllerDto;
 import team.anonyms.converter.dto.service.modification.ModificationToCreateServiceDto;
+import team.anonyms.converter.dto.service.modification.ModificationToUpdateServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternToCreateServiceDto;
+import team.anonyms.converter.dto.service.pattern.PatternToUpdateServiceDto;
 import team.anonyms.converter.entities.Modification;
 import team.anonyms.converter.entities.Pattern;
+import team.anonyms.converter.repositories.PatternRepository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
 public final class PatternMapper {
+    private final PatternRepository patternRepository;
     private final ModificationMapper modificationMapper;
 
-    public PatternMapper(ModificationMapper modificationMapper) {
+    public PatternMapper(PatternRepository patternRepository, ModificationMapper modificationMapper) {
+        this.patternRepository = patternRepository;
         this.modificationMapper = modificationMapper;
     }
 
     public PatternServiceDto patternControllerDtoToServiceDto(PatternControllerDto patternControllerDto) {
-        List<ModificationServiceDto> modifications = patternControllerDto.modifications().stream().
-                map(modificationMapper::modificationControllerDtoToServiceDto).toList();
-
         return new PatternServiceDto(
                 patternControllerDto.id(),
-                patternControllerDto.name(),
-                modifications
+                patternControllerDto.name()
         );
     }
 
@@ -46,20 +48,34 @@ public final class PatternMapper {
         );
     }
 
-    public PatternControllerDto patternServiceDtoToControllerDto(PatternServiceDto patternServiceDto) {
-        List<ModificationControllerDto> modifications = patternServiceDto.modifications().stream().
-                map(modificationMapper::modificationServiceDtoToControllerDto).toList();
+    public PatternToUpdateServiceDto patternToUpdateControllerDtoToService(
+            PatternToUpdateControllerDto patternToUpdateControllerDto
+    ) {
+        List<ModificationToUpdateServiceDto> modifications = patternToUpdateControllerDto.modifications().stream().
+                map(modificationMapper::modificationToUpdateControllerDtoToService).toList();
 
-        return new PatternControllerDto(
-                patternServiceDto.id(),
-                patternServiceDto.name(),
+        return new PatternToUpdateServiceDto(
+                patternToUpdateControllerDto.id(),
+                patternToUpdateControllerDto.name(),
                 modifications
         );
     }
 
+    public PatternControllerDto patternServiceDtoToControllerDto(PatternServiceDto patternServiceDto) {
+        return new PatternControllerDto(
+                patternServiceDto.id(),
+                patternServiceDto.name()
+        );
+    }
+
     public Pattern patternServiceDtoToEntity(PatternServiceDto patternServiceDto) {
-        List<Modification> modifications = patternServiceDto.modifications().stream().
-                map(modificationMapper::modificationServiceDtoToEntity).toList();
+        Optional<Pattern> patternOptional = patternRepository.findById(patternServiceDto.id());
+
+        if (patternOptional.isEmpty()) {
+            throw new EntityNotFoundException("Pattern not found; id=" + patternServiceDto.id());
+        }
+
+        List<Modification> modifications = patternOptional.get().getModifications();
 
         return new Pattern(
                 patternServiceDto.id(),
@@ -80,13 +96,9 @@ public final class PatternMapper {
     }
 
     public PatternServiceDto patternToServiceDto(Pattern pattern) {
-        List<ModificationServiceDto> modifications = pattern.getModifications().stream().
-                map(modificationMapper::modificationToServiceDto).toList();
-
         return new PatternServiceDto(
                 pattern.getId(),
-                pattern.getName(),
-                modifications
+                pattern.getName()
         );
     }
 }

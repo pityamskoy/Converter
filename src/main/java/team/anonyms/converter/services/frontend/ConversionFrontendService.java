@@ -16,23 +16,39 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import team.anonyms.converter.entities.Modification;
 import team.anonyms.converter.entities.Pattern;
-import team.anonyms.converter.exceptions.IllegalPatternException;
-import team.anonyms.converter.exceptions.UnsupportedExtensionException;
+import team.anonyms.converter.utility.exceptions.IllegalPatternException;
+import team.anonyms.converter.utility.exceptions.UnsupportedExtensionException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-
+/*
+There is arguably needed fix of how to convert something -> JSON
+due to possible misinterpretation of formats.
+ */
 @Service
 public final class ConversionFrontendService {
     private static final Logger log = LoggerFactory.getLogger(ConversionFrontendService.class);
 
     private final PatternService patternService;
 
-    public ConversionFrontendService(PatternService patternService) {
+    private final JsonMapper jsonMapper;
+    private final XmlMapper xmlMapper;
+    private final CsvMapper csvMapper;
+
+    public ConversionFrontendService(
+            PatternService patternService,
+            JsonMapper jsonMapper,
+            XmlMapper xmlMapper,
+            CsvMapper csvMapper
+    ) {
         this.patternService = patternService;
+
+        this.jsonMapper = jsonMapper;
+        this.xmlMapper = xmlMapper;
+        this.csvMapper = csvMapper;
     }
 
     /**
@@ -176,7 +192,11 @@ public final class ConversionFrontendService {
 
                 // Altering existing fields
                 if (row.containsKey(modification.getOldName())) {
-                    fieldNameForTypeConversion = modification.getOldName();
+                    // Changing values of fields
+                    if (modification.getNewValue() != null) {
+                        row.put(modification.getOldName(), modification.getNewValue());
+                        fieldNameForTypeConversion = modification.getOldName();
+                    }
 
                     // Changing names of fields
                     if (modification.getNewName() != null) {
@@ -185,16 +205,12 @@ public final class ConversionFrontendService {
                         row.remove(modification.getOldName());
 
                         modification.setOldName(modification.getNewName());
-                    }
-
-                    // Changing values of fields
-                    if (modification.getNewValue() != null) {
-                        row.put(modification.getOldName(), modification.getNewValue());
+                        fieldNameForTypeConversion = modification.getNewName();
                     }
                 }
 
                 // Type conversion
-                if (row.containsKey(modification.getOldName()) || isAddingIteration) {
+                if ((row.containsKey(modification.getOldName()) && (modification.getNewType() != null)) || isAddingIteration) {
                     Object value = row.get(fieldNameForTypeConversion);
 
                     // Find how to remove this hard code and add enum to db.
@@ -250,7 +266,6 @@ public final class ConversionFrontendService {
         Path csvPath = Files.createTempFile(filenameWithoutExtension, ".csv");
 
         // Start converting
-        JsonMapper jsonMapper = new JsonMapper();
         List<Map<String,Object>> rows = new ArrayList<>();
 
         JsonNode root;
@@ -300,7 +315,6 @@ public final class ConversionFrontendService {
         }
 
         // Writing converted data
-        CsvMapper csvMapper = new CsvMapper();
         CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
 
         try {
@@ -342,7 +356,6 @@ public final class ConversionFrontendService {
         Path jsonPath = Files.createTempFile(filenameWithoutExtension, ".json");
 
         // Start converting
-        CsvMapper csvMapper = new CsvMapper();
         CsvSchema csvSchema = CsvSchema.emptySchema().withHeader();
 
         List<Map<String, Object>> rows = new ArrayList<>();
@@ -353,6 +366,7 @@ public final class ConversionFrontendService {
             Map<String, String> row = iterator.next();
             Map<String, Object> convertedRow = new LinkedHashMap<>();
 
+            // Convert data types
             for (Map.Entry<String, String> entry : row.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
@@ -392,7 +406,6 @@ public final class ConversionFrontendService {
         }
 
         // Writing converted data
-        JsonMapper jsonMapper = new JsonMapper();
         if (rows.size() == 1) {
             jsonMapper.writeValue(jsonPath.toFile(), rows.getFirst());
         } else {
@@ -431,7 +444,6 @@ public final class ConversionFrontendService {
         Path xmlPath = Files.createTempFile(filenameWithoutExtension, ".xml");
 
         // Start converting
-        JsonMapper jsonMapper = new JsonMapper();
         List<Map<String,Object>> rows = new ArrayList<>();
         JsonNode root = jsonMapper.readTree(jsonFile.getInputStream());
 
@@ -452,7 +464,6 @@ public final class ConversionFrontendService {
         }
 
         // Writing converted data
-        XmlMapper xmlMapper = new XmlMapper();
         xmlMapper.writeValue(xmlPath.toFile(), rows);
 
         return xmlPath;
@@ -487,7 +498,6 @@ public final class ConversionFrontendService {
         Path jsonPath = Files.createTempFile(filenameWithoutExtension, ".json");
 
         // Start converting
-        XmlMapper xmlMapper = new XmlMapper();
         List<Map<String,Object>> rows = new ArrayList<>();
 
         JsonNode root;
@@ -498,14 +508,42 @@ public final class ConversionFrontendService {
             throw new IllegalArgumentException(e.getMessage());
         }
 
+        if (root.isObject() && root.size() == 1 && root.has("item")) {
+            root = root.get("item");
+        }
+
         if (root.isArray()) {
             for (JsonNode node : root) {
                 rows.add(xmlMapper.convertValue(node, Map.class));
             }
         } else if (root.isObject()) {
-            rows.add(xmlMapper.convertValue(root, Map.class));
+            Map<String, Object> map = xmlMapper.convertValue(root, Map.class);
+            if (!map.isEmpty()) {
+                rows.add(map);
+            }
         } else {
             throw new IllegalArgumentException("Unsupported XML structure for JSON conversion");
+        }
+
+        // Convert data types
+        for (Map<String, Object> row : rows) {
+            for (Map.Entry<String, Object> entry : row.entrySet()) {
+                Object value = entry.getValue();
+                if (value instanceof String stringValue) {
+                    if (stringValue.isEmpty()) {
+                        entry.setValue(null);
+                        continue;
+                    }
+
+                    try {
+                        if (stringValue.matches("-?\\d+")) {
+                            entry.setValue(Long.parseLong(stringValue));
+                        } else if (stringValue.matches("-?\\d*\\.\\d+")) {
+                            entry.setValue(Double.parseDouble(stringValue));
+                        }
+                    } catch (NumberFormatException _) {}
+                }
+            }
         }
 
         rows = applyPatterns(rows, patternService.findPatternById(patternId));
@@ -515,7 +553,6 @@ public final class ConversionFrontendService {
         }
 
         // Writing converted data
-        JsonMapper jsonMapper = new JsonMapper();
         if (rows.size() == 1) {
             jsonMapper.writeValue(jsonPath.toFile(), rows.getFirst());
         } else {
@@ -556,7 +593,6 @@ public final class ConversionFrontendService {
         Path csvPath = Files.createTempFile(filenameWithoutExtension, ".csv");
 
         // Start converting
-        XmlMapper xmlMapper = new XmlMapper();
         List<Map<String,Object>> rows = new ArrayList<>();
 
         JsonNode root;
@@ -565,6 +601,10 @@ public final class ConversionFrontendService {
         } catch (JsonProcessingException e) {
             log.error("convertXmlFileToCsv: JsonProcessingException has been thrown");
             throw new IllegalArgumentException(e.getMessage());
+        }
+
+        if (root.isObject() && root.size() == 1 && root.has("item")) {
+            root = root.get("item");
         }
 
         if (root.isArray()) {
@@ -606,8 +646,6 @@ public final class ConversionFrontendService {
         rows = applyPatterns(rows, patternService.findPatternById(patternId));
 
         // Writing converted data
-        CsvMapper csvMapper = new CsvMapper();
-
         try {
             CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
             csvMapper.writerFor(List.class).with(csvSchema).writeValue(csvPath.toFile(), rows);
@@ -648,7 +686,6 @@ public final class ConversionFrontendService {
         Path xmlPath = Files.createTempFile(filenameWithoutExtension, ".xml");
 
         // Start converting
-        CsvMapper csvMapper = new CsvMapper();
         CsvSchema csvSchema = CsvSchema.emptySchema().withHeader();
 
         List<Map<String, Object>> rows = new ArrayList<>();
@@ -698,7 +735,6 @@ public final class ConversionFrontendService {
         }
 
         // Writing converted data
-        XmlMapper xmlMapper = new XmlMapper();
         if (rows.size() == 1) {
             xmlMapper.writeValue(xmlPath.toFile(), rows.getFirst());
         } else {

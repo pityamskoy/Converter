@@ -32,7 +32,7 @@ public final class AuthenticationService {
      * @param userId a value of cookie, which {@link AuthenticationController} accepts as an argument.
      * @param credentials login credentials.
      *
-     * @return {@link Pair}<{@link Cookie}, {@link LoginResultServiceDto}>, where {@link Cookie} is null if {@code User} has been found by {@code userId}.
+     * @return {@link Pair}<{@link Cookie}, {@link LoginResultServiceDto}>, where {@link Cookie} is null if {@code User} has been found by {@code id}.
      *
      * @throws CredentialException if cookie is null, and credentials are null.
      */
@@ -53,8 +53,8 @@ public final class AuthenticationService {
 
             User user = userOptional.get();
 
-            return new Pair<>(null,
-                    new LoginResultServiceDto(true, user.getUsername(), UUID.fromString(userId)));
+            return new Pair<>(null, new LoginResultServiceDto(
+                    true, user.getUsername(), user.getEmail(), UUID.fromString(userId)));
         }
 
         String email = credentials.email();
@@ -66,7 +66,7 @@ public final class AuthenticationService {
 
         User user = userOptional.get();
         LoginResultServiceDto loginResultDto = new LoginResultServiceDto(user.getPassword().
-                equals(credentials.password()), user.getUsername(), user.getId());
+                equals(credentials.password()), user.getUsername(), user.getEmail(), user.getId());
 
         if (loginResultDto.success()) {
             Cookie cookie = new Cookie("user_id", loginResultDto.userId().toString());

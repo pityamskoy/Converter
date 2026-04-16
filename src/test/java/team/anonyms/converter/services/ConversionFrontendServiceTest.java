@@ -1,10 +1,13 @@
 package team.anonyms.converter.services;
 
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
-import team.anonyms.converter.exceptions.UnsupportedExtensionException;
+import team.anonyms.converter.utility.exceptions.UnsupportedExtensionException;
 import team.anonyms.converter.services.frontend.ConversionFrontendService;
 import team.anonyms.converter.services.frontend.PatternService;
 
@@ -18,7 +21,9 @@ class ConversionFrontendServiceTest {
 
     private final PatternService patternService = Mockito.mock(PatternService.class);
 
-    private final ConversionFrontendService conversionFrontendService = new ConversionFrontendService(patternService);
+    private final ConversionFrontendService conversionFrontendService = new ConversionFrontendService(
+            patternService, new JsonMapper(), new XmlMapper(), new CsvMapper()
+    );
 
     // тест из json в csv
     @Test
@@ -318,7 +323,6 @@ class ConversionFrontendServiceTest {
         });
     }
 
-    // Either it always converts correctly or try to find out new breaking XML content.
     @Test
     void testConvertXmlFileToJson_NoRows_ThrowsException() {
         String xmlContent = "<root>" +
@@ -330,6 +334,12 @@ class ConversionFrontendServiceTest {
                 "application/xml",
                 xmlContent.getBytes()
         );
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
+            conversionFrontendService.convertXmlFileToJson(noRowsFile, null);
+        });
+
+        assertEquals("XML file contains no rows to convert", exception.getMessage());
     }
 
     @Test
