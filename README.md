@@ -183,13 +183,13 @@ Supported conversion pairs: `json↔csv`, `json↔xml`, `xml↔csv`.
 A **Pattern** belongs to a user and targets all conversion types.
 It contains an ordered list of **Modifications**, each capable of:
 
-| `oldName` | `newName`    | `newType` | `newValue` | Effect                             |
-|-----------|--------------|-----------|------------|------------------------------------|
-| `"field"` | `null`       | `null`    | `null`     | Delete the field                   |
-| `"field"` | `"renamed"`  | `null`    | `null`     | Rename the field                   |
-| `"field"` | `null`       | `null`    | `value`    | Replace the field's value          |
-| `"field"` | `null`       | `Integer` | `null`     | Cast the value to a different type |
-| `null`    | `"newField"` | `null`    | `value`    | Add a new field                    |
+| `oldName` | `newName`     | `newType`   | `newValue` | Effect                           |
+|-----------|---------------|-------------|------------|----------------------------------|
+| `"field"` | `null`        | `null`      | `null`     | Delete the field                 |
+| `"field"` | `"renamed"`   | `null`      | `null`     | Rename the field                 |
+| `"field"` | `null`        | `"Integer"` | `null`     | Cast a value to a different type |
+| `"field"` | `null`        | `null`      | `"value"`  | Reassign a field's value         |
+| `null`    | `"new field"` | `null`      | `"value"`  | Add a new field                  |
 
 Supported `newType` values: `Integer`, `Float`, `Boolean`, `String`.
 
