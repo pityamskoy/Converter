@@ -166,7 +166,9 @@ public final class ConversionFrontendService {
         for (Map<String, Object> row : rows) {
             for (Modification modification : modifications) {
                 // Deleting fields
-                if (row.containsKey(modification.getOldName()) && (modification.getNewValue() == null)) {
+                if (row.containsKey(modification.getOldName()) && (modification.getNewName() == null) &&
+                        (modification.getNewType() == null) && (modification.getNewValue() == null)
+                ) {
                     row.remove(modification.getOldName());
                     continue;
                 }
@@ -178,7 +180,7 @@ public final class ConversionFrontendService {
                 if (modification.getOldName() == null) {
                     if (modification.getNewName() == null) {
                         throw new IllegalPatternException(
-                                "Modification with null or empty OldName and NewName was provided; modification=" +
+                                "Modification with null or empty oldName and newName was provided; modification=" +
                                         modification
                         );
                     }
