@@ -24,10 +24,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-/*
-There is arguably needed fix of how to convert something -> JSON
-due to possible misinterpretation of formats.
- */
+
 @Service
 public final class ConversionFrontendService {
     private static final Logger log = LoggerFactory.getLogger(ConversionFrontendService.class);
@@ -119,15 +116,10 @@ public final class ConversionFrontendService {
      * For example, it is more preferably to send {@code .json} instead of {@code json} to this method despite the fact
      * that the validation doesn't fail in both cases.
      *
-     * @throws IllegalArgumentException if {@code file} is empty.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code file} has extension, which doesn't correspond to {@code currentExtension}.
      */
     private void validateArgumentsForConversion(@NonNull MultipartFile file, @NonNull String currentExtension) {
-        if (file.isEmpty()) {
-            throw new IllegalArgumentException("file is empty");
-        }
-
         String filename = file.getOriginalFilename();
         if (filename == null) {
             throw new NullPointerException("filename is null");
@@ -215,6 +207,10 @@ public final class ConversionFrontendService {
                 if ((row.containsKey(modification.getOldName()) && (modification.getNewType() != null)) || isAddingIteration) {
                     Object value = row.get(fieldNameForTypeConversion);
 
+                    if (value == null) {
+                        continue;
+                    }
+
                     // Find how to remove this hard code and add enum to db.
                     switch (modification.getNewType()) {
                         case "Integer":
@@ -248,7 +244,7 @@ public final class ConversionFrontendService {
      *
      * @return path to converted CSV file.
      *
-     * @throws IllegalArgumentException if either {@code jsonFile} is empty or it consists of
+     * @throws IllegalArgumentException if {@code jsonFile} consists of
      * unsupported structure for conversion from JSON to CSV.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code jsonFile} was provided without '.json' extension.
@@ -266,6 +262,10 @@ public final class ConversionFrontendService {
         // Create temporarily CSV file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(jsonFile, ".json");
         Path csvPath = Files.createTempFile(filenameWithoutExtension, ".csv");
+
+        if (jsonFile.isEmpty()) {
+            return csvPath;
+        }
 
         // Start converting
         List<Map<String,Object>> rows = new ArrayList<>();
@@ -339,7 +339,7 @@ public final class ConversionFrontendService {
      *
      * @return path to converted JSON file.
      *
-     * @throws IllegalArgumentException if either {@code csvFile} is empty or it consists of
+     * @throws IllegalArgumentException if {@code csvFile} consists of
      * unsupported structure for conversion from CSV to JSON.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code csvFile} was provided without '.csv' extension.
@@ -356,6 +356,10 @@ public final class ConversionFrontendService {
         // Create temporarily JSON file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(csvFile, ".csv");
         Path jsonPath = Files.createTempFile(filenameWithoutExtension, ".json");
+
+        if (csvFile.isEmpty()) {
+            return jsonPath;
+        }
 
         // Start converting
         CsvSchema csvSchema = CsvSchema.emptySchema().withHeader();
@@ -427,7 +431,7 @@ public final class ConversionFrontendService {
      *
      * @return path to converted XML file.
      *
-     * @throws IllegalArgumentException if either {@code jsonFile} is empty or it consists of
+     * @throws IllegalArgumentException if {@code jsonFile} consists of
      * unsupported structure for conversion from JSON to XML.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code jsonFile} was provided without '.json' extension.
@@ -444,6 +448,10 @@ public final class ConversionFrontendService {
         // Create temporarily XML file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(jsonFile, ".json");
         Path xmlPath = Files.createTempFile(filenameWithoutExtension, ".xml");
+
+        if (jsonFile.isEmpty()) {
+            return xmlPath;
+        }
 
         // Start converting
         List<Map<String,Object>> rows = new ArrayList<>();
@@ -481,7 +489,7 @@ public final class ConversionFrontendService {
      *
      * @return path to converted JSON file.
      *
-     * @throws IllegalArgumentException if either {@code xmlFile} is empty or it consists of
+     * @throws IllegalArgumentException if {@code xmlFile} consists of
      * unsupported structure for conversion from XML to JSON.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code xmlFile} was provided without '.xml' extension.
@@ -498,6 +506,10 @@ public final class ConversionFrontendService {
         // Create temporarily JSON file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(xmlFile, ".xml");
         Path jsonPath = Files.createTempFile(filenameWithoutExtension, ".json");
+
+        if (xmlFile.isEmpty()) {
+            return jsonPath;
+        }
 
         // Start converting
         List<Map<String,Object>> rows = new ArrayList<>();
@@ -575,7 +587,7 @@ public final class ConversionFrontendService {
      *
      * @return path to converted CSV file.
      *
-     * @throws IllegalArgumentException if either {@code xmlFile} is empty or it consists of
+     * @throws IllegalArgumentException if {@code xmlFile} consists of
      * unsupported structure for conversion from XML to CSV.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code xmlFile} was provided without '.xml' extension.
@@ -593,6 +605,10 @@ public final class ConversionFrontendService {
         // Create temporarily CSV file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(xmlFile, ".xml");
         Path csvPath = Files.createTempFile(filenameWithoutExtension, ".csv");
+
+        if (xmlFile.isEmpty()) {
+            return csvPath;
+        }
 
         // Start converting
         List<Map<String,Object>> rows = new ArrayList<>();
@@ -623,11 +639,6 @@ public final class ConversionFrontendService {
             throw new IllegalArgumentException("XML file contains no rows to convert");
         }
 
-        CsvSchema.Builder csvSchemaBuilder = CsvSchema.builder();
-        for (String column : rows.getFirst().keySet()) {
-            csvSchemaBuilder.addColumn(column);
-        }
-
         // Converting nested structures to XML strings
         for (Map<String, Object> row : rows) {
             if (row == null) {
@@ -646,6 +657,11 @@ public final class ConversionFrontendService {
         }
 
         rows = applyPatterns(rows, patternService.findPatternById(patternId));
+
+        CsvSchema.Builder csvSchemaBuilder = CsvSchema.builder();
+        for (String column : rows.getFirst().keySet()) {
+            csvSchemaBuilder.addColumn(column);
+        }
 
         // Writing converted data
         try {
@@ -669,7 +685,7 @@ public final class ConversionFrontendService {
      *
      * @return path to converted XML file.
      *
-     * @throws IllegalArgumentException if either {@code csvFile} is empty or it consists of
+     * @throws IllegalArgumentException if {@code csvFile} consists of
      * unsupported structure for conversion from CSV to XML.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code csvFile} was provided without '.csv' extension.
@@ -686,6 +702,10 @@ public final class ConversionFrontendService {
         // Create temporarily XML file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(csvFile, ".csv");
         Path xmlPath = Files.createTempFile(filenameWithoutExtension, ".xml");
+
+        if (csvFile.isEmpty()) {
+            return xmlPath;
+        }
 
         // Start converting
         CsvSchema csvSchema = CsvSchema.emptySchema().withHeader();
