@@ -3,9 +3,11 @@ package team.anonyms.converter.controllers;
 import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import team.anonyms.converter.dto.controller.responses.errors.IllegalPatternExceptionErrorResponse;
 import team.anonyms.converter.utility.annotations.LastSupportedProjectVersion;
 import team.anonyms.converter.utility.exceptions.IllegalPatternException;
 import team.anonyms.converter.utility.exceptions.UnsupportedExtensionException;
@@ -48,8 +50,10 @@ public final class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(exception = IllegalPatternException.class)
-    public ResponseEntity<Void> handleIllegalPatternException(IllegalPatternException e) {
+    public ResponseEntity<IllegalPatternExceptionErrorResponse> handleIllegalPatternException(
+            IllegalPatternException e
+    ) {
         log.error(e.getMessage());
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new IllegalPatternExceptionErrorResponse());
     }
 }
