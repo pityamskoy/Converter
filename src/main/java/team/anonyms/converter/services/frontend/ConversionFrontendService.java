@@ -154,9 +154,29 @@ public final class ConversionFrontendService {
         }
 
         List<Modification> modifications = pattern.getModifications();
+        List<Modification> addingModifications = new ArrayList<>();
+
+        // Prepare to add new fields
+        for (Modification modification : modifications) {
+            if (modification.getOldName() == null) {
+                if (modification.getNewName() == null) {
+                    throw new IllegalPatternException(
+                            "Modification with null or empty oldName and newName was provided; modification=" +
+                                    modification
+                    );
+                }
+
+                addingModifications.add(modification);
+            }
+        }
 
         for (Map<String, Object> row : rows) {
-            for (Modification modification : modifications) {
+            int actualIndexOfModification = 0;
+
+            for (int i = 0; i < modifications.size() - addingModifications.size(); i++) {
+                actualIndexOfModification += i;
+                Modification modification = modifications.get(actualIndexOfModification);
+
                 // Deleting fields
                 if (row.containsKey(modification.getOldName()) && (modification.getNewName() == null) &&
                         (modification.getNewType() == null) && (modification.getNewValue() == null)
@@ -170,15 +190,9 @@ public final class ConversionFrontendService {
 
                 // Adding new fields
                 if (modification.getOldName() == null) {
-                    if (modification.getNewName() == null) {
-                        throw new IllegalPatternException(
-                                "Modification with null or empty oldName and newName was provided; modification=" +
-                                        modification
-                        );
-                    }
-
                     isAddingIteration = true;
                     fieldNameForTypeConversion = modification.getNewName();
+
 
                     row.put(fieldNameForTypeConversion, modification.getNewValue());
                     modifications.remove(modification);
