@@ -6,9 +6,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import team.anonyms.converter.dto.controller.responses.errors.CredentialExceptionErrorResponse;
+import team.anonyms.converter.dto.controller.responses.errors.EmailExistsExceptionErrorResponse;
+import team.anonyms.converter.dto.controller.responses.errors.IllegalPatternExceptionErrorResponse;
 import team.anonyms.converter.utility.annotations.LastSupportedProjectVersion;
+import team.anonyms.converter.utility.exceptions.EmailExistsException;
 import team.anonyms.converter.utility.exceptions.IllegalPatternException;
 import team.anonyms.converter.utility.exceptions.UnsupportedExtensionException;
+
+import javax.security.auth.login.CredentialException;
 
 import static team.anonyms.converter.utility.enums.ProjectVersion.RELEASE_0;
 
@@ -22,6 +28,12 @@ import static team.anonyms.converter.utility.enums.ProjectVersion.RELEASE_0;
 @SuppressWarnings(value = "unused")
 public final class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+
+    @ExceptionHandler(exception = CredentialException.class)
+    public ResponseEntity<CredentialExceptionErrorResponse> handleCredentialException(CredentialException e) {
+        log.error(e.getMessage());
+        return ResponseEntity.badRequest().body(new CredentialExceptionErrorResponse());
+    }
 
     @ExceptionHandler(exception = EntityNotFoundException.class)
     public ResponseEntity<Void> handleEntityNotFoundException(EntityNotFoundException e) {
@@ -48,8 +60,16 @@ public final class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(exception = IllegalPatternException.class)
-    public ResponseEntity<Void> handleIllegalPatternException(IllegalPatternException e) {
+    public ResponseEntity<IllegalPatternExceptionErrorResponse> handleIllegalPatternException(
+            IllegalPatternException e
+    ) {
         log.error(e.getMessage());
-        return ResponseEntity.badRequest().build();
+        return ResponseEntity.badRequest().body(new IllegalPatternExceptionErrorResponse());
+    }
+
+    @ExceptionHandler(exception = EmailExistsException.class)
+    public ResponseEntity<EmailExistsExceptionErrorResponse> handleEmailExistsException(EmailExistsException e) {
+        log.error(e.getMessage());
+        return ResponseEntity.badRequest().body(new EmailExistsExceptionErrorResponse());
     }
 }

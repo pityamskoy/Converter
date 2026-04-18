@@ -24,10 +24,7 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-/*
-There is arguably needed fix of how to convert something -> JSON
-due to possible misinterpretation of formats.
- */
+
 @Service
 public final class ConversionFrontendService {
     private static final Logger log = LoggerFactory.getLogger(ConversionFrontendService.class);
@@ -119,15 +116,10 @@ public final class ConversionFrontendService {
      * For example, it is more preferably to send {@code .json} instead of {@code json} to this method despite the fact
      * that the validation doesn't fail in both cases.
      *
-     * @throws IllegalArgumentException if {@code file} is empty.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code file} has extension, which doesn't correspond to {@code currentExtension}.
      */
     private void validateArgumentsForConversion(@NonNull MultipartFile file, @NonNull String currentExtension) {
-        if (file.isEmpty()) {
-            throw new IllegalArgumentException("file is empty");
-        }
-
         String filename = file.getOriginalFilename();
         if (filename == null) {
             throw new NullPointerException("filename is null");
@@ -153,8 +145,8 @@ public final class ConversionFrontendService {
      *
      * @throws IllegalPatternException if pattern contains modification with null or empty {@code oldName} and {@code newName} fields.
      */
-    private @NonNull List<Map<String,Object>> applyPatterns(
-            @NonNull List<Map<String,Object>> rows,
+    private @NonNull List<Map<String, Object>> applyPatterns(
+            @NonNull List<Map<String, Object>> rows,
             @Nullable Pattern pattern
     ) {
         if (pattern == null) {
@@ -166,7 +158,9 @@ public final class ConversionFrontendService {
         for (Map<String, Object> row : rows) {
             for (Modification modification : modifications) {
                 // Deleting fields
-                if (row.containsKey(modification.getOldName()) && (modification.getNewValue() == null)) {
+                if (row.containsKey(modification.getOldName()) && (modification.getNewName() == null) &&
+                        (modification.getNewType() == null) && (modification.getNewValue() == null)
+                ) {
                     row.remove(modification.getOldName());
                     continue;
                 }
@@ -178,7 +172,7 @@ public final class ConversionFrontendService {
                 if (modification.getOldName() == null) {
                     if (modification.getNewName() == null) {
                         throw new IllegalPatternException(
-                                "Modification with null or empty OldName and NewName was provided; modification=" +
+                                "Modification with null or empty oldName and newName was provided; modification=" +
                                         modification
                         );
                     }
@@ -187,15 +181,15 @@ public final class ConversionFrontendService {
                     fieldNameForTypeConversion = modification.getNewName();
 
                     row.put(fieldNameForTypeConversion, modification.getNewValue());
-                    modifications.remove(modification);
                 }
 
                 // Altering existing fields
                 if (row.containsKey(modification.getOldName())) {
+                    fieldNameForTypeConversion = modification.getOldName();
+
                     // Changing values of fields
                     if (modification.getNewValue() != null) {
                         row.put(modification.getOldName(), modification.getNewValue());
-                        fieldNameForTypeConversion = modification.getOldName();
                     }
 
                     // Changing names of fields
@@ -212,6 +206,10 @@ public final class ConversionFrontendService {
                 // Type conversion
                 if ((row.containsKey(modification.getOldName()) && (modification.getNewType() != null)) || isAddingIteration) {
                     Object value = row.get(fieldNameForTypeConversion);
+
+                    if (value == null) {
+                        continue;
+                    }
 
                     // Find how to remove this hard code and add enum to db.
                     switch (modification.getNewType()) {
@@ -246,7 +244,7 @@ public final class ConversionFrontendService {
      *
      * @return path to converted CSV file.
      *
-     * @throws IllegalArgumentException if either {@code jsonFile} is empty or it consists of
+     * @throws IllegalArgumentException if {@code jsonFile} consists of
      * unsupported structure for conversion from JSON to CSV.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code jsonFile} was provided without '.json' extension.
@@ -265,8 +263,12 @@ public final class ConversionFrontendService {
         String filenameWithoutExtension = getFilenameWithoutExtension(jsonFile, ".json");
         Path csvPath = Files.createTempFile(filenameWithoutExtension, ".csv");
 
+        if (jsonFile.isEmpty()) {
+            return csvPath;
+        }
+
         // Start converting
-        List<Map<String,Object>> rows = new ArrayList<>();
+        List<Map<String, Object>> rows = new ArrayList<>();
 
         JsonNode root;
         try {
@@ -337,7 +339,7 @@ public final class ConversionFrontendService {
      *
      * @return path to converted JSON file.
      *
-     * @throws IllegalArgumentException if either {@code csvFile} is empty or it consists of
+     * @throws IllegalArgumentException if {@code csvFile} consists of
      * unsupported structure for conversion from CSV to JSON.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code csvFile} was provided without '.csv' extension.
@@ -354,6 +356,10 @@ public final class ConversionFrontendService {
         // Create temporarily JSON file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(csvFile, ".csv");
         Path jsonPath = Files.createTempFile(filenameWithoutExtension, ".json");
+
+        if (csvFile.isEmpty()) {
+            return jsonPath;
+        }
 
         // Start converting
         CsvSchema csvSchema = CsvSchema.emptySchema().withHeader();
@@ -425,7 +431,7 @@ public final class ConversionFrontendService {
      *
      * @return path to converted XML file.
      *
-     * @throws IllegalArgumentException if either {@code jsonFile} is empty or it consists of
+     * @throws IllegalArgumentException if {@code jsonFile} consists of
      * unsupported structure for conversion from JSON to XML.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code jsonFile} was provided without '.json' extension.
@@ -443,8 +449,12 @@ public final class ConversionFrontendService {
         String filenameWithoutExtension = getFilenameWithoutExtension(jsonFile, ".json");
         Path xmlPath = Files.createTempFile(filenameWithoutExtension, ".xml");
 
+        if (jsonFile.isEmpty()) {
+            return xmlPath;
+        }
+
         // Start converting
-        List<Map<String,Object>> rows = new ArrayList<>();
+        List<Map<String, Object>> rows = new ArrayList<>();
         JsonNode root = jsonMapper.readTree(jsonFile.getInputStream());
 
         if (root.isArray()) {
@@ -479,7 +489,7 @@ public final class ConversionFrontendService {
      *
      * @return path to converted JSON file.
      *
-     * @throws IllegalArgumentException if either {@code xmlFile} is empty or it consists of
+     * @throws IllegalArgumentException if {@code xmlFile} consists of
      * unsupported structure for conversion from XML to JSON.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code xmlFile} was provided without '.xml' extension.
@@ -497,8 +507,12 @@ public final class ConversionFrontendService {
         String filenameWithoutExtension = getFilenameWithoutExtension(xmlFile, ".xml");
         Path jsonPath = Files.createTempFile(filenameWithoutExtension, ".json");
 
+        if (xmlFile.isEmpty()) {
+            return jsonPath;
+        }
+
         // Start converting
-        List<Map<String,Object>> rows = new ArrayList<>();
+        List<Map<String, Object>> rows = new ArrayList<>();
 
         JsonNode root;
         try {
@@ -573,7 +587,7 @@ public final class ConversionFrontendService {
      *
      * @return path to converted CSV file.
      *
-     * @throws IllegalArgumentException if either {@code xmlFile} is empty or it consists of
+     * @throws IllegalArgumentException if {@code xmlFile} consists of
      * unsupported structure for conversion from XML to CSV.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code xmlFile} was provided without '.xml' extension.
@@ -592,8 +606,12 @@ public final class ConversionFrontendService {
         String filenameWithoutExtension = getFilenameWithoutExtension(xmlFile, ".xml");
         Path csvPath = Files.createTempFile(filenameWithoutExtension, ".csv");
 
+        if (xmlFile.isEmpty()) {
+            return csvPath;
+        }
+
         // Start converting
-        List<Map<String,Object>> rows = new ArrayList<>();
+        List<Map<String, Object>> rows = new ArrayList<>();
 
         JsonNode root;
         try {
@@ -621,11 +639,6 @@ public final class ConversionFrontendService {
             throw new IllegalArgumentException("XML file contains no rows to convert");
         }
 
-        CsvSchema.Builder csvSchemaBuilder = CsvSchema.builder();
-        for (String column : rows.getFirst().keySet()) {
-            csvSchemaBuilder.addColumn(column);
-        }
-
         // Converting nested structures to XML strings
         for (Map<String, Object> row : rows) {
             if (row == null) {
@@ -644,6 +657,11 @@ public final class ConversionFrontendService {
         }
 
         rows = applyPatterns(rows, patternService.findPatternById(patternId));
+
+        CsvSchema.Builder csvSchemaBuilder = CsvSchema.builder();
+        for (String column : rows.getFirst().keySet()) {
+            csvSchemaBuilder.addColumn(column);
+        }
 
         // Writing converted data
         try {
@@ -667,7 +685,7 @@ public final class ConversionFrontendService {
      *
      * @return path to converted XML file.
      *
-     * @throws IllegalArgumentException if either {@code csvFile} is empty or it consists of
+     * @throws IllegalArgumentException if {@code csvFile} consists of
      * unsupported structure for conversion from CSV to XML.
      * @throws NullPointerException if filename is null.
      * @throws UnsupportedExtensionException if {@code csvFile} was provided without '.csv' extension.
@@ -684,6 +702,10 @@ public final class ConversionFrontendService {
         // Create temporarily XML file for writing converted data
         String filenameWithoutExtension = getFilenameWithoutExtension(csvFile, ".csv");
         Path xmlPath = Files.createTempFile(filenameWithoutExtension, ".xml");
+
+        if (csvFile.isEmpty()) {
+            return xmlPath;
+        }
 
         // Start converting
         CsvSchema csvSchema = CsvSchema.emptySchema().withHeader();

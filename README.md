@@ -508,17 +508,25 @@ Convert an XML body to JSON.
 
 All unhandled exceptions are caught by `GlobalExceptionHandler`. The mapping is:
 
-| Exception                       | HTTP Status                  |
-|---------------------------------|------------------------------|
-| `EntityNotFoundException`       | `404 Not Found`              |
-| `UnsupportedExtensionException` | `400 Bad Request`            |
-| `IllegalArgumentException`      | `400 Bad Request`            |
-| `IllegalPatternException`       | `400 Bad Request`            |
-| `NullPointerException`          | `500 Internal Server Error`  |
-| Login `CredentialException`     | `400 Bad Request`            |
-| File I/O `IOException`          | `500 Internal Server Error`  |
+| Exception                       | HTTP Status                 | Response body                    |
+|---------------------------------|-----------------------------|----------------------------------|
+| `EntityNotFoundException`       | `404 Not Found`             | empty                            |
+| `UnsupportedExtensionException` | `400 Bad Request`           | empty                            |
+| `IllegalArgumentException`      | `400 Bad Request`           | empty                            |
+| `NullPointerException`          | `500 Internal Server Error` | empty                            |
+| `CredentialException`           | `400 Bad Request`           | JSON — `message: "CREDENTIAL"`   |
+| `IllegalPatternException`       | `400 Bad Request`           | JSON — `message: "PATTERN"`      |
+| `EmailExistsException`          | `400 Bad Request`           | JSON — `message: "EMAIL EXISTS"` |
 
-All error responses return an empty body (no JSON error envelope).
+Exceptions that return a JSON body use the following envelope (defined in `ErrorResponse`):
+
+```json
+{
+  "statusCode": 400,
+  "message": "CREDENTIAL",
+  "time": "2025-01-01T00:00:00Z"
+}
+```
 
 ---
 

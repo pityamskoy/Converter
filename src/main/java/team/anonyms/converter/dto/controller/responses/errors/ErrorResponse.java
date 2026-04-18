@@ -6,9 +6,9 @@ import java.time.Instant;
 
 @Data
 public abstract class ErrorResponse {
-    protected int statusCode;
-    protected Instant time;
-    protected String message;
+    private int statusCode;
+    private String message;
+    private Instant time;
 
     protected ErrorResponse(int statusCode, String message) {
         this.statusCode = statusCode;
