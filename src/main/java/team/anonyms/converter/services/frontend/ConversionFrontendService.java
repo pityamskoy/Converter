@@ -145,8 +145,8 @@ public final class ConversionFrontendService {
      *
      * @throws IllegalPatternException if pattern contains modification with null or empty {@code oldName} and {@code newName} fields.
      */
-    private @NonNull List<Map<String,Object>> applyPatterns(
-            @NonNull List<Map<String,Object>> rows,
+    private @NonNull List<Map<String, Object>> applyPatterns(
+            @NonNull List<Map<String, Object>> rows,
             @Nullable Pattern pattern
     ) {
         if (pattern == null) {
@@ -268,7 +268,7 @@ public final class ConversionFrontendService {
         }
 
         // Start converting
-        List<Map<String,Object>> rows = new ArrayList<>();
+        List<Map<String, Object>> rows = new ArrayList<>();
 
         JsonNode root;
         try {
@@ -454,7 +454,7 @@ public final class ConversionFrontendService {
         }
 
         // Start converting
-        List<Map<String,Object>> rows = new ArrayList<>();
+        List<Map<String, Object>> rows = new ArrayList<>();
         JsonNode root = jsonMapper.readTree(jsonFile.getInputStream());
 
         if (root.isArray()) {
@@ -512,7 +512,7 @@ public final class ConversionFrontendService {
         }
 
         // Start converting
-        List<Map<String,Object>> rows = new ArrayList<>();
+        List<Map<String, Object>> rows = new ArrayList<>();
 
         JsonNode root;
         try {
@@ -611,7 +611,7 @@ public final class ConversionFrontendService {
         }
 
         // Start converting
-        List<Map<String,Object>> rows = new ArrayList<>();
+        List<Map<String, Object>> rows = new ArrayList<>();
 
         JsonNode root;
         try {

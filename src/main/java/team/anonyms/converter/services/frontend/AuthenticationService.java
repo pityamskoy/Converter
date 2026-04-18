@@ -13,6 +13,7 @@ import team.anonyms.converter.dto.service.user.UserToRegisterServiceDto;
 import team.anonyms.converter.entities.User;
 import team.anonyms.converter.mappers.UserMapper;
 import team.anonyms.converter.repositories.UserRepository;
+import team.anonyms.converter.utility.exceptions.EmailExistsException;
 
 import javax.security.auth.login.CredentialException;
 import java.util.Optional;
@@ -82,6 +83,11 @@ public final class AuthenticationService {
     }
 
     public Pair<UserServiceDto, Cookie> register(UserToRegisterServiceDto userToRegister) {
+        Optional<User> userOptional = userRepository.findByEmail(userToRegister.email());
+        if (userOptional.isPresent()) {
+            throw new EmailExistsException("Email already exists; email=" + userToRegister.email());
+        }
+
         User userRegistered = userMapper.userToRegisterServiceDtoToEntity(userToRegister);
         userRepository.save(userRegistered);
 
