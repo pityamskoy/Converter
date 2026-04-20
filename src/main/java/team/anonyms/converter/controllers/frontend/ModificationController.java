@@ -33,7 +33,7 @@ public final class ModificationController {
     }
 
     @GetMapping("/{patternId}/{limit}/{offset}")
-    public ResponseEntity<List<ModificationControllerDto>> getAllModificationsByPatternId(
+    public ResponseEntity<List<ModificationControllerDto>> getModificationsByPatternId(
             @PathVariable UUID patternId,
             @PathVariable int limit,
             @PathVariable int offset
@@ -44,5 +44,14 @@ public final class ModificationController {
                 stream().map(modificationMapper::modificationServiceDtoToControllerDto).toList();
 
         return ResponseEntity.ok(paginationHandler.makeSliceFromList(allModifications, offset, limit));
+    }
+
+    @GetMapping("/{patternId}")
+    public ResponseEntity<Integer> getNumberOfAllModificationsByPatternId(
+            @PathVariable UUID patternId
+    ) {
+        log.info("Called getNumberOfModificationsByPatternId; patternId={}", patternId);
+
+        return ResponseEntity.ok(modificationService.getNumberOfAllModificationsByPatternId(patternId));
     }
 }

@@ -27,10 +27,19 @@ public final class ModificationService {
     public List<ModificationServiceDto> getAllModificationsByPatternId(UUID id) {
         Optional<Pattern> patternOptional = patternRepository.findById(id);
         if (patternOptional.isEmpty()) {
-            throw new EntityNotFoundException("Pattern not found; id=" +id);
+            throw new EntityNotFoundException("Pattern not found; id=" + id);
         }
 
         return patternOptional.get().getModifications().
                 stream().map(modificationMapper::modificationToServiceDto).toList();
+    }
+
+    public Integer getNumberOfAllModificationsByPatternId(UUID id) {
+        Optional<Pattern> patternOptional = patternRepository.findById(id);
+        if (patternOptional.isEmpty()) {
+            throw new EntityNotFoundException("Pattern not found; id=" + id);
+        }
+
+        return patternOptional.get().getModifications().size();
     }
 }

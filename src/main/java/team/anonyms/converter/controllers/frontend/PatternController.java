@@ -38,7 +38,7 @@ public final class PatternController {
     }
 
     @GetMapping("/{userId}/{limit}/{offset}")
-    public ResponseEntity<List<PatternControllerDto>> getAllPatternsByUserId(
+    public ResponseEntity<List<PatternControllerDto>> getPatternsByUserId(
             @PathVariable UUID userId,
             @PathVariable int limit,
             @PathVariable int offset
@@ -49,6 +49,13 @@ public final class PatternController {
                 stream().map(patternMapper::patternServiceDtoToControllerDto).toList();
 
         return ResponseEntity.ok(paginationHandler.makeSliceFromList(allPatterns, offset, limit));
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<Integer> getNumberOfAllPatternsByUserId(@PathVariable UUID userId) {
+        log.info("Called getNumberOfPatternsByUserId; userId={}", userId);
+
+        return ResponseEntity.ok(patternService.getNumberOfAllPatternsByUserId(userId));
     }
 
     @PostMapping

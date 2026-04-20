@@ -48,7 +48,7 @@ class PatternControllerTest {
     private PaginationHandler<PatternControllerDto> paginationHandler;
 
     @Test
-    void testGetAllPatternsByUserId_Success() throws Exception {
+    void testGetPatternsByUserId_Success() throws Exception {
         UUID userId = UUID.randomUUID();
         UUID patternId = UUID.randomUUID();
 

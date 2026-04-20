@@ -3,7 +3,6 @@ package team.anonyms.converter.services.frontend;
 import jakarta.persistence.EntityNotFoundException;
 import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
-import team.anonyms.converter.dto.service.modification.ModificationToCreateServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternToCreateServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternToUpdateServiceDto;
@@ -44,12 +43,20 @@ public final class PatternService {
 
     public List<PatternServiceDto> getAllPatternsByUserId(UUID userId) {
         Optional<User> userOptional = userRepository.findById(userId);
-
         if (userOptional.isEmpty()) {
             throw new EntityNotFoundException("User not found; id=" + userId);
         }
 
         return userOptional.get().getPatterns().stream().map(patternMapper::patternToServiceDto).toList();
+    }
+
+    public Integer getNumberOfAllPatternsByUserId(UUID userId) {
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            throw new EntityNotFoundException("User not found; id=" + userId);
+        }
+
+        return userOptional.get().getPatterns().size();
     }
 
     /**
