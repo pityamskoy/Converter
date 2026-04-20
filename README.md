@@ -354,6 +354,20 @@ Get a paginated slice of patterns belonging to a user.
 
 ---
 
+#### `GET /patterns/{userId}`
+Get the total number of patterns belonging to a user.
+
+**Path variable:** `userId` (UUID)
+
+**Response `200 OK`**:
+```json
+5
+```
+
+**Response `404 Not Found`** — user not found.
+
+---
+
 #### `POST /patterns`
 Create a new pattern.
 
@@ -451,6 +465,20 @@ Get a paginated slice of modifications belonging to a pattern.
     "newValue": null
   }
 ]
+```
+
+**Response `404 Not Found`** — pattern not found.
+
+---
+
+#### `GET /modifications/{patternId}`
+Get the total number of modifications belonging to a pattern.
+
+**Path variable:** `patternId` (UUID)
+
+**Response `200 OK`**:
+```json
+3
 ```
 
 **Response `404 Not Found`** — pattern not found.
