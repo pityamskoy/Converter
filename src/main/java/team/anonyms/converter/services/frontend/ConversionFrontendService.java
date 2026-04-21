@@ -58,6 +58,7 @@ public final class ConversionFrontendService {
      *
      * @return number of occurrences.
      */
+    // Apparently, carry this method out to a new class
     public static int countNumberOfOccurrences(@NonNull String string, @NonNull String substring) {
         int count = 0;
         int index = 0;
@@ -132,12 +133,39 @@ public final class ConversionFrontendService {
 
     /**
      * <p>
-     *     Applies pattern to converted data.<br>
-     *     <b>Assumption:</b> the number of additions of the same field is limited in quantity.
-     *     All new fields are added only 1 time.
+     *     This method represents custom conversion from {@link String} to {@link Boolean}.<br>
+     *     <b>The key feature</b> is that it allows to convert '1' to true.
      * </p>
      *
-     * @param rows converted data.
+     * @param string any {@link String} value to convert.
+     *
+     * @return {@link Boolean} value of provided {@code string}.
+     * If {@code string} equals '1' this method returns true.
+     */
+    // Apparently, carry this method out to a new class
+    public static Boolean toBoolean(String string) {
+        if (string == null) {
+            return null;
+        }
+
+        boolean result = false;
+        try {
+            if (Integer.parseInt(string) == 1) {
+                result = true;
+            }
+        } catch (NumberFormatException e) {
+            result = Boolean.parseBoolean(string);
+        }
+
+        return result;
+    }
+
+    /**
+     * <p>
+     *     Applies provided pattern to read data.
+     * </p>
+     *
+     * @param rows read data.
      * @param pattern any pattern to apply.
      *
      * @return {@code rows} after applying {@code pattern}.
@@ -145,6 +173,7 @@ public final class ConversionFrontendService {
      *
      * @throws IllegalPatternException if pattern contains modification with null or empty {@code oldName} and {@code newName} fields.
      */
+    // add more checks for modification. Also add in creation of patterns.
     private @NonNull List<Map<String, Object>> applyPatterns(
             @NonNull List<Map<String, Object>> rows,
             @Nullable Pattern pattern
@@ -195,36 +224,36 @@ public final class ConversionFrontendService {
                     // Changing names of fields
                     if (modification.getNewName() != null) {
                         Object value = row.get(modification.getOldName());
-                        row.put(modification.getNewName(), value);
                         row.remove(modification.getOldName());
+                        row.put(modification.getNewName(), value);
 
-                        modification.setOldName(modification.getNewName());
                         fieldNameForTypeConversion = modification.getNewName();
                     }
                 }
 
                 // Type conversion
-                if ((row.containsKey(modification.getOldName()) && (modification.getNewType() != null)) || isAddingIteration) {
-                    Object value = row.get(fieldNameForTypeConversion);
+                if (modification.getNewType() != null) {
+                    if (row.containsKey(modification.getOldName()) || isAddingIteration) {
+                        Object value = row.get(fieldNameForTypeConversion);
 
-                    if (value == null) {
-                        continue;
-                    }
+                        if (value == null) {
+                            continue;
+                        }
 
-                    // Find how to remove this hard code and add enum to db.
-                    switch (modification.getNewType()) {
-                        case "Integer":
-                            row.put(fieldNameForTypeConversion, Integer.parseInt(value.toString()));
-                            break;
-                        case "Float":
-                            row.put(fieldNameForTypeConversion, Float.parseFloat(value.toString()));
-                            break;
-                        case "Boolean":
-                            row.put(fieldNameForTypeConversion, Boolean.parseBoolean(value.toString()));
-                            break;
-                        default:
-                            row.put(fieldNameForTypeConversion, value.toString());
-                            break;
+                        switch (modification.getNewType()) {
+                            case "Integer":
+                                row.put(fieldNameForTypeConversion, Integer.parseInt(value.toString()));
+                                break;
+                            case "Float":
+                                row.put(fieldNameForTypeConversion, Float.parseFloat(value.toString()));
+                                break;
+                            case "Boolean":
+                                row.put(fieldNameForTypeConversion, toBoolean(value.toString()));
+                                break;
+                            default:
+                                row.put(fieldNameForTypeConversion, value.toString());
+                                break;
+                        }
                     }
                 }
             }
