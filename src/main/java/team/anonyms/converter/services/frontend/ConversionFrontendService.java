@@ -233,7 +233,7 @@ public final class ConversionFrontendService {
 
                 // Type conversion
                 if (modification.getNewType() != null) {
-                    if (row.containsKey(modification.getOldName()) || isAddingIteration) {
+                    if (row.containsKey(fieldNameForTypeConversion) || isAddingIteration) {
                         Object value = row.get(fieldNameForTypeConversion);
 
                         if (value == null) {
