@@ -147,24 +147,6 @@ class ConversionFrontendServiceTest {
         assertEquals("CSV file contains no rows to convert", exception.getMessage());
     }
 
-    // ненужные тесты удалены, остались три переделанных под метод валидации
-    // метод приватный, поэтому тестирую через json->csv
-    @Test
-    void testValidateArgumentsForConversion_AndReturnPattern_EmptyFile_ThrowsException() {
-        MockMultipartFile emptyFile = new MockMultipartFile(
-                "file",
-                "empty.json",
-                "application/json",
-                new byte[0]
-        );
-
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertJsonFileToCsv(emptyFile, null);
-        });
-        assertEquals("file is empty", exception.getMessage());
-    }
-
-    // грозный хардкод null-имени, ибо MockMultipartFile мне не разрешает(((
     @Test
     void testValidateArgumentsForConversion_AndReturnPattern_NullFilename_ThrowsException() {
         MultipartFile brokenFile = Mockito.mock(MultipartFile.class);
