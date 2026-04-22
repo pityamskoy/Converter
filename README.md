@@ -25,6 +25,7 @@ with support for pattern-based field transformations applied during conversion.
 | Language          | Java 25                 |
 | Framework         | Spring Boot 4.0.1       |
 | Web layer         | Spring MVC              |
+| Security          | Spring Security + JWT   |
 | Persistence layer | Spring Data JPA         |
 | Database          | PostgreSQL 15           |
 | Conversion        | Jackson 2.17.2          |
@@ -43,6 +44,9 @@ The project follows a three-layered architecture:
 HTTP Request
     │
     ▼
+JwtAuthFilter (validates Bearer token, populates SecurityContext)
+    │
+    ▼
 Controllers (controllers/frontend/, controllers/api/)
     │  DTO mapping via Mappers
     ▼
@@ -58,10 +62,10 @@ Database (PostgreSQL)
 ### Layer responsibilities
 
 - **Controllers** — parse HTTP requests, delegate to services, serialize responses. Split into two groups:
-  - `frontend/` — multipart file upload endpoints + auth + user/pattern/modification CRUD. 
+  - `frontend/` — multipart file upload endpoints + auth + user/pattern/modification CRUD.
 CORS configured for `https://cson.site`.
   - `api/` — direct body-based JSON↔XML conversion.
-- **Services** — business logic: file parsing, format conversion, pattern application, user auth with cookie management.
+- **Services** — business logic: file parsing, format conversion, pattern application, user authentication, JWT generation.
 - **Repositories** — Spring Data JPA repositories for `User`, `Pattern`, `Modification` entities.
 - **Mappers** — bidirectional conversion between entities and DTOs.
 - **DTOs** — separate controller DTOs (exchanged with clients) and service DTOs (passed between layers).
@@ -78,7 +82,8 @@ src/main/java/team/anonyms/converter/
 │
 ├── configs/
 │   ├── CorsConfiguration.java         # Global CORS setup
-│   └── JacksonConfiguration.java      # Jackson mapper beans
+│   ├── JacksonConfiguration.java      # Jackson mapper beans
+│   └── SecurityConfiguration.java     # Spring Security filter chain + JWT wiring
 │
 ├── controllers/
 │   ├── GlobalExceptionHandler.java    # @RestControllerAdvice for all exceptions
@@ -127,7 +132,8 @@ src/main/java/team/anonyms/converter/
 │   ├── api/
 │   │   └── ConversionApiService.java       # JSON↔XML conversion (no file I/O)
 │   └── frontend/
-│       ├── AuthenticationService.java      # Login / register / logout + cookie management
+│       ├── AuthenticationService.java      # Login / register + JWT generation
+│       ├── JwtService.java                 # JWT generation, validation, claim extraction
 │       ├── ConversionFrontendService.java  # File-based conversions (all 6 pairs)
 │       ├── ModificationService.java
 │       ├── PatternService.java
@@ -138,9 +144,11 @@ src/main/java/team/anonyms/converter/
     │   └── LastSupportedProjectVersion.java
     ├── enums/
     │   └── ProjectVersion.java
-    └── exceptions/
-        ├── IllegalPatternException.java
-        └── UnsupportedExtensionException.java
+    ├── exceptions/
+    │   ├── IllegalPatternException.java
+    │   └── UnsupportedExtensionException.java
+    └── security/
+        └── JwtAuthFilter.java             # Reads Bearer token, sets SecurityContext
 ```
 
 ---
@@ -162,9 +170,18 @@ DTOs are split into two layers: **controller DTOs** (used in HTTP requests/respo
 
 ### Authentication
 
-Authentication uses a `user_id` cookie (max age 4 hours).
-All frontend endpoints read this cookie to identify the current user.
-Registration and login set the cookie; logout clears it.
+Authentication uses **stateless JWT** (JSON Web Tokens). On a successful login or registration the server
+returns a signed token valid for **4 hours**. The client must attach it to every subsequent request:
+
+```
+Authorization: Bearer <token>
+```
+
+`JwtAuthFilter` intercepts every request, validates the token signature using `HMAC-SHA256` and the
+`JWT_SECRET` key, and populates the Spring Security context with the user ID. Requests without a
+valid token are rejected before reaching any controller.
+
+Logout is **client-side only** — the client discards the token. No server call is required.
 
 ### Conversion pipeline
 
@@ -224,17 +241,19 @@ Log in with credentials.
 ```json
 {
   "email": "user@example.com",
-  "password": "secret"
+  "password": "secret",
+  "jwtToken": "eyJhbGciOiJIUzI1NiJ9..."
 }
 ```
 
-**Response `200 OK`** — sets `user_id` cookie:
+**Response `200 OK`**:
 ```json
 {
   "success": true,
   "username": "john",
   "email": "john@example.com",
-  "userId": "uuid"
+  "userId": "uuid",
+  "token": "eyJhbGciOiJIUzI1NiJ9..."
 }
 ```
 
@@ -254,24 +273,16 @@ Create a new account.
 }
 ```
 
-**Response `201 Created`** — sets `user_id` cookie:
+**Response `201 Created`**:
 ```json
 {
-  "id": "uuid",
+  "success": true,
   "username": "john",
   "email": "john@example.com",
-  "patterns": []
+  "userId": "uuid",
+  "token": "eyJhbGciOiJIUzI1NiJ9..."
 }
 ```
-
----
-
-#### `DELETE /auth`
-Log out the current user.
-
-**Cookie required:** `user_id`
-
-**Response `204 No Content`** — clears `user_id` cookie.
 
 ---
 
