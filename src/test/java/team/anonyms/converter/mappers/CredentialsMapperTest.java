@@ -17,7 +17,8 @@ class CredentialsMapperTest {
     void testCredentialsControllerDtoToService() {
         CredentialsControllerDto controllerDto = new CredentialsControllerDto(
                 "test@gmail.com",
-                "krutoy_parol123"
+                "krutoy_parol123",
+                "new.jwt.token"
         );
 
         CredentialsServiceDto serviceDto = mapper.credentialsControllerDtoToService(controllerDto);
@@ -32,7 +33,8 @@ class CredentialsMapperTest {
         UUID fakeUserId = UUID.randomUUID();
         String fakeUsername = "fakeUsername";
         String fakeEmail = "fakeEmail";
-        LoginResultServiceDto serviceDto = new LoginResultServiceDto(true, fakeUsername, fakeEmail, fakeUserId);
+        String fakeToken = "new.jwt.token";
+        LoginResultServiceDto serviceDto = new LoginResultServiceDto(true, fakeUsername, fakeEmail, fakeUserId, fakeToken);
 
         LoginResultControllerDto controllerDto = mapper.loginResultServiceDtoToController(serviceDto);
 
