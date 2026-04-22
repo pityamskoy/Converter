@@ -7,7 +7,6 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-@SuppressWarnings(value = {"unused"})
 public class CorsConfiguration {
     @Bean
     public WebMvcConfigurer corsConfigurer() {
@@ -17,9 +16,7 @@ public class CorsConfiguration {
                 registry.addMapping("/**")
                         .allowedOrigins("https://cson.site")
                         .allowedMethods("GET", "POST", "PUT", "DELETE")
-                        .allowedHeaders("*")
-                        .allowCredentials(true)
-                        .maxAge(14400);
+                        .allowedHeaders("*");
             }
         };
     }

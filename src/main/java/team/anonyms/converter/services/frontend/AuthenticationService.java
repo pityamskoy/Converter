@@ -1,14 +1,9 @@
 package team.anonyms.converter.services.frontend;
 
-import jakarta.annotation.Nullable;
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.Cookie;
-import org.antlr.v4.runtime.misc.Pair;
 import org.springframework.stereotype.Service;
-import team.anonyms.converter.controllers.frontend.AuthenticationController;
 import team.anonyms.converter.dto.service.credentials.CredentialsServiceDto;
 import team.anonyms.converter.dto.service.credentials.LoginResultServiceDto;
-import team.anonyms.converter.dto.service.user.UserServiceDto;
 import team.anonyms.converter.dto.service.user.UserToRegisterServiceDto;
 import team.anonyms.converter.entities.User;
 import team.anonyms.converter.mappers.UserMapper;
@@ -23,30 +18,29 @@ import java.util.UUID;
 public final class AuthenticationService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final JwtService jwtService;
 
-    public AuthenticationService(UserRepository userRepository, UserMapper userMapper) {
+    public AuthenticationService(UserRepository userRepository, UserMapper userMapper, JwtService jwtService) {
         this.userRepository = userRepository;
         this.userMapper = userMapper;
+        this.jwtService = jwtService;
     }
 
     /**
-     * @param userId a value of cookie, which {@link AuthenticationController} accepts as an argument.
      * @param credentials login credentials.
      *
-     * @return {@link Pair}<{@link Cookie}, {@link LoginResultServiceDto}>, where {@link Cookie} is null if {@code User} has been found by {@code id}.
+     * @return {@link LoginResultServiceDto}.
      *
-     * @throws CredentialException if cookie is null, and credentials are null.
+     * @throws CredentialException if {@code jwtToken}, {@code email} and {@code password} are null.
      */
-    public Pair<Cookie, LoginResultServiceDto> login(
-            @Nullable String userId,
-            CredentialsServiceDto credentials
-    ) throws CredentialException {
-        if (userId == null && (credentials.email() == null || credentials.password() == null)) {
+    public LoginResultServiceDto login(CredentialsServiceDto credentials) throws CredentialException {
+        if (credentials.jwtToken() == null && (credentials.email() == null || credentials.password() == null)) {
             throw new CredentialException("Login credentials are missing.");
         }
 
-        if (userId != null && (credentials.email() == null || credentials.password() == null))  {
-            Optional<User> userOptional = userRepository.findById(UUID.fromString(userId));
+        if (credentials.jwtToken() != null && (credentials.email() == null || credentials.password() == null))  {
+            UUID userId = UUID.fromString(jwtService.extractUserId(credentials.jwtToken()));
+            Optional<User> userOptional = userRepository.findById(userId);
 
             if (userOptional.isEmpty()) {
                 throw new EntityNotFoundException("User not found; id=" + userId);
@@ -54,8 +48,13 @@ public final class AuthenticationService {
 
             User user = userOptional.get();
 
-            return new Pair<>(null, new LoginResultServiceDto(
-                    true, user.getUsername(), user.getEmail(), UUID.fromString(userId)));
+            return new LoginResultServiceDto(
+                    true,
+                    user.getUsername(),
+                    user.getEmail(),
+                    userId,
+                    credentials.jwtToken()
+            );
         }
 
         String email = credentials.email();
@@ -66,23 +65,21 @@ public final class AuthenticationService {
         }
 
         User user = userOptional.get();
-        LoginResultServiceDto loginResultDto = new LoginResultServiceDto(user.getPassword().
-                equals(credentials.password()), user.getUsername(), user.getEmail(), user.getId());
-
-        if (loginResultDto.success()) {
-            Cookie cookie = new Cookie("user_id", loginResultDto.userId().toString());
-            cookie.setPath("/");
-            cookie.setMaxAge(14400);
-            cookie.setHttpOnly(false);
-            cookie.setSecure(false);
-
-            return new Pair<>(cookie, loginResultDto);
+        if (user.getPassword().equals(credentials.password())) {
+            String jwtToken = jwtService.generate(user.getId());
+            return new LoginResultServiceDto(true, user.getUsername(), user.getEmail(), user.getId(), jwtToken);
         }
 
-        return new Pair<>(null, loginResultDto);
+        return new LoginResultServiceDto(
+                false,
+                user.getUsername(),
+                user.getEmail(),
+                user.getId(),
+                null
+        );
     }
 
-    public Pair<UserServiceDto, Cookie> register(UserToRegisterServiceDto userToRegister) {
+    public LoginResultServiceDto register(UserToRegisterServiceDto userToRegister) {
         Optional<User> userOptional = userRepository.findByEmail(userToRegister.email());
         if (userOptional.isPresent()) {
             throw new EmailExistsException("Email already exists; email=" + userToRegister.email());
@@ -91,22 +88,12 @@ public final class AuthenticationService {
         User userRegistered = userMapper.userToRegisterServiceDtoToEntity(userToRegister);
         userRepository.save(userRegistered);
 
-        Cookie cookie = new Cookie("user_id", userRegistered.getId().toString());
-        cookie.setPath("/");
-        cookie.setMaxAge(14400);
-        cookie.setHttpOnly(false);
-        cookie.setSecure(false);
-
-        return new Pair<>(userMapper.userToServiceDto(userRegistered), cookie);
-    }
-
-    public Cookie logout(String userId) {
-        Cookie cookie = new Cookie("user_id", userId);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        cookie.setHttpOnly(false);
-        cookie.setSecure(false);
-
-        return cookie;
+        return new LoginResultServiceDto(
+                true,
+                userRegistered.getUsername(),
+                userRegistered.getEmail(),
+                userRegistered.getId(),
+                jwtService.generate(userRegistered.getId())
+        );
     }
 }
