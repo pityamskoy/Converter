@@ -15,10 +15,10 @@ import java.io.IOException;
 import java.util.List;
 
 @Component
-public class JwtAuthFilter extends OncePerRequestFilter {
+public class RequestFilter extends OncePerRequestFilter {
     private final JwtService jwtService;
 
-    public JwtAuthFilter(JwtService jwtService) {
+    public RequestFilter(JwtService jwtService) {
         this.jwtService = jwtService;
     }
 
@@ -34,18 +34,24 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
         String authenticationHeader = request.getHeader("Authorization");
+        boolean hasValidToken = false;
+
         if (authenticationHeader != null && authenticationHeader.startsWith("Bearer ")) {
             String token = authenticationHeader.substring(7);
             if (jwtService.isValid(token)) {
                 String userId = jwtService.extractUserId(token);
-                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                        userId,
-                        null,
-                        List.of()
-                );
-
-                SecurityContextHolder.getContext().setAuthentication(authenticationToken);
+                SecurityContextHolder.getContext().setAuthentication(
+                        new UsernamePasswordAuthenticationToken(userId, null, List.of()));
+                hasValidToken = true;
             }
+        }
+
+        boolean isConversionRequest = request.getRequestURI().startsWith("/api/v1/conversion");
+        boolean hasPatternParam = request.getParameter("pattern") != null;
+
+        if (isConversionRequest && hasPatternParam && !hasValidToken) {
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            return;
         }
 
         filterChain.doFilter(request, response);

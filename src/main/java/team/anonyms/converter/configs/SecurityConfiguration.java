@@ -8,15 +8,15 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import team.anonyms.converter.utility.security.JwtAuthFilter;
+import team.anonyms.converter.utility.security.RequestFilter;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfiguration {
-    private final JwtAuthFilter jwtAuthFilter;
+    private final RequestFilter requestFilter;
 
-    public SecurityConfiguration(JwtAuthFilter jwtAuthFilter) {
-        this.jwtAuthFilter = jwtAuthFilter;
+    public SecurityConfiguration(RequestFilter requestFilter) {
+        this.requestFilter = requestFilter;
     }
 
     /**
@@ -32,6 +32,6 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**", "/conversion/**", "/direct/**")
                         .permitAll().anyRequest().authenticated())
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class).build();
+                .addFilterBefore(requestFilter, UsernamePasswordAuthenticationFilter.class).build();
     }
 }
