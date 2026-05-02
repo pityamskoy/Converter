@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@CrossOrigin(origins = {"https://cson.site"})
 @RequestMapping("/patterns")
 public final class PatternController {
     private static final Logger log = LoggerFactory.getLogger(PatternController.class);

@@ -6,6 +6,7 @@ public record LoginResultServiceDto(
         Boolean success,
         String username,
         String email,
-        UUID userId
+        UUID userId,
+        String jwtToken
 ) {
 }

@@ -9,6 +9,7 @@ services:
     depends_on:
       - db
     environment:
+      JWT_SECRET: ${JWT_SECRET}
       DB_USERNAME: ${POSTGRES_USERNAME}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_URL: ${DATABASE_URL}

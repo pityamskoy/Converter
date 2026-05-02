@@ -10,7 +10,7 @@ import team.anonyms.converter.services.api.ConversionApiService;
 import java.util.Map;
 
 @RestController
-@CrossOrigin
+@CrossOrigin(origins = "*")
 @RequestMapping("/direct/conversion")
 public final class ConversionApiController {
     private static final Logger log = LoggerFactory.getLogger(ConversionApiController.class);

@@ -19,7 +19,7 @@ import java.util.UUID;
 import static org.springframework.http.MediaType.*;
 
 @RestController
-@CrossOrigin(origins = {"https://cson.site"}, exposedHeaders = "*")
+@CrossOrigin(exposedHeaders = "*")
 @RequestMapping("/conversion")
 public final class ConversionFrontendController {
     private static final Logger log = LoggerFactory.getLogger(ConversionFrontendController.class);

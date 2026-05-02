@@ -59,6 +59,7 @@ deploy-job:
       export POSTGRES_PASSWORD=$POSTGRES_PASSWORD &&
       export POSTGRES_DB=$POSTGRES_DB &&
       export DATABASE_URL=$DATABASE_URL &&
+      export JWT_SECRET=$JWT_SECRET &&
       docker stop converter-backend-1 || true &&
       docker rm converter-backend-1 || true &&
       docker image rm $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:latest &&
