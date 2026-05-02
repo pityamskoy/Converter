@@ -13,7 +13,6 @@ import team.anonyms.converter.services.frontend.UserService;
 import java.util.UUID;
 
 @RestController
-@CrossOrigin(origins = {"https://cson.site"})
 @RequestMapping("/users")
 public final class UserController {
     private static final Logger log = LoggerFactory.getLogger(UserController.class);
