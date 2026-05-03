@@ -1,4 +1,6 @@
 spring:
+  application:
+    name: Converter
   mvc:
     servlet:
       path: /api/v1
@@ -6,27 +8,30 @@ spring:
     multipart:
       max-file-size: 10MB
       max-request-size: 10MB
-  application:
-    name: Converter
-  jpa:
-    show-sql: false
-    open-in-view: false
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-    hibernate:
-      ddl-auto: update
   datasource:
-    username: ${DB_USERNAME}
+    username: ${DB_USER}
     password: ${DB_PASSWORD}
     url: ${DB_URL}
     driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    show-sql: false
+    open-in-view: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migrations
 
 logging:
   level:
     root: INFO
     team.anonyms.converter.services: DEBUG
   file:
-    name: /logs/converter.log
+    name: /logs/backend/converter.log
   pattern:
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"

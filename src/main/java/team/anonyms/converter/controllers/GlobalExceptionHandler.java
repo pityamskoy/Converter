@@ -26,7 +26,7 @@ import static team.anonyms.converter.utility.enums.ProjectVersion.RELEASE_0;
 @LastSupportedProjectVersion(RELEASE_0)
 @RestControllerAdvice
 @SuppressWarnings(value = "unused")
-public final class GlobalExceptionHandler {
+public class GlobalExceptionHandler {
     private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(exception = CredentialException.class)

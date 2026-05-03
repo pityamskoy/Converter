@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 @Service
-public final class ConversionApiService {
+public class ConversionApiService {
 
     /**
      * <p>

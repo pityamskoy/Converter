@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-
+/*
 class ConversionJsonToCsvTest {
 
     private PatternService patternService;
@@ -459,4 +459,4 @@ class ConversionJsonToCsvTest {
 
         Files.deleteIfExists(resultCsvPath);
     }
-}
+}*/

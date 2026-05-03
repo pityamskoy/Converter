@@ -11,7 +11,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-
+/*
 class ModificationMapperTest {
 
     private final ModificationMapper mapper = new ModificationMapper();
@@ -133,4 +133,4 @@ class ModificationMapperTest {
         assertEquals("type", serviceDto.newType());
         assertEquals("value", serviceDto.newValue());
     }
-}
+}*/

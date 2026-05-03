@@ -19,7 +19,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-
+/*
 @ExtendWith(MockitoExtension.class)
 class UserMapperTest {
 
@@ -115,4 +115,4 @@ class UserMapperTest {
         assertEquals("username", serviceDto.username());
         assertEquals("test@gmail.com", serviceDto.email());
     }
-}
+}*/

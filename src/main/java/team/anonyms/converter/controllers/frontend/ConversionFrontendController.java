@@ -21,7 +21,7 @@ import static org.springframework.http.MediaType.*;
 @RestController
 @CrossOrigin(exposedHeaders = "*")
 @RequestMapping("/conversion")
-public final class ConversionFrontendController {
+public class ConversionFrontendController {
     private static final Logger log = LoggerFactory.getLogger(ConversionFrontendController.class);
 
     private final ConversionFrontendService conversionFrontendService;

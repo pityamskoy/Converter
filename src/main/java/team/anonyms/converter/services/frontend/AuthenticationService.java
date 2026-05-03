@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public final class AuthenticationService {
+public class AuthenticationService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final JwtService jwtService;

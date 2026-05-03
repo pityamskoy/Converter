@@ -8,31 +8,18 @@ import team.anonyms.converter.dto.service.modification.ModificationServiceDto;
 import team.anonyms.converter.dto.service.modification.ModificationToCreateServiceDto;
 import team.anonyms.converter.dto.service.modification.ModificationToUpdateServiceDto;
 import team.anonyms.converter.entities.Modification;
-
-import java.util.UUID;
+import team.anonyms.converter.entities.Pattern;
 
 @Component
-public final class ModificationMapper {
-    public ModificationServiceDto modificationControllerDtoToServiceDto(
-            ModificationControllerDto modificationControllerDto
-    ) {
-        return new ModificationServiceDto(
-                modificationControllerDto.id(),
-                modificationControllerDto.oldName(),
-                modificationControllerDto.newName(),
-                modificationControllerDto.newType(),
-                modificationControllerDto.newValue()
-        );
-    }
-
+public class ModificationMapper {
     public ModificationToCreateServiceDto modificationToCreateControllerDtoToService(
             ModificationToCreateControllerDto modificationToCreateControllerDto
     ) {
         return new ModificationToCreateServiceDto(
                 modificationToCreateControllerDto.oldName(),
                 modificationToCreateControllerDto.newName(),
-                modificationToCreateControllerDto.newType(),
-                modificationToCreateControllerDto.newValue()
+                modificationToCreateControllerDto.newValue(),
+                modificationToCreateControllerDto.newType()
         );
     }
 
@@ -43,8 +30,8 @@ public final class ModificationMapper {
                 modificationToUpdateControllerDto.id(),
                 modificationToUpdateControllerDto.oldName(),
                 modificationToUpdateControllerDto.newName(),
-                modificationToUpdateControllerDto.newType(),
-                modificationToUpdateControllerDto.newValue()
+                modificationToUpdateControllerDto.newValue(),
+                modificationToUpdateControllerDto.newType()
         );
     }
 
@@ -55,49 +42,35 @@ public final class ModificationMapper {
                 modificationServiceDto.id(),
                 modificationServiceDto.oldName(),
                 modificationServiceDto.newName(),
-                modificationServiceDto.newType(),
-                modificationServiceDto.newValue()
-        );
-    }
-
-    public Modification modificationServiceDtoToEntity(ModificationServiceDto modificationServiceDto) {
-        return new Modification(
-                modificationServiceDto.id(),
-                modificationServiceDto.oldName(),
-                modificationServiceDto.newName(),
-                modificationServiceDto.newType(),
-                modificationServiceDto.newValue()
+                modificationServiceDto.newValue(),
+                modificationServiceDto.newType()
         );
     }
 
     public Modification modificationToCreateServiceDtoToEntity(
-            ModificationToCreateServiceDto modificationToCreateServiceDto
+            ModificationToCreateServiceDto modificationToCreateServiceDto,
+            Pattern pattern
     ) {
-        return new Modification(
-                UUID.randomUUID(),
-                modificationToCreateServiceDto.oldName(),
-                modificationToCreateServiceDto.newName(),
-                modificationToCreateServiceDto.newType(),
-                modificationToCreateServiceDto.newValue()
-        );
+        return Modification.builder()
+                .oldName(modificationToCreateServiceDto.oldName())
+                .newName(modificationToCreateServiceDto.newName())
+                .newValue(modificationToCreateServiceDto.newValue())
+                .newType(modificationToCreateServiceDto.newType())
+                .pattern(pattern)
+                .build();
     }
 
     public Modification modificationToUpdateServiceDtoToEntity(
-            ModificationToUpdateServiceDto modificationToUpdateServiceDto
+            ModificationToUpdateServiceDto modificationToUpdateServiceDto,
+            Pattern pattern
     ) {
-        UUID id;
-        if (modificationToUpdateServiceDto.id() == null) {
-            id = UUID.randomUUID();
-        } else {
-            id = modificationToUpdateServiceDto.id();
-        }
-
         return new Modification(
-                id,
+                modificationToUpdateServiceDto.id(),
                 modificationToUpdateServiceDto.oldName(),
                 modificationToUpdateServiceDto.newName(),
+                modificationToUpdateServiceDto.newValue(),
                 modificationToUpdateServiceDto.newType(),
-                modificationToUpdateServiceDto.newValue()
+                pattern
         );
     }
 
@@ -106,8 +79,8 @@ public final class ModificationMapper {
                 modification.getId(),
                 modification.getOldName(),
                 modification.getNewName(),
-                modification.getNewType(),
-                modification.getNewValue()
+                modification.getNewValue(),
+                modification.getNewType()
         );
     }
 }

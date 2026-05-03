@@ -17,7 +17,7 @@ import javax.security.auth.login.CredentialException;
 
 @RestController
 @RequestMapping("/auth")
-public final class AuthenticationController {
+public class AuthenticationController {
     private static final Logger log = LoggerFactory.getLogger(AuthenticationController.class);
 
     private final AuthenticationService authenticationService;
@@ -40,8 +40,8 @@ public final class AuthenticationController {
     ) throws CredentialException {
         log.info("Called login");
 
-        LoginResultServiceDto result = authenticationService.login(
-                credentialsMapper.credentialsControllerDtoToService(credentials));
+        LoginResultServiceDto result = authenticationService
+                .login(credentialsMapper.credentialsControllerDtoToService(credentials));
 
         return ResponseEntity.ok(credentialsMapper.loginResultServiceDtoToController(result));
     }

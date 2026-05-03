@@ -7,7 +7,7 @@ import team.anonyms.converter.dto.service.credentials.CredentialsServiceDto;
 import team.anonyms.converter.dto.service.credentials.LoginResultServiceDto;
 
 @Component
-public final class CredentialsMapper {
+public class CredentialsMapper {
     public CredentialsServiceDto credentialsControllerDtoToService(CredentialsControllerDto credentialsControllerDto) {
         return new CredentialsServiceDto(
                 credentialsControllerDto.email(),

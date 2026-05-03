@@ -16,7 +16,7 @@ import java.util.UUID;
  * </p>
  */
 @Service
-public final class JwtService {
+public class JwtService {
     private static final String secret = System.getenv("JWT_SECRET");
 
     /**

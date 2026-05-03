@@ -3,43 +3,47 @@ package team.anonyms.converter.services.frontend;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import team.anonyms.converter.dto.service.modification.ModificationServiceDto;
-import team.anonyms.converter.entities.Pattern;
 import team.anonyms.converter.mappers.ModificationMapper;
+import team.anonyms.converter.repositories.ModificationRepository;
 import team.anonyms.converter.repositories.PatternRepository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
-public final class ModificationService {
+public class ModificationService {
+    private final ModificationRepository modificationRepository;
     private final PatternRepository patternRepository;
     private final ModificationMapper modificationMapper;
 
     public ModificationService(
+            ModificationRepository modificationRepository,
             PatternRepository patternRepository,
             ModificationMapper modificationMapper
     ) {
+        this.modificationRepository = modificationRepository;
         this.patternRepository = patternRepository;
         this.modificationMapper = modificationMapper;
     }
 
-    public List<ModificationServiceDto> getAllModificationsByPatternId(UUID id) {
-        Optional<Pattern> patternOptional = patternRepository.findById(id);
-        if (patternOptional.isEmpty()) {
-            throw new EntityNotFoundException("Pattern not found; id=" + id);
+    public List<ModificationServiceDto> getAllModificationsByPatternId(UUID patternId) {
+        if (!patternRepository.existsById(patternId)) {
+            throw new EntityNotFoundException("Pattern not found; id=" + patternId);
         }
 
-        return patternOptional.get().getModifications().
-                stream().map(modificationMapper::modificationToServiceDto).toList();
+        return modificationRepository.findAllByPatternId(patternId).stream()
+                .map(modificationMapper::modificationToServiceDto)
+                .toList();
     }
 
-    public Integer getNumberOfAllModificationsByPatternId(UUID id) {
-        Optional<Pattern> patternOptional = patternRepository.findById(id);
-        if (patternOptional.isEmpty()) {
-            throw new EntityNotFoundException("Pattern not found; id=" + id);
+    public Integer getNumberOfAllModificationsByPatternId(UUID patternId) {
+        if (!patternRepository.existsById(patternId)) {
+            throw new EntityNotFoundException("Pattern not found; id=" + patternId);
         }
 
-        return patternOptional.get().getModifications().size();
+        return modificationRepository.findAllByPatternId(patternId).stream()
+                .map(modificationMapper::modificationToServiceDto)
+                .toList()
+                .size();
     }
 }

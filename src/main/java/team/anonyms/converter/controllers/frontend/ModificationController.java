@@ -14,7 +14,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/modifications")
-public final class ModificationController {
+public class ModificationController {
     private static final Logger log = LoggerFactory.getLogger(ModificationController.class);
 
     private final ModificationService modificationService;
@@ -39,8 +39,9 @@ public final class ModificationController {
     ) {
         log.info("Called getAllModificationsByPatternId; id={}", patternId);
 
-        List<ModificationControllerDto> allModifications = modificationService.getAllModificationsByPatternId(patternId).
-                stream().map(modificationMapper::modificationServiceDtoToControllerDto).toList();
+        List<ModificationControllerDto> allModifications = modificationService.getAllModificationsByPatternId(patternId)
+                .stream().map(modificationMapper::modificationServiceDtoToControllerDto)
+                .toList();
 
         return ResponseEntity.ok(paginationHandler.makeSliceFromList(allModifications, offset, limit));
     }

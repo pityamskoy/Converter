@@ -12,7 +12,7 @@ import java.util.Map;
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/direct/conversion")
-public final class ConversionApiController {
+public class ConversionApiController {
     private static final Logger log = LoggerFactory.getLogger(ConversionApiController.class);
 
     private final ConversionApiService conversionApiService;

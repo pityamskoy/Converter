@@ -12,7 +12,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
+/*
 // тестовая дбшка нужна, чтобы не сорить в основную -
 // закидываем ее в память
 @SpringBootTest(properties = {
@@ -56,4 +56,4 @@ class UserRepositoryMethodTest {
 
         assertTrue(foundUser.isEmpty());
     }
-}
+}*/

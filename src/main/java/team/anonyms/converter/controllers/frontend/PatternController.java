@@ -19,7 +19,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/patterns")
-public final class PatternController {
+public class PatternController {
     private static final Logger log = LoggerFactory.getLogger(PatternController.class);
 
     private final PatternService patternService;
@@ -44,8 +44,9 @@ public final class PatternController {
     ) {
         log.info("Called getAllPatternsByUserId; id={}", userId);
 
-        List<PatternControllerDto> allPatterns = patternService.getAllPatternsByUserId(userId).
-                stream().map(patternMapper::patternServiceDtoToControllerDto).toList();
+        List<PatternControllerDto> allPatterns = patternService.getAllPatternsByUserId(userId).stream()
+                .map(patternMapper::patternServiceDtoToControllerDto)
+                .toList();
 
         return ResponseEntity.ok(paginationHandler.makeSliceFromList(allPatterns, offset, limit));
     }

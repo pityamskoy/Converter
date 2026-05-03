@@ -3,12 +3,12 @@ package team.anonyms.converter.entities;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.time.Instant;
 import java.util.UUID;
-
 
 /**
  * <p>
- *     Patterns provide possibility to alter a file during conversion.
+ *     Verification tokens designed for email verification of users.
  * </p>
  */
 @Getter
@@ -17,16 +17,19 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @Entity
-@Table(name = "patterns")
-public class Pattern {
+@Table(name = "verification_tokens")
+public class VerificationToken {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(nullable = false)
-    private String name;
+    @Column(nullable = false, length = 6)
+    private String token;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
+    @Column(nullable = false)
+    private Instant expiration;
+
+    @OneToOne
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
     private User user;
 }

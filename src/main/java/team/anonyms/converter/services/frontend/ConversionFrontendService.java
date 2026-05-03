@@ -16,6 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import team.anonyms.converter.entities.Modification;
 import team.anonyms.converter.entities.Pattern;
+import team.anonyms.converter.repositories.ModificationRepository;
+import team.anonyms.converter.repositories.PatternRepository;
 import team.anonyms.converter.utility.exceptions.IllegalPatternException;
 import team.anonyms.converter.utility.exceptions.UnsupportedExtensionException;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -26,22 +28,25 @@ import java.nio.file.Path;
 import java.util.*;
 
 @Service
-public final class ConversionFrontendService {
+public class ConversionFrontendService {
     private static final Logger log = LoggerFactory.getLogger(ConversionFrontendService.class);
 
-    private final PatternService patternService;
+    private final PatternRepository patternRepository;
+    private final ModificationRepository modificationRepository;
 
     private final JsonMapper jsonMapper;
     private final XmlMapper xmlMapper;
     private final CsvMapper csvMapper;
 
     public ConversionFrontendService(
-            PatternService patternService,
+            PatternRepository patternRepository,
+            ModificationRepository modificationRepository,
             JsonMapper jsonMapper,
             XmlMapper xmlMapper,
             CsvMapper csvMapper
     ) {
-        this.patternService = patternService;
+        this.patternRepository = patternRepository;
+        this.modificationRepository = modificationRepository;
 
         this.jsonMapper = jsonMapper;
         this.xmlMapper = xmlMapper;
@@ -181,7 +186,7 @@ public final class ConversionFrontendService {
             return rows;
         }
 
-        List<Modification> modifications = pattern.getModifications();
+        List<Modification> modifications = modificationRepository.findAllByPatternId(pattern.getId());
 
         for (Map<String, Object> row : rows) {
             for (Modification modification : modifications) {
@@ -320,7 +325,7 @@ public final class ConversionFrontendService {
             throw new IllegalArgumentException("JSON file contains no rows to convert");
         }
 
-        rows = applyPatterns(rows, patternService.findPatternById(patternId));
+        rows = applyPatterns(rows, patternRepository.findPatternById(patternId));
 
         CsvSchema.Builder csvSchemaBuilder = CsvSchema.builder();
         for (String column : rows.getFirst().keySet()) {
@@ -433,7 +438,7 @@ public final class ConversionFrontendService {
             rows.add(convertedRow);
         }
 
-        rows = applyPatterns(rows, patternService.findPatternById(patternId));
+        rows = applyPatterns(rows, patternRepository.findPatternById(patternId));
 
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("CSV file contains no rows to convert");
@@ -495,7 +500,7 @@ public final class ConversionFrontendService {
             throw new IllegalArgumentException("Unsupported JSON structure for XML conversion");
         }
 
-        rows = applyPatterns(rows, patternService.findPatternById(patternId));
+        rows = applyPatterns(rows, patternRepository.findPatternById(patternId));
 
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("JSON file contains no rows to convert");
@@ -588,7 +593,7 @@ public final class ConversionFrontendService {
             }
         }
 
-        rows = applyPatterns(rows, patternService.findPatternById(patternId));
+        rows = applyPatterns(rows, patternRepository.findPatternById(patternId));
 
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("XML file contains no rows to convert");
@@ -684,7 +689,7 @@ public final class ConversionFrontendService {
             }
         }
 
-        rows = applyPatterns(rows, patternService.findPatternById(patternId));
+        rows = applyPatterns(rows, patternRepository.findPatternById(patternId));
 
         CsvSchema.Builder csvSchemaBuilder = CsvSchema.builder();
         for (String column : rows.getFirst().keySet()) {
@@ -778,7 +783,7 @@ public final class ConversionFrontendService {
             rows.add(convertedRow);
         }
 
-        rows = applyPatterns(rows, patternService.findPatternById(patternId));
+        rows = applyPatterns(rows, patternRepository.findPatternById(patternId));
 
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("CSV file contains no rows to convert");

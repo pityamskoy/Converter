@@ -8,7 +8,7 @@ public record ModificationToUpdateControllerDto(
         @Nullable UUID id,
         String oldName,
         String newName,
-        String newType,
-        String newValue
+        String newValue,
+        String newType
 ) {
 }
