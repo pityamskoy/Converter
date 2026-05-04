@@ -13,7 +13,7 @@ import java.util.Map;
 @CrossOrigin(origins = "*")
 @RequestMapping("/direct/conversion")
 public class ConversionApiController {
-    private static final Logger log = LoggerFactory.getLogger(ConversionApiController.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConversionApiController.class);
 
     private final ConversionApiService conversionApiService;
 
@@ -27,7 +27,7 @@ public class ConversionApiController {
             produces = MediaType.APPLICATION_XML_VALUE
     )
     public ResponseEntity<String> convertJsonToXml(@RequestBody Map<String, Object> body) {
-        log.info("Called convertJsonToXml, body={}", body);
+        logger.info("Called convertJsonToXml, body={}", body);
         return ResponseEntity.ok(conversionApiService.convertJsonToXml(body));
     }
 
@@ -37,7 +37,7 @@ public class ConversionApiController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<String> convertXmlToJson(@RequestBody Map<String, Object> body) {
-        log.info("Called convertXmlToJson, body={}", body);
+        logger.info("Called convertXmlToJson, body={}", body);
         return ResponseEntity.ok(conversionApiService.convertXmlToJson(body));
     }
 }

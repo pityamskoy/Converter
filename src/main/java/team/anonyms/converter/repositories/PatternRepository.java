@@ -13,6 +13,7 @@ import java.util.UUID;
 @Repository
 public interface PatternRepository extends JpaRepository<Pattern, UUID> {
     List<Pattern> findAllByUserId(UUID userId);
+
     void deleteAllByUserId(UUID userId);
 
     /**

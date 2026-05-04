@@ -1,4 +1,4 @@
-package team.anonyms.converter.utility.exceptions;
+package team.anonyms.converter.exceptions;
 
 public class IllegalPatternException extends IllegalArgumentException {
     public IllegalPatternException() {

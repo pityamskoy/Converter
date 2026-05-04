@@ -15,7 +15,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/modifications")
 public class ModificationController {
-    private static final Logger log = LoggerFactory.getLogger(ModificationController.class);
+    private static final Logger logger = LoggerFactory.getLogger(ModificationController.class);
 
     private final ModificationService modificationService;
     private final ModificationMapper modificationMapper;
@@ -37,7 +37,7 @@ public class ModificationController {
             @PathVariable int limit,
             @PathVariable int offset
     ) {
-        log.info("Called getAllModificationsByPatternId; id={}", patternId);
+        logger.info("Called getAllModificationsByPatternId; id={}", patternId);
 
         List<ModificationControllerDto> allModifications = modificationService.getAllModificationsByPatternId(patternId)
                 .stream().map(modificationMapper::modificationServiceDtoToControllerDto)
@@ -50,7 +50,7 @@ public class ModificationController {
     public ResponseEntity<Integer> getNumberOfAllModificationsByPatternId(
             @PathVariable UUID patternId
     ) {
-        log.info("Called getNumberOfModificationsByPatternId; patternId={}", patternId);
+        logger.info("Called getNumberOfModificationsByPatternId; patternId={}", patternId);
 
         return ResponseEntity.ok(modificationService.getNumberOfAllModificationsByPatternId(patternId));
     }

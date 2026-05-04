@@ -1,21 +1,5 @@
 package team.anonyms.converter.services;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
-import team.anonyms.converter.utility.exceptions.UnsupportedExtensionException;
-import team.anonyms.converter.services.frontend.ConversionFrontendService;
-import team.anonyms.converter.services.frontend.PatternService;
-
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-
-import static org.junit.jupiter.api.Assertions.*;
 /*
 class ConversionFrontendServiceTest {
 

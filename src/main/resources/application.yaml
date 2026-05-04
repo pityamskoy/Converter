@@ -26,6 +26,21 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migrations
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${EMAIL_ADDRESS}
+    password: ${EMAIL_PASSWORD}
+    properties:
+      mail:
+        SMTP:
+          auth: true
+          STARTTLS:
+            enable: true
+
+app:
+  mail:
+    from: ${EMAIL_SENDER_ADDRESS}
 
 logging:
   level:

@@ -4,6 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.persistence.autoconfigure.EntityScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * <p>
@@ -12,6 +13,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
  */
 // Substitute EntityNotFoundException on my own ResourceNotFoundException
 @SpringBootApplication
+@EnableScheduling
 @EntityScan(basePackages = {"team.anonyms.converter.entities"})
 @EnableJpaRepositories(basePackages = {"team.anonyms.converter.repositories"})
 public class Main {

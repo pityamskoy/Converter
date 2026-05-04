@@ -6,9 +6,9 @@ CREATE TABLE users(
     is_verified BOOLEAN NOT NULL
 );
 
-CREATE TABLE verification_tokens(
-    id UUID PRIMARY KEY,
-    token VARCHAR(6) NOT NULL,
+CREATE TABLE verification_codes(
+    id BIGSERIAL PRIMARY KEY,
+    code VARCHAR(6) NOT NULL,
     expiration TIMESTAMP NOT NULL,
     user_id UUID NOT NULL UNIQUE REFERENCES users(id)
 );

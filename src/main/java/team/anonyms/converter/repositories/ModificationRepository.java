@@ -10,5 +10,6 @@ import java.util.UUID;
 @Repository
 public interface ModificationRepository extends JpaRepository<Modification, UUID> {
     List<Modification> findAllByPatternId(UUID patternId);
+
     void deleteAllByPatternId(UUID patternId);
 }

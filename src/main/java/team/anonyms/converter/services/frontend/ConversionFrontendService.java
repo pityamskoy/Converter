@@ -18,8 +18,8 @@ import team.anonyms.converter.entities.Modification;
 import team.anonyms.converter.entities.Pattern;
 import team.anonyms.converter.repositories.ModificationRepository;
 import team.anonyms.converter.repositories.PatternRepository;
-import team.anonyms.converter.utility.exceptions.IllegalPatternException;
-import team.anonyms.converter.utility.exceptions.UnsupportedExtensionException;
+import team.anonyms.converter.exceptions.IllegalPatternException;
+import team.anonyms.converter.exceptions.UnsupportedExtensionException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.*;
@@ -29,7 +29,7 @@ import java.util.*;
 
 @Service
 public class ConversionFrontendService {
-    private static final Logger log = LoggerFactory.getLogger(ConversionFrontendService.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConversionFrontendService.class);
 
     private final PatternRepository patternRepository;
     private final ModificationRepository modificationRepository;
@@ -307,7 +307,7 @@ public class ConversionFrontendService {
         try {
             root = jsonMapper.readTree(jsonFile.getInputStream());
         } catch (JsonProcessingException e) {
-            log.error("convertJsonFileToCsv: JsonProcessingException has been thrown");
+            logger.error("convertJsonFileToCsv: JsonProcessingException has been thrown");
             throw new IllegalArgumentException(e.getMessage());
         }
 
@@ -355,7 +355,7 @@ public class ConversionFrontendService {
         try {
             csvMapper.writerFor(List.class).with(csvSchema).writeValue(csvPath.toFile(), rows);
         } catch (CsvWriteException e) {
-            log.error("convertJsonFileToCsv: CsvWriteException has been thrown");
+            logger.error("convertJsonFileToCsv: CsvWriteException has been thrown");
             throw new IllegalArgumentException(e.getMessage());
         }
 
@@ -551,7 +551,7 @@ public class ConversionFrontendService {
         try {
             root = xmlMapper.readTree(xmlFile.getInputStream());
         } catch (JsonProcessingException e) {
-            log.error("convertXmlFileToJson: JsonProcessingException has been thrown");
+            logger.error("convertXmlFileToJson: JsonProcessingException has been thrown");
             throw new IllegalArgumentException(e.getMessage());
         }
 
@@ -650,7 +650,7 @@ public class ConversionFrontendService {
         try {
             root = xmlMapper.readTree(xmlFile.getInputStream());
         } catch (JsonProcessingException e) {
-            log.error("convertXmlFileToCsv: JsonProcessingException has been thrown");
+            logger.error("convertXmlFileToCsv: JsonProcessingException has been thrown");
             throw new IllegalArgumentException(e.getMessage());
         }
 
@@ -701,7 +701,7 @@ public class ConversionFrontendService {
             CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
             csvMapper.writerFor(List.class).with(csvSchema).writeValue(csvPath.toFile(), rows);
         } catch (CsvWriteException e) {
-            log.error("convertXmlFileToCsv: CsvWriteException has been thrown");
+            logger.error("convertXmlFileToCsv: CsvWriteException has been thrown");
             throw new IllegalArgumentException(e.getMessage());
         }
 

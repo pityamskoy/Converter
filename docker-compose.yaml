@@ -13,6 +13,9 @@ services:
       DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_URL: ${DATABASE_URL}
+      EMAIL_ADDRESS: ${EMAIL_ADDRESS}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      EMAIL_SENDER_ADDRESS: ${EMAIL_SENDER_ADDRESS}
     volumes:
       - /root/projects/converter/logs/backend:/logs
 

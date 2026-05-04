@@ -1,25 +1,5 @@
 package team.anonyms.converter.services;
 
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.dataformat.csv.CsvMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.springframework.mock.web.MockMultipartFile;
-import team.anonyms.converter.entities.Modification;
-import team.anonyms.converter.entities.Pattern;
-import team.anonyms.converter.services.frontend.ConversionFrontendService;
-import team.anonyms.converter.services.frontend.PatternService;
-import team.anonyms.converter.utility.exceptions.IllegalPatternException;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
 /*
 class ConversionXmlToCsvTest {
 

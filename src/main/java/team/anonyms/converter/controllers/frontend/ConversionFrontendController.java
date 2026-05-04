@@ -22,7 +22,7 @@ import static org.springframework.http.MediaType.*;
 @CrossOrigin(exposedHeaders = "*")
 @RequestMapping("/conversion")
 public class ConversionFrontendController {
-    private static final Logger log = LoggerFactory.getLogger(ConversionFrontendController.class);
+    private static final Logger logger = LoggerFactory.getLogger(ConversionFrontendController.class);
 
     private final ConversionFrontendService conversionFrontendService;
 
@@ -66,7 +66,7 @@ public class ConversionFrontendController {
             @RequestParam(name = "pattern", required = false) UUID patternId
     ) {
         String filename = file.getOriginalFilename();
-        log.info("Called convertJsonFileToCsv; filename={}; patternId={}", filename, patternId);
+        logger.info("Called convertJsonFileToCsv; filename={}; patternId={}", filename, patternId);
 
         try {
             Path csvPath = conversionFrontendService.convertJsonFileToCsv(file, patternId);
@@ -76,7 +76,7 @@ public class ConversionFrontendController {
 
             return getResponseEntityForConversionEndpoints(csvPath, outputFilename, parseMediaType("text/csv"));
         } catch (IOException e) {
-            log.error(e.getMessage());
+            logger.error(e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -88,7 +88,7 @@ public class ConversionFrontendController {
             @RequestParam(name = "pattern", required = false) UUID patternId
     ) {
         String filename = file.getOriginalFilename();
-        log.info("Called convertCsvFileToJson; filename={}; patternId={}", filename, patternId);
+        logger.info("Called convertCsvFileToJson; filename={}; patternId={}", filename, patternId);
 
         try {
             Path jsonPath = conversionFrontendService.convertCsvFileToJson(file, patternId);
@@ -98,7 +98,7 @@ public class ConversionFrontendController {
 
             return getResponseEntityForConversionEndpoints(jsonPath, outputFilename, APPLICATION_OCTET_STREAM);
         } catch (IOException e) {
-            log.error(e.getMessage());
+            logger.error(e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -109,7 +109,7 @@ public class ConversionFrontendController {
             @RequestParam(name = "pattern", required = false) UUID patternId
     ) {
         String filename = file.getOriginalFilename();
-        log.info("Called convertJsonFileToXml; filename={}; patternId={}", filename, patternId);
+        logger.info("Called convertJsonFileToXml; filename={}; patternId={}", filename, patternId);
 
         try {
             Path xmlPath = conversionFrontendService.convertJsonFileToXml(file, patternId);
@@ -119,7 +119,7 @@ public class ConversionFrontendController {
 
             return getResponseEntityForConversionEndpoints(xmlPath, outputFilename, APPLICATION_OCTET_STREAM);
         } catch (IOException e) {
-            log.error(e.getMessage());
+            logger.error(e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -130,7 +130,7 @@ public class ConversionFrontendController {
             @RequestParam(name = "pattern", required = false) UUID patternId
     ) {
         String filename = file.getOriginalFilename();
-        log.info("Called convertXmlFileToJson; filename={}; patternId={}", filename, patternId);
+        logger.info("Called convertXmlFileToJson; filename={}; patternId={}", filename, patternId);
 
         try {
             Path jsonPath = conversionFrontendService.convertXmlFileToJson(file, patternId);
@@ -140,7 +140,7 @@ public class ConversionFrontendController {
 
             return getResponseEntityForConversionEndpoints(jsonPath, outputFilename, APPLICATION_OCTET_STREAM);
         } catch (IOException e) {
-            log.error(e.getMessage());
+            logger.error(e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -152,7 +152,7 @@ public class ConversionFrontendController {
             @RequestParam(name = "pattern", required = false) UUID patternId
     ) {
         String filename = file.getOriginalFilename();
-        log.info("Called convertXmlFileToCsv; filename={}; patternId={}", filename, patternId);
+        logger.info("Called convertXmlFileToCsv; filename={}; patternId={}", filename, patternId);
 
         try {
             Path csvPath = conversionFrontendService.convertXmlFileToCsv(file, patternId);
@@ -162,7 +162,7 @@ public class ConversionFrontendController {
 
             return getResponseEntityForConversionEndpoints(csvPath, outputFilename, parseMediaType("text/csv"));
         } catch (IOException e) {
-            log.error(e.getMessage());
+            logger.error(e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }
@@ -174,7 +174,7 @@ public class ConversionFrontendController {
             @RequestParam(name = "pattern", required = false) UUID patternId
     ) {
         String filename = file.getOriginalFilename();
-        log.info("Called convertCsvFileToXml; filename={}; pattern={}", filename, patternId);
+        logger.info("Called convertCsvFileToXml; filename={}; pattern={}", filename, patternId);
 
         try {
             Path xmlPath = conversionFrontendService.convertCsvFileToXml(file, patternId);
@@ -184,7 +184,7 @@ public class ConversionFrontendController {
 
             return getResponseEntityForConversionEndpoints(xmlPath, outputFilename, APPLICATION_OCTET_STREAM);
         } catch (IOException e) {
-            log.error(e.getMessage());
+            logger.error(e.getMessage());
             return ResponseEntity.internalServerError().build();
         }
     }

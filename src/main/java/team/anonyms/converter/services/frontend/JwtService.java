@@ -4,9 +4,12 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.UUID;
 
@@ -17,18 +20,8 @@ import java.util.UUID;
  */
 @Service
 public class JwtService {
-    private static final String secret = System.getenv("JWT_SECRET");
-
-    /**
-     * <p>
-     *     Creates secret key for validating or creating JWT token.
-     * </p>
-     *
-     * @return key in {@link SecretKey} format.
-     */
-    private SecretKey key() {
-        return Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
-    }
+    // Secret key for validating or creating JWT tokens
+    private static final SecretKey KEY = Keys.hmacShaKeyFor(Decoders.BASE64.decode(System.getenv("JWT_SECRET")));
 
     /**
      * <p>
@@ -40,13 +33,13 @@ public class JwtService {
      * @return JWT token.
      */
     public String generate(UUID userId) {
-        Date current = new Date();
+        Instant now = Instant.now();
         return Jwts.builder()
                 .subject(userId.toString())
-                .issuedAt(current)
-                .expiration(new Date(current.getTime() + 14400000)) // 4 hours
-                .signWith(key())
-                .compact(); // ask
+                .issuedAt(Date.from(now))
+                .expiration(Date.from(now.plus(4, ChronoUnit.HOURS)))
+                .signWith(KEY)
+                .compact();
     }
 
     /**
@@ -59,12 +52,21 @@ public class JwtService {
      * @return user ID
      */
     public String extractUserId(String token) {
-        return Jwts.parser().verifyWith(key()).build().parseSignedClaims(token).getPayload().getSubject();
+        return Jwts.parser().verifyWith(KEY).build().parseSignedClaims(token).getPayload().getSubject();
     }
 
-    public Boolean isValid(String token) {
+    /**
+     * @param jwtToken any provided String instance.
+     *
+     * @return true if provided {@code jwtToken} is valid, false if {@code jwtToken} is not valid, or it is null.
+     */
+    public Boolean isValid(@Nullable String jwtToken) {
+        if (jwtToken == null) {
+            return false;
+        }
+
         try {
-            extractUserId(token);
+            extractUserId(jwtToken);
             return true;
         } catch (JwtException e) {
             return false;

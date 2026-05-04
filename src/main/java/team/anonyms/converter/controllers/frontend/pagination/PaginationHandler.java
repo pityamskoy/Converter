@@ -15,8 +15,8 @@ import java.util.List;
  * @param <Objects> any objects to handle.
  */
 @Component
-public final class PaginationHandler<Objects> {
-    private static final Logger log = LoggerFactory.getLogger(PaginationHandler.class);
+public class PaginationHandler<Objects> {
+    private static final Logger logger = LoggerFactory.getLogger(PaginationHandler.class);
 
     /**
      * <p>
@@ -34,11 +34,11 @@ public final class PaginationHandler<Objects> {
         List<Objects> slice = new ArrayList<>();
 
         if (offset < 1) {
-            log.info("Offset must be positive; offset={}", offset);
+            logger.info("Offset must be positive; offset={}", offset);
         }
 
         if (limit * (offset - 1) > objectsToMakeSlice.size()) {
-            log.info("Number of page is out of range of provided elements; offset={}; objectsSize={}",
+            logger.info("Number of page is out of range of provided elements; offset={}; objectsSize={}",
                     offset, objectsToMakeSlice.size());
         }
 

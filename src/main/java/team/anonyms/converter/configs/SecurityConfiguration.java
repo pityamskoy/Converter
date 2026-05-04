@@ -7,9 +7,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import team.anonyms.converter.utility.security.RequestFilter;
+import team.anonyms.converter.security.RequestFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -33,9 +34,14 @@ public class SecurityConfiguration {
                 .sessionManagement(sm ->
                         sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/conversion/**", "/direct/**")
+                        .requestMatchers("/auth/login", "/auth/reset", "/conversion/**", "/direct/**")
                         .permitAll().anyRequest().authenticated())
                 .addFilterBefore(requestFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
+    }
+
+    @Bean
+    public BCryptPasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
     }
 }

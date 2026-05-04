@@ -11,8 +11,7 @@ public class CredentialsMapper {
     public CredentialsServiceDto credentialsControllerDtoToService(CredentialsControllerDto credentialsControllerDto) {
         return new CredentialsServiceDto(
                 credentialsControllerDto.email(),
-                credentialsControllerDto.password(),
-                credentialsControllerDto.jwtToken()
+                credentialsControllerDto.password()
         );
     }
 
@@ -21,8 +20,7 @@ public class CredentialsMapper {
                 loginResultServiceDto.success(),
                 loginResultServiceDto.username(),
                 loginResultServiceDto.email(),
-                loginResultServiceDto.userId(),
-                loginResultServiceDto.jwtToken()
+                loginResultServiceDto.userId()
         );
     }
 }

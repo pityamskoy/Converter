@@ -4,11 +4,10 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
-import java.util.UUID;
 
 /**
  * <p>
- *     Verification tokens designed for email verification of users.
+ *     Verification codes are designed to verify users' emails.
  * </p>
  */
 @Getter
@@ -17,14 +16,14 @@ import java.util.UUID;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Builder
 @Entity
-@Table(name = "verification_tokens")
-public class VerificationToken {
+@Table(name = "verification_codes")
+public class VerificationCode {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
     @Column(nullable = false, length = 6)
-    private String token;
+    private String code;
 
     @Column(nullable = false)
     private Instant expiration;

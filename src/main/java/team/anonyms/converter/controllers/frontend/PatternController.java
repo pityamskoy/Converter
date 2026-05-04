@@ -20,7 +20,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/patterns")
 public class PatternController {
-    private static final Logger log = LoggerFactory.getLogger(PatternController.class);
+    private static final Logger logger = LoggerFactory.getLogger(PatternController.class);
 
     private final PatternService patternService;
     private final PatternMapper patternMapper;
@@ -42,7 +42,7 @@ public class PatternController {
             @PathVariable int limit,
             @PathVariable int offset
     ) {
-        log.info("Called getAllPatternsByUserId; id={}", userId);
+        logger.info("Called getPatternsByUserId; id={}", userId);
 
         List<PatternControllerDto> allPatterns = patternService.getAllPatternsByUserId(userId).stream()
                 .map(patternMapper::patternServiceDtoToControllerDto)
@@ -53,7 +53,7 @@ public class PatternController {
 
     @GetMapping("/{userId}")
     public ResponseEntity<Integer> getNumberOfAllPatternsByUserId(@PathVariable UUID userId) {
-        log.info("Called getNumberOfPatternsByUserId; userId={}", userId);
+        logger.info("Called getNumberOfPatternsByUserId; userId={}", userId);
 
         return ResponseEntity.ok(patternService.getNumberOfAllPatternsByUserId(userId));
     }
@@ -62,7 +62,7 @@ public class PatternController {
     public ResponseEntity<PatternControllerDto> createPattern(
             @RequestBody PatternToCreateControllerDto patternToCreate
     ) {
-        log.info("Called createPattern; patternToCreate={}", patternToCreate);
+        logger.info("Called createPattern; patternToCreate={}", patternToCreate);
 
         PatternToCreateServiceDto patternToCreateServiceDto = patternMapper.
                 patternToCreateControllerDtoToService(patternToCreate);
@@ -77,7 +77,7 @@ public class PatternController {
     public ResponseEntity<PatternControllerDto> updatePattern(
             @RequestBody PatternToUpdateControllerDto patternToUpdate
     ) {
-        log.info("Called updatePattern; patternToUpdateControllerDto={}", patternToUpdate);
+        logger.info("Called updatePattern; patternToUpdateControllerDto={}", patternToUpdate);
 
         PatternServiceDto patternUpdated = patternService.updatePattern(
                 patternMapper.patternToUpdateControllerDtoToService(patternToUpdate)
@@ -88,7 +88,7 @@ public class PatternController {
 
     @DeleteMapping("/{patternId}")
     public ResponseEntity<Void> deletePattern(@PathVariable UUID patternId) {
-        log.info("Called deletePattern; id={}", patternId);
+        logger.info("Called deletePattern; id={}", patternId);
 
         patternService.deletePattern(patternId);
 
