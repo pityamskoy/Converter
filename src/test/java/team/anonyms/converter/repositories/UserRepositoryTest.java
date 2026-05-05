@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 )
 
 @Transactional
-class UserRepositoryMethodTest {
+class UserRepositoryTest {
 
     @Autowired
     private UserRepository userRepository;
