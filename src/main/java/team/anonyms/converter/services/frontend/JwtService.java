@@ -20,6 +20,12 @@ import java.util.UUID;
  */
 @Service
 public class JwtService {
+    // Default secret for running tests
+    // (if env variable is empty)
+    private static final String SECRET = System.getenv("JWT_SECRET") != null
+            ? System.getenv("JWT_SECRET")
+            : "dGhpc2lzYXN1cGVyc2VjcmV0a2V5dGhhdGlzYXRsZWFzdDMyYnl0ZXNsb25n";
+
     // Secret key for validating or creating JWT tokens
     private static final SecretKey KEY = Keys.hmacShaKeyFor(Decoders.BASE64.decode(System.getenv("JWT_SECRET")));
 
@@ -61,14 +67,16 @@ public class JwtService {
      * @return true if provided {@code jwtToken} is valid, false if {@code jwtToken} is not valid, or it is null.
      */
     public Boolean isValid(@Nullable String jwtToken) {
-        if (jwtToken == null) {
+        // catching empty strings/null/whitespaces
+        if (jwtToken == null || jwtToken.trim().isEmpty()) {
             return false;
         }
 
         try {
             extractUserId(jwtToken);
             return true;
-        } catch (JwtException e) {
+        } catch (JwtException | IllegalArgumentException e) {
+            // catching illegal arguments
             return false;
         }
     }
