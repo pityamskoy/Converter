@@ -13,7 +13,6 @@ import org.springframework.mock.web.MockMultipartFile;
 import team.anonyms.converter.repositories.ModificationRepository;
 import team.anonyms.converter.repositories.PatternRepository;
 import team.anonyms.converter.services.frontend.ConversionFrontendService;
-import team.anonyms.converter.services.frontend.PatternService;
 
 import java.io.IOException;
 import java.nio.file.Files;

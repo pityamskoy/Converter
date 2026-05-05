@@ -64,9 +64,11 @@ class PatternServiceTest {
 
         Mockito.when(userRepository.existsById(userId)).thenReturn(false);
 
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
-            patternService.getAllPatternsByUserId(userId);
-        });
+        EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> patternService.getAllPatternsByUserId(userId)
+        );
+
         assertEquals("User not found; id=" + userId, exception.getMessage());
     }
 
@@ -123,9 +125,11 @@ class PatternServiceTest {
         );
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
-            patternService.createPattern(createDto);
-        });
+        EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> patternService.createPattern(createDto)
+        );
+
         assertEquals("User not found; id=" + userId, exception.getMessage());
     }
 
@@ -170,9 +174,11 @@ class PatternServiceTest {
         );
         Mockito.when(patternRepository.findById(patternId)).thenReturn(Optional.empty());
 
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
-            patternService.updatePattern(updateDto);
-        });
+        EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> patternService.updatePattern(updateDto)
+        );
+
         assertEquals("Pattern not found; id=" + patternId, exception.getMessage());
     }
 
@@ -197,9 +203,11 @@ class PatternServiceTest {
 
         Mockito.when(patternRepository.findById(patternId)).thenReturn(Optional.empty());
 
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
-            patternService.deletePattern(patternId);
-        });
+        EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> patternService.deletePattern(patternId)
+        );
+
         assertEquals("Pattern not found; patternId=" + patternId, exception.getMessage());
     }
 }

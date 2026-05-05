@@ -86,9 +86,7 @@ class UserServiceTest {
         User mockUser = Mockito.mock(User.class);
         Mockito.when(userRepository.findByEmail(dto.email())).thenReturn(Optional.of(mockUser));
 
-        assertThrows(EmailExistsException.class, () -> {
-            userService.register(dto);
-        });
+        assertThrows(EmailExistsException.class, () -> userService.register(dto));
     }
 
     @Test
@@ -137,9 +135,7 @@ class UserServiceTest {
 
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> {
-            userService.updateUser(updateDto);
-        });
+        assertThrows(EntityNotFoundException.class, () -> userService.updateUser(updateDto));
     }
 
     @Test
@@ -167,8 +163,6 @@ class UserServiceTest {
         UUID userId = UUID.randomUUID();
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> {
-            userService.deleteUser(userId);
-        });
+        assertThrows(EntityNotFoundException.class, () -> userService.deleteUser(userId));
     }
 }

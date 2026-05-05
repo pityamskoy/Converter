@@ -13,7 +13,6 @@ import team.anonyms.converter.dto.service.credentials.CredentialsServiceDto;
 import team.anonyms.converter.dto.service.credentials.LoginResultServiceDto;
 import team.anonyms.converter.entities.User;
 import team.anonyms.converter.repositories.UserRepository;
-import team.anonyms.converter.repositories.VerificationCodeRepository;
 import team.anonyms.converter.services.frontend.AuthenticationService;
 import team.anonyms.converter.services.frontend.JwtService;
 
@@ -28,9 +27,6 @@ class AuthenticationServiceTest {
 
     @Mock
     private UserRepository userRepository;
-
-    @Mock
-    private VerificationCodeRepository verificationCodeRepository;
 
     @Mock
     private BCryptPasswordEncoder passwordEncoder;
@@ -59,9 +55,10 @@ class AuthenticationServiceTest {
 
         Mockito.when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
-            authenticationService.login(credentials, null);
-        });
+        EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> authenticationService.login(credentials, null)
+        );
 
         assertTrue(exception.getMessage().contains("User not found; email=" + email));
     }
@@ -76,9 +73,10 @@ class AuthenticationServiceTest {
         Mockito.when(jwtService.extractUserId(fakeToken)).thenReturn(fakeId.toString());
         Mockito.when(userRepository.findById(fakeId)).thenReturn(Optional.empty());
 
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
-            authenticationService.login(credentials, fakeToken);
-        });
+        EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> authenticationService.login(credentials, fakeToken)
+        );
 
         assertTrue(exception.getMessage().contains("User not found; id=" + fakeId));
     }

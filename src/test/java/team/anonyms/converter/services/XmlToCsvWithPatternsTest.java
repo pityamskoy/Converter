@@ -87,9 +87,10 @@ class ConversionXmlToCsvTest {
         Mockito.when(patternRepository.findPatternById(patternId)).thenReturn(mockPattern);
         Mockito.when(modificationRepository.findAllByPatternId(patternId)).thenReturn(List.of(mockMod));
 
-        IllegalPatternException exception = assertThrows(IllegalPatternException.class, () -> {
-            conversionFrontendService.convertXmlFileToCsv(mockFile, patternId);
-        });
+        IllegalPatternException exception = assertThrows(
+                IllegalPatternException.class,
+                () -> conversionFrontendService.convertXmlFileToCsv(mockFile, patternId)
+        );
 
         assertTrue(exception.getMessage().contains("Modification with null or empty oldName and newName"));
     }

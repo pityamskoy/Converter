@@ -78,9 +78,10 @@ class ConversionFrontendServiceTest {
                 jsonContent.getBytes()
         );
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertJsonFileToCsv(brokenFile, null);
-        });
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> conversionFrontendService.convertJsonFileToCsv(brokenFile, null)
+        );
     }
 
     @Test
@@ -94,9 +95,10 @@ class ConversionFrontendServiceTest {
                 jsonContent.getBytes()
         );
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertJsonFileToCsv(brokenFile, null);
-        });
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> conversionFrontendService.convertJsonFileToCsv(brokenFile, null)
+        );
     }
 
     @Test
@@ -133,9 +135,11 @@ class ConversionFrontendServiceTest {
                 csvContent.getBytes()
         );
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertCsvFileToJson(brokenFile, null);
-        });
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> conversionFrontendService.convertCsvFileToJson(brokenFile, null)
+        );
+
         assertEquals("CSV file contains no rows to convert", exception.getMessage());
     }
 
@@ -146,9 +150,11 @@ class ConversionFrontendServiceTest {
         Mockito.when(brokenFile.isEmpty()).thenReturn(false);
         Mockito.when(brokenFile.getOriginalFilename()).thenReturn(null);
 
-        NullPointerException exception = assertThrows(NullPointerException.class, () -> {
-            conversionFrontendService.convertJsonFileToCsv(brokenFile, null);
-        });
+        NullPointerException exception = assertThrows(
+                NullPointerException.class,
+                () -> conversionFrontendService.convertJsonFileToCsv(brokenFile, null)
+        );
+
         assertEquals("filename is null", exception.getMessage());
     }
 
@@ -161,9 +167,10 @@ class ConversionFrontendServiceTest {
                 "data".getBytes()
         );
 
-        UnsupportedExtensionException exception = assertThrows(UnsupportedExtensionException.class, () -> {
-            conversionFrontendService.convertJsonFileToCsv(txtFile, null);
-        });
+        UnsupportedExtensionException exception = assertThrows(
+                UnsupportedExtensionException.class,
+                () -> conversionFrontendService.convertJsonFileToCsv(txtFile, null)
+        );
 
         assertEquals("Provided file doesn't have '.json' extension", exception.getMessage());
     }
@@ -212,9 +219,10 @@ class ConversionFrontendServiceTest {
                 jsonContent.getBytes()
         );
 
-        assertThrows(IOException.class, () -> {
-            conversionFrontendService.convertJsonFileToXml(brokenFile, null);
-        });
+        assertThrows(
+                IOException.class,
+                () -> conversionFrontendService.convertJsonFileToXml(brokenFile, null)
+        );
     }
 
     @Test
@@ -228,9 +236,10 @@ class ConversionFrontendServiceTest {
                 jsonContent.getBytes()
         );
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertJsonFileToXml(brokenFile, null);
-        });
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> conversionFrontendService.convertJsonFileToXml(brokenFile, null)
+        );
 
         assertEquals("JSON file contains no rows to convert", exception.getMessage());
     }
@@ -276,9 +285,10 @@ class ConversionFrontendServiceTest {
                 xmlContent.getBytes()
         );
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertXmlFileToJson(mockFile, null);
-        });
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> conversionFrontendService.convertXmlFileToJson(mockFile, null)
+        );
     }
 
     @Test
@@ -292,9 +302,10 @@ class ConversionFrontendServiceTest {
                 xmlContent.getBytes()
         );
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertXmlFileToJson(noRowsFile, null);
-        });
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> conversionFrontendService.convertXmlFileToJson(noRowsFile, null)
+        );
 
         assertEquals("XML file contains no rows to convert", exception.getMessage());
     }
@@ -334,9 +345,11 @@ class ConversionFrontendServiceTest {
                 csvContent.getBytes()
         );
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertCsvFileToXml(brokenFile, null);
-        });
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> conversionFrontendService.convertCsvFileToXml(brokenFile, null)
+        );
+
         assertEquals("CSV file contains no rows to convert", exception.getMessage());
     }
 
@@ -383,9 +396,10 @@ class ConversionFrontendServiceTest {
                 xmlContent.getBytes()
         );
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertXmlFileToCsv(mockFile, null);
-        });
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> conversionFrontendService.convertXmlFileToCsv(mockFile, null)
+        );
     }
 
     @Test
@@ -399,9 +413,10 @@ class ConversionFrontendServiceTest {
                 xmlContent.getBytes()
         );
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertXmlFileToCsv(noRowsFile, null);
-        });
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> conversionFrontendService.convertXmlFileToCsv(noRowsFile, null)
+        );
     }
 
     @Test
