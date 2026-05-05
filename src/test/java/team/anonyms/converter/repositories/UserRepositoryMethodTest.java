@@ -3,57 +3,62 @@ package team.anonyms.converter.repositories;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import team.anonyms.converter.entities.User;
+import team.anonyms.converter.services.frontend.AuthenticationService;
+import team.anonyms.converter.services.frontend.JwtService;
 
-import java.util.ArrayList;
 import java.util.Optional;
-import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-/*
-// тестовая дбшка нужна, чтобы не сорить в основную -
-// закидываем ее в память
-@SpringBootTest(properties = {
-        "spring.datasource.url=jdbc:h2:mem:testdb",
-        "spring.datasource.driver-class-name=org.h2.Driver"
-})
 
-// в рамках тестов для репозиториев написал только для этого,
-// ибо лишь у userrepository есть свой уникальный метод
+@SpringBootTest(
+        webEnvironment = SpringBootTest.WebEnvironment.NONE,
+        properties = {
+                "spring.datasource.url=jdbc:h2:mem:testdb",
+                "spring.datasource.driver-class-name=org.h2.Driver",
+                "spring.flyway.enabled=false",
+                "spring.jpa.hibernate.ddl-auto=create-drop",
+                "EMAIL_SENDER_ADDRESS=test@mail.com",
+                "app.mail.from=test@mail.com"
+        }
+)
+
 @Transactional
 class UserRepositoryMethodTest {
 
     @Autowired
     private UserRepository userRepository;
 
+    @MockitoBean
+    private JwtService jwtService;
+
+    @MockitoBean
+    private AuthenticationService authenticationService;
+
     @Test
     void testFindByEmail_Success() {
-        // создаем в бдшке экземпляр юзера
-        UUID userId = UUID.randomUUID();
-        User user = new User();
-        user.setId(userId);
-        user.setUsername("test_user");
-        user.setEmail("test@gmail.com");
-        user.setPassword("МЕГАСИГМАПАРОЛЬ");
-        user.setPatterns(new ArrayList<>());
+        User user = User.builder()
+                .username("test_user")
+                .email("test@gmail.com")
+                .password("МЕГАСИГМАПАРОЛЬ")
+                .isVerified(false)
+                .build();
 
-        // сохраняем и вызываем метод
         userRepository.save(user);
 
         Optional<User> foundUser = userRepository.findByEmail("test@gmail.com");
 
-        // проверка, что юзер есть и его имя совпадает
         assertTrue(foundUser.isPresent());
         assertEquals("test_user", foundUser.get().getUsername());
     }
 
     @Test
     void testFindByEmail_NotFound() {
-        // попытка найти несуществующего юзера
         Optional<User> foundUser = userRepository.findByEmail("not_exist@gmail.com");
 
         assertTrue(foundUser.isEmpty());
     }
-}*/
+}

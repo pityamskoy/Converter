@@ -11,6 +11,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.springframework.mock.web.MockMultipartFile;
 import team.anonyms.converter.repositories.ModificationRepository;
+import team.anonyms.converter.repositories.PatternRepository;
 import team.anonyms.converter.services.frontend.ConversionFrontendService;
 import team.anonyms.converter.services.frontend.PatternService;
 
@@ -23,13 +24,13 @@ import java.util.Map;
 import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-/*
+
 class ConversionFrontendMassTest {
-    private final PatternService patternService = Mockito.mock(PatternService.class);
+    private final PatternRepository patternRepository = Mockito.mock(PatternRepository.class);
     private final ModificationRepository modificationRepository = Mockito.mock(ModificationRepository.class);
 
     private final ConversionFrontendService service = new ConversionFrontendService(
-            patternService, modificationRepository, new JsonMapper(), new XmlMapper(), new CsvMapper()
+            patternRepository, modificationRepository, new JsonMapper(), new XmlMapper(), new CsvMapper()
     );
 
     private final ObjectMapper jsonMapper = new ObjectMapper();
@@ -149,4 +150,4 @@ class ConversionFrontendMassTest {
         assertCsvEquals(expected, actual);
         Files.deleteIfExists(actual);
     }
-}*/
+}

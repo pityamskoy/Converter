@@ -1,9 +1,30 @@
 package team.anonyms.converter.services;
 
-/*
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.springframework.mock.web.MockMultipartFile;
+import team.anonyms.converter.entities.Modification;
+import team.anonyms.converter.entities.Pattern;
+import team.anonyms.converter.exceptions.IllegalPatternException;
+import team.anonyms.converter.repositories.ModificationRepository;
+import team.anonyms.converter.repositories.PatternRepository;
+import team.anonyms.converter.services.frontend.ConversionFrontendService;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.List;
+import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.*;
+
 class ConversionCsvToJsonTest {
 
-    private PatternService patternService;
+    private PatternRepository patternRepository;
+    private ModificationRepository modificationRepository;
     private ConversionFrontendService conversionFrontendService;
 
     private MockMultipartFile mockFile;
@@ -17,14 +38,15 @@ class ConversionCsvToJsonTest {
 
     @BeforeEach
     void setUp() {
-        patternService = Mockito.mock(PatternService.class);
+        patternRepository = Mockito.mock(PatternRepository.class);
+        modificationRepository = Mockito.mock(ModificationRepository.class);
 
         JsonMapper jsonMapper = new JsonMapper();
         XmlMapper xmlMapper = new XmlMapper();
         CsvMapper csvMapper = new CsvMapper();
 
         conversionFrontendService = new ConversionFrontendService(
-                patternService, jsonMapper, xmlMapper, csvMapper
+                patternRepository, modificationRepository, jsonMapper, xmlMapper, csvMapper
         );
 
         mockFile = new MockMultipartFile(
@@ -39,48 +61,32 @@ class ConversionCsvToJsonTest {
     void testConvertCsvFileToJson_IllegalPatternException() {
         UUID patternId = UUID.randomUUID();
 
-        Modification modification = new Modification(
-                UUID.randomUUID(),
-                null,
-                null,
-                null,
-                null
-        );
+        Modification mockMod = Mockito.mock(Modification.class);
+        Pattern mockPattern = Mockito.mock(Pattern.class);
+        Mockito.when(mockPattern.getId()).thenReturn(patternId);
 
-        Pattern mockPattern = new Pattern(
-                patternId,
-                "Test Pattern",
-                List.of(modification)
-        );
-
-        Mockito.when(patternService.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(patternRepository.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(modificationRepository.findAllByPatternId(patternId)).thenReturn(List.of(mockMod));
 
         IllegalPatternException exception = assertThrows(IllegalPatternException.class, () -> {
             conversionFrontendService.convertCsvFileToJson(mockFile, patternId);
         });
-        assertEquals("Modification with null or empty oldName and newName was provided; " +
-                "modification=" + modification, exception.getMessage());
+
+        assertTrue(exception.getMessage().contains("Modification with null or empty oldName and newName"));
     }
 
     @Test
     void testConvertCsvFileToJson_NewField_Success() throws Exception {
         UUID patternId = UUID.randomUUID();
 
-        Modification modification = new Modification(
-                UUID.randomUUID(),
-                null,
-                "score",
-                null,
-                null
-        );
+        Modification mockMod = Mockito.mock(Modification.class);
+        Mockito.when(mockMod.getNewName()).thenReturn("score");
 
-        Pattern mockPattern = new Pattern(
-                patternId,
-                "Test Pattern",
-                new ArrayList<>(List.of(modification))
-        );
+        Pattern mockPattern = Mockito.mock(Pattern.class);
+        Mockito.when(mockPattern.getId()).thenReturn(patternId);
 
-        Mockito.when(patternService.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(patternRepository.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(modificationRepository.findAllByPatternId(patternId)).thenReturn(List.of(mockMod));
 
         Path resultJsonPath = conversionFrontendService.convertCsvFileToJson(mockFile, patternId);
         String resultJson = Files.readString(resultJsonPath);
@@ -94,21 +100,15 @@ class ConversionCsvToJsonTest {
     void testConvertCsvFileToJson_NewField_WithValue_Success() throws Exception {
         UUID patternId = UUID.randomUUID();
 
-        Modification modification = new Modification(
-                UUID.randomUUID(),
-                null,
-                "score",
-                null,
-                "50"
-        );
+        Modification mockMod = Mockito.mock(Modification.class);
+        Mockito.when(mockMod.getNewName()).thenReturn("score");
+        Mockito.when(mockMod.getNewValue()).thenReturn("50");
 
-        Pattern mockPattern = new Pattern(
-                patternId,
-                "Test Pattern",
-                new ArrayList<>(List.of(modification))
-        );
+        Pattern mockPattern = Mockito.mock(Pattern.class);
+        Mockito.when(mockPattern.getId()).thenReturn(patternId);
 
-        Mockito.when(patternService.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(patternRepository.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(modificationRepository.findAllByPatternId(patternId)).thenReturn(List.of(mockMod));
 
         Path resultJsonPath = conversionFrontendService.convertCsvFileToJson(mockFile, patternId);
         String resultJson = Files.readString(resultJsonPath);
@@ -123,21 +123,16 @@ class ConversionCsvToJsonTest {
     void testConvertCsvFileToJson_NewField_WithType_WithValue_Success() throws Exception {
         UUID patternId = UUID.randomUUID();
 
-        Modification modification = new Modification(
-                UUID.randomUUID(),
-                null,
-                "score",
-                "Integer",
-                "5267"
-        );
+        Modification mockMod = Mockito.mock(Modification.class);
+        Mockito.when(mockMod.getNewName()).thenReturn("score");
+        Mockito.when(mockMod.getNewType()).thenReturn("Integer");
+        Mockito.when(mockMod.getNewValue()).thenReturn("5267");
 
-        Pattern mockPattern = new Pattern(
-                patternId,
-                "Test Pattern",
-                new ArrayList<>(List.of(modification))
-        );
+        Pattern mockPattern = Mockito.mock(Pattern.class);
+        Mockito.when(mockPattern.getId()).thenReturn(patternId);
 
-        Mockito.when(patternService.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(patternRepository.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(modificationRepository.findAllByPatternId(patternId)).thenReturn(List.of(mockMod));
 
         Path resultJsonPath = conversionFrontendService.convertCsvFileToJson(mockFile, patternId);
         String resultJson = Files.readString(resultJsonPath);
@@ -152,21 +147,14 @@ class ConversionCsvToJsonTest {
     void testConvertCsvFileToJson_RemoveField_Success() throws Exception {
         UUID patternId = UUID.randomUUID();
 
-        Modification modification = new Modification(
-                UUID.randomUUID(),
-                "age",
-                null,
-                null,
-                null
-        );
+        Modification mockMod = Mockito.mock(Modification.class);
+        Mockito.when(mockMod.getOldName()).thenReturn("age");
 
-        Pattern mockPattern = new Pattern(
-                patternId,
-                "Test Pattern",
-                new ArrayList<>(List.of(modification))
-        );
+        Pattern mockPattern = Mockito.mock(Pattern.class);
+        Mockito.when(mockPattern.getId()).thenReturn(patternId);
 
-        Mockito.when(patternService.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(patternRepository.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(modificationRepository.findAllByPatternId(patternId)).thenReturn(List.of(mockMod));
 
         Path resultJsonPath = conversionFrontendService.convertCsvFileToJson(mockFile, patternId);
         String resultJson = Files.readString(resultJsonPath);
@@ -180,21 +168,15 @@ class ConversionCsvToJsonTest {
     void testConvertCsvFileToJson_ChangeValue_Success() throws Exception {
         UUID patternId = UUID.randomUUID();
 
-        Modification modification = new Modification(
-                UUID.randomUUID(),
-                "age",
-                null,
-                null,
-                "48"
-        );
+        Modification mockMod = Mockito.mock(Modification.class);
+        Mockito.when(mockMod.getOldName()).thenReturn("age");
+        Mockito.when(mockMod.getNewValue()).thenReturn("48");
 
-        Pattern mockPattern = new Pattern(
-                patternId,
-                "Test Pattern",
-                new ArrayList<>(List.of(modification))
-        );
+        Pattern mockPattern = Mockito.mock(Pattern.class);
+        Mockito.when(mockPattern.getId()).thenReturn(patternId);
 
-        Mockito.when(patternService.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(patternRepository.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(modificationRepository.findAllByPatternId(patternId)).thenReturn(List.of(mockMod));
 
         Path resultJsonPath = conversionFrontendService.convertCsvFileToJson(mockFile, patternId);
         String resultJson = Files.readString(resultJsonPath);
@@ -208,21 +190,15 @@ class ConversionCsvToJsonTest {
     void testConvertCsvFileToJson_ChangeType_Success() throws Exception {
         UUID patternId = UUID.randomUUID();
 
-        Modification modification = new Modification(
-                UUID.randomUUID(),
-                "value",
-                null,
-                "Boolean",
-                null
-        );
+        Modification mockMod = Mockito.mock(Modification.class);
+        Mockito.when(mockMod.getOldName()).thenReturn("value");
+        Mockito.when(mockMod.getNewType()).thenReturn("Boolean");
 
-        Pattern mockPattern = new Pattern(
-                patternId,
-                "Test Pattern",
-                new ArrayList<>(List.of(modification))
-        );
+        Pattern mockPattern = Mockito.mock(Pattern.class);
+        Mockito.when(mockPattern.getId()).thenReturn(patternId);
 
-        Mockito.when(patternService.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(patternRepository.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(modificationRepository.findAllByPatternId(patternId)).thenReturn(List.of(mockMod));
 
         Path resultJsonPath = conversionFrontendService.convertCsvFileToJson(mockFile, patternId);
         String resultJson = Files.readString(resultJsonPath);
@@ -237,21 +213,16 @@ class ConversionCsvToJsonTest {
     void testConvertCsvFileToJson_ChangeType_ChangeValue_Success() throws Exception {
         UUID patternId = UUID.randomUUID();
 
-        Modification modification = new Modification(
-                UUID.randomUUID(),
-                "age",
-                null,
-                "Boolean",
-                "true"
-        );
+        Modification mockMod = Mockito.mock(Modification.class);
+        Mockito.when(mockMod.getOldName()).thenReturn("age");
+        Mockito.when(mockMod.getNewType()).thenReturn("Boolean");
+        Mockito.when(mockMod.getNewValue()).thenReturn("true");
 
-        Pattern mockPattern = new Pattern(
-                patternId,
-                "Test Pattern",
-                new ArrayList<>(List.of(modification))
-        );
+        Pattern mockPattern = Mockito.mock(Pattern.class);
+        Mockito.when(mockPattern.getId()).thenReturn(patternId);
 
-        Mockito.when(patternService.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(patternRepository.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(modificationRepository.findAllByPatternId(patternId)).thenReturn(List.of(mockMod));
 
         Path resultJsonPath = conversionFrontendService.convertCsvFileToJson(mockFile, patternId);
         String resultJson = Files.readString(resultJsonPath);
@@ -266,21 +237,15 @@ class ConversionCsvToJsonTest {
     void testConvertCsvFileToJson_RenameField_Success() throws Exception {
         UUID patternId = UUID.randomUUID();
 
-        Modification modification = new Modification(
-                UUID.randomUUID(),
-                "age",
-                "years_old",
-                null,
-                null
-        );
+        Modification mockMod = Mockito.mock(Modification.class);
+        Mockito.when(mockMod.getOldName()).thenReturn("age");
+        Mockito.when(mockMod.getNewName()).thenReturn("years_old");
 
-        Pattern mockPattern = new Pattern(
-                patternId,
-                "Test Pattern",
-                new ArrayList<>(List.of(modification))
-        );
+        Pattern mockPattern = Mockito.mock(Pattern.class);
+        Mockito.when(mockPattern.getId()).thenReturn(patternId);
 
-        Mockito.when(patternService.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(patternRepository.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(modificationRepository.findAllByPatternId(patternId)).thenReturn(List.of(mockMod));
 
         Path resultJsonPath = conversionFrontendService.convertCsvFileToJson(mockFile, patternId);
         String resultJson = Files.readString(resultJsonPath);
@@ -296,21 +261,16 @@ class ConversionCsvToJsonTest {
     void testConvertCsvFileToJson_RenameField_ChangeType_Success() throws Exception {
         UUID patternId = UUID.randomUUID();
 
-        Modification modification = new Modification(
-                UUID.randomUUID(),
-                "value",
-                "is_passed",
-                "Boolean",
-                null
-        );
+        Modification mockMod = Mockito.mock(Modification.class);
+        Mockito.when(mockMod.getOldName()).thenReturn("value");
+        Mockito.when(mockMod.getNewName()).thenReturn("is_passed");
+        Mockito.when(mockMod.getNewType()).thenReturn("Boolean");
 
-        Pattern mockPattern = new Pattern(
-                patternId,
-                "Test Pattern",
-                new ArrayList<>(List.of(modification))
-        );
+        Pattern mockPattern = Mockito.mock(Pattern.class);
+        Mockito.when(mockPattern.getId()).thenReturn(patternId);
 
-        Mockito.when(patternService.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(patternRepository.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(modificationRepository.findAllByPatternId(patternId)).thenReturn(List.of(mockMod));
 
         Path resultJsonPath = conversionFrontendService.convertCsvFileToJson(mockFile, patternId);
         String resultJson = Files.readString(resultJsonPath);
@@ -327,21 +287,16 @@ class ConversionCsvToJsonTest {
     void testConvertCsvFileToJson_RenameField_ChangeValue_Success() throws Exception {
         UUID patternId = UUID.randomUUID();
 
-        Modification modification = new Modification(
-                UUID.randomUUID(),
-                "name",
-                "nickname",
-                null,
-                "OlegMongol"
-        );
+        Modification mockMod = Mockito.mock(Modification.class);
+        Mockito.when(mockMod.getOldName()).thenReturn("name");
+        Mockito.when(mockMod.getNewName()).thenReturn("nickname");
+        Mockito.when(mockMod.getNewValue()).thenReturn("OlegMongol");
 
-        Pattern mockPattern = new Pattern(
-                patternId,
-                "Test Pattern",
-                new ArrayList<>(List.of(modification))
-        );
+        Pattern mockPattern = Mockito.mock(Pattern.class);
+        Mockito.when(mockPattern.getId()).thenReturn(patternId);
 
-        Mockito.when(patternService.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(patternRepository.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(modificationRepository.findAllByPatternId(patternId)).thenReturn(List.of(mockMod));
 
         Path resultJsonPath = conversionFrontendService.convertCsvFileToJson(mockFile, patternId);
         String resultJson = Files.readString(resultJsonPath);
@@ -361,21 +316,17 @@ class ConversionCsvToJsonTest {
     void testConvertCsvFileToJson_RenameField_ChangeType_ChangeValue_Success() throws Exception {
         UUID patternId = UUID.randomUUID();
 
-        Modification modification = new Modification(
-                UUID.randomUUID(),
-                "age",
-                "BOOL",
-                "Float",
-                "50.5"
-        );
+        Modification mockMod = Mockito.mock(Modification.class);
+        Mockito.when(mockMod.getOldName()).thenReturn("age");
+        Mockito.when(mockMod.getNewName()).thenReturn("BOOL");
+        Mockito.when(mockMod.getNewType()).thenReturn("Float");
+        Mockito.when(mockMod.getNewValue()).thenReturn("50.5");
 
-        Pattern mockPattern = new Pattern(
-                patternId,
-                "Test Pattern",
-                List.of(modification)
-        );
+        Pattern mockPattern = Mockito.mock(Pattern.class);
+        Mockito.when(mockPattern.getId()).thenReturn(patternId);
 
-        Mockito.when(patternService.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(patternRepository.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(modificationRepository.findAllByPatternId(patternId)).thenReturn(List.of(mockMod));
 
         Path resultJsonPath = conversionFrontendService.convertCsvFileToJson(mockFile, patternId);
         String resultJson = Files.readString(resultJsonPath);
@@ -391,29 +342,22 @@ class ConversionCsvToJsonTest {
     void testConvertCsvFileToJson_MultipleModifications_Success() throws Exception {
         UUID patternId = UUID.randomUUID();
 
-        Modification modification_first = new Modification(
-                UUID.randomUUID(),
-                "age",
-                null,
-                "Boolean",
-                "true"
-        );
+        Modification mockModFirst = Mockito.mock(Modification.class);
+        Mockito.when(mockModFirst.getOldName()).thenReturn("age");
+        Mockito.when(mockModFirst.getNewType()).thenReturn("Boolean");
+        Mockito.when(mockModFirst.getNewValue()).thenReturn("true");
 
-        Modification modification_second = new Modification(
-                UUID.randomUUID(),
-                null,
-                "grade",
-                "Integer",
-                "5"
-        );
+        Modification mockModSecond = Mockito.mock(Modification.class);
+        Mockito.when(mockModSecond.getNewName()).thenReturn("grade");
+        Mockito.when(mockModSecond.getNewType()).thenReturn("Integer");
+        Mockito.when(mockModSecond.getNewValue()).thenReturn("5");
 
-        Pattern mockPattern = new Pattern(
-                patternId,
-                "Test Pattern",
-                new ArrayList<>(List.of(modification_first, modification_second))
-        );
+        Pattern mockPattern = Mockito.mock(Pattern.class);
+        Mockito.when(mockPattern.getId()).thenReturn(patternId);
 
-        Mockito.when(patternService.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(patternRepository.findPatternById(patternId)).thenReturn(mockPattern);
+        Mockito.when(modificationRepository.findAllByPatternId(patternId))
+                .thenReturn(List.of(mockModFirst, mockModSecond));
 
         Path resultJsonPath = conversionFrontendService.convertCsvFileToJson(mockFile, patternId);
         String resultJson = Files.readString(resultJsonPath);
@@ -425,4 +369,4 @@ class ConversionCsvToJsonTest {
 
         Files.deleteIfExists(resultJsonPath);
     }
-}*/
+}

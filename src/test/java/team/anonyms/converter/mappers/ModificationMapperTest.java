@@ -1,59 +1,60 @@
 package team.anonyms.converter.mappers;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import team.anonyms.converter.dto.controller.modification.ModificationControllerDto;
 import team.anonyms.converter.dto.controller.modification.ModificationToCreateControllerDto;
+import team.anonyms.converter.dto.controller.modification.ModificationToUpdateControllerDto;
 import team.anonyms.converter.dto.service.modification.ModificationServiceDto;
 import team.anonyms.converter.dto.service.modification.ModificationToCreateServiceDto;
+import team.anonyms.converter.dto.service.modification.ModificationToUpdateServiceDto;
 import team.anonyms.converter.entities.Modification;
+import team.anonyms.converter.entities.Pattern;
 
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-/*
+import static org.junit.jupiter.api.Assertions.assertNull;
+
 class ModificationMapperTest {
 
     private final ModificationMapper mapper = new ModificationMapper();
-
-    // по сути, тут везде прогон объектов туда-сюда через маппер и проверка, что с ними все норм
-    // везде все одинаково во всех 6 методах
-
-    @Test
-    void testModificationControllerDtoToServiceDto() {
-        UUID id = UUID.randomUUID();
-        ModificationControllerDto controllerDto = new ModificationControllerDto(
-                id,
-                "old",
-                "new",
-                "type",
-                "value"
-        );
-
-        ModificationServiceDto serviceDto = mapper.modificationControllerDtoToServiceDto(controllerDto);
-
-        assertEquals(id, serviceDto.id());
-        assertEquals("old", serviceDto.oldName());
-        assertEquals("new", serviceDto.newName());
-        assertEquals("type", serviceDto.newType());
-        assertEquals("value", serviceDto.newValue());
-    }
 
     @Test
     void testModificationToCreateControllerDtoToService() {
         ModificationToCreateControllerDto controllerDto = new ModificationToCreateControllerDto(
                 "old",
                 "new",
-                "type",
-                "value"
+                "value",
+                "type"
         );
 
         ModificationToCreateServiceDto serviceDto = mapper.modificationToCreateControllerDtoToService(controllerDto);
 
         assertEquals("old", serviceDto.oldName());
         assertEquals("new", serviceDto.newName());
-        assertEquals("type", serviceDto.newType());
         assertEquals("value", serviceDto.newValue());
+        assertEquals("type", serviceDto.newType());
+    }
+
+    @Test
+    void testModificationToUpdateControllerDtoToService() {
+        UUID id = UUID.randomUUID();
+        ModificationToUpdateControllerDto controllerDto = new ModificationToUpdateControllerDto(
+                id,
+                "old",
+                "new",
+                "value",
+                "type"
+        );
+
+        ModificationToUpdateServiceDto serviceDto = mapper.modificationToUpdateControllerDtoToService(controllerDto);
+
+        assertEquals(id, serviceDto.id());
+        assertEquals("old", serviceDto.oldName());
+        assertEquals("new", serviceDto.newName());
+        assertEquals("value", serviceDto.newValue());
+        assertEquals("type", serviceDto.newType());
     }
 
     @Test
@@ -63,8 +64,8 @@ class ModificationMapperTest {
                 id,
                 "old",
                 "new",
-                "type",
-                "value"
+                "value",
+                "type"
         );
 
         ModificationControllerDto controllerDto = mapper.modificationServiceDtoToControllerDto(serviceDto);
@@ -72,28 +73,8 @@ class ModificationMapperTest {
         assertEquals(id, controllerDto.id());
         assertEquals("old", controllerDto.oldName());
         assertEquals("new", controllerDto.newName());
-        assertEquals("type", controllerDto.newType());
         assertEquals("value", controllerDto.newValue());
-    }
-
-    @Test
-    void testModificationServiceDtoToEntity() {
-        UUID id = UUID.randomUUID();
-        ModificationServiceDto serviceDto = new ModificationServiceDto(
-                id,
-                "old",
-                "new",
-                "type",
-                "value"
-        );
-
-        Modification entity = mapper.modificationServiceDtoToEntity(serviceDto);
-
-        assertEquals(id, entity.getId());
-        assertEquals("old", entity.getOldName());
-        assertEquals("new", entity.getNewName());
-        assertEquals("type", entity.getNewType());
-        assertEquals("value", entity.getNewValue());
+        assertEquals("type", controllerDto.newType());
     }
 
     @Test
@@ -101,28 +82,57 @@ class ModificationMapperTest {
         ModificationToCreateServiceDto serviceDto = new ModificationToCreateServiceDto(
                 "old",
                 "new",
-                "type",
-                "value"
+                "value",
+                "type"
         );
 
-        Modification entity = mapper.modificationToCreateServiceDtoToEntity(serviceDto);
+        Pattern mockPattern = Mockito.mock(Pattern.class);
 
-        assertNotNull(entity.getId());
+        Modification entity = mapper.modificationToCreateServiceDtoToEntity(serviceDto, mockPattern);
 
+        assertNull(entity.getId());
         assertEquals("old", entity.getOldName());
         assertEquals("new", entity.getNewName());
-        assertEquals("type", entity.getNewType());
         assertEquals("value", entity.getNewValue());
+        assertEquals("type", entity.getNewType());
+        assertEquals(mockPattern, entity.getPattern());
+    }
+
+    @Test
+    void testModificationToUpdateServiceDtoToEntity() {
+        UUID id = UUID.randomUUID();
+        ModificationToUpdateServiceDto serviceDto = new ModificationToUpdateServiceDto(
+                id,
+                "old",
+                "new",
+                "value",
+                "type"
+        );
+
+        Pattern mockPattern = Mockito.mock(Pattern.class);
+
+        Modification entity = mapper.modificationToUpdateServiceDtoToEntity(serviceDto, mockPattern);
+
+        assertEquals(id, entity.getId());
+        assertEquals("old", entity.getOldName());
+        assertEquals("new", entity.getNewName());
+        assertEquals("value", entity.getNewValue());
+        assertEquals("type", entity.getNewType());
+        assertEquals(mockPattern, entity.getPattern());
     }
 
     @Test
     void testModificationToServiceDto() {
         UUID id = UUID.randomUUID();
-        Modification entity = new Modification(id,
+        Pattern mockPattern = Mockito.mock(Pattern.class);
+
+        Modification entity = new Modification(
+                id,
                 "old",
                 "new",
+                "value",
                 "type",
-                "value"
+                mockPattern
         );
 
         ModificationServiceDto serviceDto = mapper.modificationToServiceDto(entity);
@@ -130,7 +140,7 @@ class ModificationMapperTest {
         assertEquals(id, serviceDto.id());
         assertEquals("old", serviceDto.oldName());
         assertEquals("new", serviceDto.newName());
-        assertEquals("type", serviceDto.newType());
         assertEquals("value", serviceDto.newValue());
+        assertEquals("type", serviceDto.newType());
     }
-}*/
+}

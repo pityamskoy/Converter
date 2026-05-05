@@ -1,6 +1,5 @@
 package team.anonyms.converter.mappers;
 
-import jakarta.persistence.EntityNotFoundException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -9,46 +8,26 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import team.anonyms.converter.dto.controller.pattern.PatternControllerDto;
 import team.anonyms.converter.dto.controller.pattern.PatternToCreateControllerDto;
+import team.anonyms.converter.dto.controller.pattern.PatternToUpdateControllerDto;
 import team.anonyms.converter.dto.service.pattern.PatternServiceDto;
 import team.anonyms.converter.dto.service.pattern.PatternToCreateServiceDto;
+import team.anonyms.converter.dto.service.pattern.PatternToUpdateServiceDto;
 import team.anonyms.converter.entities.Pattern;
-import team.anonyms.converter.repositories.PatternRepository;
+import team.anonyms.converter.entities.User;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-/*
+
 @ExtendWith(MockitoExtension.class)
 class PatternMapperTest {
 
-    // надо замокать, оно есть в PatternMapper. Иначе будут null-указатели
     @Mock
     private ModificationMapper modificationMapper;
 
-    @Mock
-    private PatternRepository patternRepository;
-
-    // mockito запихнет маппер сюда сам
     @InjectMocks
     private PatternMapper patternMapper;
-
-    // а дальше также прогоняем поля во всех функциях, чтобы дтошки сервисов
-    // возвращали дтошки контроллеров
-    @Test
-    void testPatternControllerDtoToServiceDto() {
-        UUID id = UUID.randomUUID();
-        PatternControllerDto controllerDto = new PatternControllerDto(
-                id,
-                "Pattern1"
-        );
-
-        PatternServiceDto serviceDto = patternMapper.patternControllerDtoToServiceDto(controllerDto);
-
-        assertEquals(id, serviceDto.id());
-        assertEquals("Pattern1", serviceDto.name());
-    }
 
     @Test
     void testPatternToCreateControllerDtoToService() {
@@ -63,6 +42,23 @@ class PatternMapperTest {
 
         assertEquals(userId, serviceDto.userId());
         assertEquals("Pattern1", serviceDto.name());
+        assertTrue(serviceDto.modifications().isEmpty());
+    }
+
+    @Test
+    void testPatternToUpdateControllerDtoToService() {
+        UUID id = UUID.randomUUID();
+        PatternToUpdateControllerDto controllerDto = new PatternToUpdateControllerDto(
+                id,
+                "Pattern1",
+                List.of()
+        );
+
+        PatternToUpdateServiceDto serviceDto = patternMapper.patternToUpdateControllerDtoToService(controllerDto);
+
+        assertEquals(id, serviceDto.id());
+        assertEquals("Pattern1", serviceDto.name());
+        assertTrue(serviceDto.modifications().isEmpty());
     }
 
     @Test
@@ -80,27 +76,6 @@ class PatternMapperTest {
     }
 
     @Test
-    void testPatternServiceDtoToEntity() {
-        UUID id = UUID.randomUUID();
-        PatternServiceDto serviceDto = new PatternServiceDto(
-                id,
-                "Pattern1"
-        );
-
-        Pattern entityToSave = new Pattern(id, "Pattern1", List.of());
-
-
-        Mockito.when(patternRepository.findById(id)).thenReturn(Optional.of(entityToSave));
-        Pattern entity = patternMapper.patternServiceDtoToEntity(serviceDto);
-
-        assertEquals(id, entity.getId());
-        assertEquals("Pattern1", entity.getName());
-
-
-        assert(true);
-    }
-
-    @Test
     void testPatternToCreateServiceDtoToEntity() {
         UUID userId = UUID.randomUUID();
         PatternToCreateServiceDto serviceDto = new PatternToCreateServiceDto(
@@ -109,38 +84,26 @@ class PatternMapperTest {
                 List.of()
         );
 
-        Pattern entity = patternMapper.patternToCreateServiceDtoToEntity(serviceDto);
+        User mockUser = Mockito.mock(User.class);
 
-        assertNotNull(entity.getId());
+        Pattern entity = patternMapper.patternToCreateServiceDtoToEntity(serviceDto, mockUser);
+
+        assertNull(entity.getId());
         assertEquals("Pattern1", entity.getName());
+        assertEquals(mockUser, entity.getUser());
     }
 
     @Test
     void testPatternToServiceDto() {
         UUID id = UUID.randomUUID();
-        Pattern entity = new Pattern(
-                id,
-                "Pattern1",
-                List.of());
 
-        PatternServiceDto serviceDto = patternMapper.patternToServiceDto(entity);
+        Pattern mockEntity = Mockito.mock(Pattern.class);
+        Mockito.when(mockEntity.getId()).thenReturn(id);
+        Mockito.when(mockEntity.getName()).thenReturn("Pattern1");
+
+        PatternServiceDto serviceDto = patternMapper.patternToServiceDto(mockEntity);
 
         assertEquals(id, serviceDto.id());
         assertEquals("Pattern1", serviceDto.name());
     }
-
-    @Test
-    void testPatternServiceDtoToEntity_ThrowsEntityNotFound() {
-        UUID id = UUID.randomUUID();
-        PatternServiceDto serviceDto = new PatternServiceDto(id, "Pattern1");
-
-        Mockito.when(patternRepository.findById(id)).thenReturn(Optional.empty());
-
-        EntityNotFoundException exception = assertThrows(
-                EntityNotFoundException.class,
-                () -> patternMapper.patternServiceDtoToEntity(serviceDto)
-        );
-
-        assertEquals("Pattern not found; id=" + id, exception.getMessage());
-    }
-}*/
+}

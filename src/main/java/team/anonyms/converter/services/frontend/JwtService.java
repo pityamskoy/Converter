@@ -27,7 +27,7 @@ public class JwtService {
             : "dGhpc2lzYXN1cGVyc2VjcmV0a2V5dGhhdGlzYXRsZWFzdDMyYnl0ZXNsb25n";
 
     // Secret key for validating or creating JWT tokens
-    private static final SecretKey KEY = Keys.hmacShaKeyFor(Decoders.BASE64.decode(System.getenv("JWT_SECRET")));
+    private static final SecretKey KEY = Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET));
 
     /**
      * <p>

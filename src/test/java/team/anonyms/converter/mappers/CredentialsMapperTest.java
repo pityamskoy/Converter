@@ -8,7 +8,7 @@ import team.anonyms.converter.dto.service.credentials.LoginResultServiceDto;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-/*
+
 class CredentialsMapperTest {
     private final CredentialsMapper mapper = new CredentialsMapper();
 
@@ -17,8 +17,7 @@ class CredentialsMapperTest {
     void testCredentialsControllerDtoToService() {
         CredentialsControllerDto controllerDto = new CredentialsControllerDto(
                 "test@gmail.com",
-                "krutoy_parol123",
-                "new.jwt.token"
+                "krutoy_parol123"
         );
 
         CredentialsServiceDto serviceDto = mapper.credentialsControllerDtoToService(controllerDto);
@@ -33,12 +32,11 @@ class CredentialsMapperTest {
         UUID fakeUserId = UUID.randomUUID();
         String fakeUsername = "fakeUsername";
         String fakeEmail = "fakeEmail";
-        String fakeToken = "new.jwt.token";
-        LoginResultServiceDto serviceDto = new LoginResultServiceDto(true, fakeUsername, fakeEmail, fakeUserId, fakeToken);
+        LoginResultServiceDto serviceDto = new LoginResultServiceDto(true, fakeUsername, fakeEmail, fakeUserId);
 
         LoginResultControllerDto controllerDto = mapper.loginResultServiceDtoToController(serviceDto);
 
         assertEquals(true, controllerDto.success());
         assertEquals(fakeUserId, controllerDto.userId());
     }
-}*/
+}
