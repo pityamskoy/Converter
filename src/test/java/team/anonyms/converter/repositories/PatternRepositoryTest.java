@@ -87,9 +87,10 @@ class PatternRepositoryTest {
     void testFindPatternById_NotFound_ThrowsEntityNotFoundException() {
         UUID nonExistentId = UUID.randomUUID();
 
-        JpaObjectRetrievalFailureException exception = assertThrows(JpaObjectRetrievalFailureException.class, () -> {
-            patternRepository.findPatternById(nonExistentId);
-        });
+        JpaObjectRetrievalFailureException exception = assertThrows(
+                JpaObjectRetrievalFailureException.class,
+                () -> patternRepository.findPatternById(nonExistentId)
+        );
 
         assertTrue(exception.getMessage().contains("Pattern not found; id=" + nonExistentId));
     }
