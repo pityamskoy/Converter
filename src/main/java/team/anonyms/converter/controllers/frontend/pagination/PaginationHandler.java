@@ -8,21 +8,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * <p>
- *     This class is dedicated to handle all methods associated with pagination.
- * </p>
- *
- * @param <Objects> any objects to handle.
+ * @param <T> the type of elements to paginate.
  */
 @Component
-public class PaginationHandler<Objects> {
+public class PaginationHandler<T> {
     private static final Logger logger = LoggerFactory.getLogger(PaginationHandler.class);
 
     /**
-     * <p>
-     *     This method makes a slice from the provided list of any objects.
-     * </p>
-     *
      * @param objectsToMakeSlice any objects to make slice.
      * @param offset number of page.
      * @param limit number of elements per page.
@@ -30,8 +22,8 @@ public class PaginationHandler<Objects> {
      * @return a slice of {@code objectsToMakeSlice}. Note, that this method returns the empty slice
      * if {@code offset} is negative or is more than the offset of the last available slice of provided elements.
      */
-    public List<Objects> makeSliceFromList(List<Objects> objectsToMakeSlice, int offset, int limit) {
-        List<Objects> slice = new ArrayList<>();
+    public List<T> makeSliceFromList(List<T> objectsToMakeSlice, int offset, int limit) {
+        List<T> slice = new ArrayList<>();
 
         if (offset < 1) {
             logger.info("Offset must be positive; offset={}", offset);
