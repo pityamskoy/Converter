@@ -33,6 +33,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+// Update needed
 @WebMvcTest(UserController.class)
 @ContextConfiguration(classes = {UserController.class, GlobalExceptionHandler.class})
 @AutoConfigureMockMvc(addFilters = false)
@@ -103,14 +104,12 @@ class UserControllerTest {
         UserToUpdateControllerDto requestDto = new UserToUpdateControllerDto(
                 userId,
                 "newname",
-                "new@gmail.com",
                 "test password"
         );
 
         UserToUpdateServiceDto serviceRequestDto = new UserToUpdateServiceDto(
                 userId,
                 "newname",
-                "new@gmail.com",
                 "test password"
         );
 

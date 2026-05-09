@@ -2,9 +2,8 @@ package team.anonyms.converter.dto.controller.user;
 
 import java.util.UUID;
 
-public record UserToUpdateControllerDto(
+public record UserToUpdateEmailControllerDto(
         UUID id,
-        String username,
-        String password
+        String email
 ) {
 }

@@ -6,7 +6,14 @@ CREATE TABLE users(
     is_verified BOOLEAN NOT NULL
 );
 
-CREATE TABLE verification_codes(
+CREATE TABLE email_verification_codes(
+    id BIGSERIAL PRIMARY KEY,
+    code VARCHAR(6) NOT NULL,
+    expiration TIMESTAMP NOT NULL,
+    user_id UUID NOT NULL UNIQUE REFERENCES users(id)
+);
+
+CREATE TABLE password_reset_verification_codes(
     id BIGSERIAL PRIMARY KEY,
     code VARCHAR(6) NOT NULL,
     expiration TIMESTAMP NOT NULL,

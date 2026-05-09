@@ -20,7 +20,7 @@ import team.anonyms.converter.mappers.UserMapper;
 import team.anonyms.converter.repositories.ModificationRepository;
 import team.anonyms.converter.repositories.PatternRepository;
 import team.anonyms.converter.repositories.UserRepository;
-import team.anonyms.converter.repositories.VerificationCodeRepository;
+import team.anonyms.converter.repositories.codes.EmailVerificationCodeRepository;
 import team.anonyms.converter.services.frontend.EmailService;
 import team.anonyms.converter.services.frontend.JwtService;
 import team.anonyms.converter.services.frontend.UserService;
@@ -31,6 +31,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// Update needed
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
@@ -41,7 +42,7 @@ class UserServiceTest {
     @Mock
     private UserRepository userRepository;
     @Mock
-    private VerificationCodeRepository verificationCodeRepository;
+    private EmailVerificationCodeRepository emailVerificationCodeRepository;
     @Mock
     private PatternRepository patternRepository;
     @Mock
@@ -75,7 +76,7 @@ class UserServiceTest {
         assertTrue(result.a.success());
         assertEquals("jwt.token.here", result.b);
 
-        Mockito.verify(emailService).sendVerificationCode(mockUser);
+        Mockito.verify(emailService).sendEmailVerificationCode(mockUser);
         Mockito.verify(mockUser).setPassword("encoded_pass");
     }
 
@@ -95,7 +96,6 @@ class UserServiceTest {
         UserToUpdateServiceDto updateDto = new UserToUpdateServiceDto(
                 userId,
                 "new_user",
-                "new@gmail.com",
                 "newpass"
         );
 
@@ -117,7 +117,6 @@ class UserServiceTest {
         assertEquals("new_user", result.username());
 
         Mockito.verify(mockUser).setUsername("new_user");
-        Mockito.verify(mockUser).setEmail("new@gmail.com");
         Mockito.verify(mockUser).setPassword("encoded_newpass");
 
         Mockito.verify(userRepository).save(mockUser);
@@ -129,7 +128,6 @@ class UserServiceTest {
         UserToUpdateServiceDto updateDto = new UserToUpdateServiceDto(
                 userId,
                 "name",
-                "mail",
                 "МЕГАНАИКРУТЕЙШИЙСИГМАПАССВОРД"
         );
 
@@ -154,7 +152,7 @@ class UserServiceTest {
 
         Mockito.verify(modificationRepository).deleteAllByPatternId(patternId);
         Mockito.verify(patternRepository).deleteAllByUserId(userId);
-        Mockito.verify(verificationCodeRepository).deleteByUserId(userId);
+        Mockito.verify(emailVerificationCodeRepository).deleteByUserId(userId);
         Mockito.verify(userRepository).delete(mockUser);
     }
 

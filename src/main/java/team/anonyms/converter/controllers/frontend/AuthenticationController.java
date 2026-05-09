@@ -1,10 +1,11 @@
 package team.anonyms.converter.controllers.frontend;
 
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import org.antlr.v4.runtime.misc.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -51,54 +52,69 @@ public class AuthenticationController {
                 jwtToken
         );
 
-        Cookie cookie = new Cookie("jwtToken", result.b);
-        cookie.setPath("/");
-        cookie.setMaxAge(14400);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        ResponseCookie responseCookie = ResponseCookie.from("jwtToken", result.b)
+                .path("/")
+                .maxAge(14400)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Strict")
+                .build();
 
-        response.addCookie(cookie);
+        response.addHeader(HttpHeaders.SET_COOKIE, responseCookie.toString());
         return ResponseEntity.ok(credentialsMapper.loginResultServiceDtoToController(result.a));
     }
 
-    @PostMapping("/verification")
+    @PostMapping("/email/resending")
+    public ResponseEntity<Void> resendVerificationCode() {
+        logger.info("Called resendVerificationCode");
+
+        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        emailService.sendEmailVerificationCode(userId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/email/verification")
     public ResponseEntity<Boolean> verifyEmail(@RequestBody String verificationCode) {
-        logger.info("Called verification");
+        logger.info("Called verifyEmail");
 
         UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         return ResponseEntity.ok(authenticationService.verifyEmail(userId, verificationCode));
     }
 
-    @PostMapping("/resending")
-    public ResponseEntity<Void> resendVerificationCode() {
-        logger.info("Called resendVerificationCode");
-
-        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        emailService.sendVerificationCode(userId);
-
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/reset")
-    // Temporal plug
-    public ResponseEntity<Void> sendVerificationCodeForPasswordReset() {
+    @PostMapping("/password/reset")
+    public ResponseEntity<Void> sendPasswordResetVerificationCode() {
         logger.info("Called sendVerificationCodeForPasswordReset");
 
-        return resendVerificationCode();
+        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        emailService.sendPasswordResetVerificationCode(userId);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/password/verification")
+    public ResponseEntity<Boolean> verifyPasswordReset(@RequestBody String verificationCode) {
+        logger.info("Called verifyPasswordReset");
+
+        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        return ResponseEntity.ok(authenticationService.verifyPasswordReset(userId, verificationCode));
     }
 
     @DeleteMapping
     public ResponseEntity<Void> logout(HttpServletResponse response) {
         logger.info("Called logout");
 
-        Cookie cookie = new Cookie("jwtToken", null);
-        cookie.setPath("/");
-        cookie.setMaxAge(0);
-        cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        ResponseCookie responseCookie = ResponseCookie.from("jwtToken", "")
+                .path("/")
+                .maxAge(0)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Strict")
+                .build();
 
-        response.addCookie(cookie);
+        response.addHeader(HttpHeaders.SET_COOKIE, responseCookie.toString());
         return ResponseEntity.ok().build();
     }
 }

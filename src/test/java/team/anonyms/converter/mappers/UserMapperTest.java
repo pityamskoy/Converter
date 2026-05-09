@@ -14,6 +14,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// Update needed
 class UserMapperTest {
 
     private final UserMapper userMapper = new UserMapper();
@@ -39,7 +40,6 @@ class UserMapperTest {
         UserToUpdateControllerDto controllerDto = new UserToUpdateControllerDto(
                 id,
                 "newname",
-                "newtest@gmail.com",
                 "mega_krutoi_parol"
         );
 
@@ -47,7 +47,6 @@ class UserMapperTest {
 
         assertEquals(id, serviceDto.id());
         assertEquals("newname", serviceDto.username());
-        assertEquals("newtest@gmail.com", serviceDto.email());
         assertEquals("mega_krutoi_parol", serviceDto.password());
     }
 

@@ -1,23 +1,18 @@
-package team.anonyms.converter.entities;
+package team.anonyms.converter.entities.codes;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
+import team.anonyms.converter.entities.User;
 
 import java.time.Instant;
 
-/**
- * <p>
- *     Verification codes are designed to verify users' emails.
- * </p>
- */
 @Getter
 @Setter
-@AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-@Builder
-@Entity
-@Table(name = "verification_codes")
-public class VerificationCode {
+@SuperBuilder
+@MappedSuperclass
+public abstract class VerificationCode {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

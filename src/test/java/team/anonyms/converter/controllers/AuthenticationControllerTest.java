@@ -30,6 +30,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+// Update needed
 @WebMvcTest(AuthenticationController.class)
 @ContextConfiguration(classes = {AuthenticationController.class, GlobalExceptionHandler.class})
 class AuthenticationControllerTest {
@@ -147,6 +148,6 @@ class AuthenticationControllerTest {
         mockMvc.perform(MockMvcRequestBuilders.delete("/auth"))
                 .andExpect(status().isOk())
                 .andExpect(cookie().maxAge("jwtToken", 0))
-                .andExpect(cookie().value("jwtToken", (String) null));
+                .andExpect(cookie().value("jwtToken", ""));
     }
 }

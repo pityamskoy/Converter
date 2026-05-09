@@ -22,9 +22,10 @@ import java.util.UUID;
 public class JwtService {
     // Default secret for running tests
     // (if env variable is empty)
+    // Fix needed
     private static final String SECRET = System.getenv("JWT_SECRET") != null
             ? System.getenv("JWT_SECRET")
-            : "dGhpc2lzYXN1cGVyc2VjcmV0a2V5dGhhdGlzYXRsZWFzdDMyYnl0ZXNsb25n";
+            : "dGhpc2lzYXN1cGVyc2VjcmV0a2V5dGhhdGlzYXRsZWFzdDMyYnl0ZXNsb25n"; // Carry this out to .env file
 
     // Secret key for validating or creating JWT tokens
     private static final SecretKey KEY = Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET));
@@ -62,12 +63,12 @@ public class JwtService {
     }
 
     /**
-     * @param jwtToken any provided String instance.
+     * @param jwtToken any provided {@link String} instance.
      *
-     * @return true if provided {@code jwtToken} is valid, false if {@code jwtToken} is not valid, or it is null.
+     * @return true if provided {@code jwtToken} is valid, false if {@code jwtToken} is not valid, or it is
+     * a string with whitespaces only, empty string, or {@code jwtToken} is null.
      */
     public Boolean isValid(@Nullable String jwtToken) {
-        // catching empty strings/null/whitespaces
         if (jwtToken == null || jwtToken.trim().isEmpty()) {
             return false;
         }
@@ -76,7 +77,6 @@ public class JwtService {
             extractUserId(jwtToken);
             return true;
         } catch (JwtException | IllegalArgumentException e) {
-            // catching illegal arguments
             return false;
         }
     }

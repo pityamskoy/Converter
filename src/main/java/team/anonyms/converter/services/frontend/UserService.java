@@ -8,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import team.anonyms.converter.dto.service.credentials.LoginResultServiceDto;
 import team.anonyms.converter.dto.service.user.UserServiceDto;
 import team.anonyms.converter.dto.service.user.UserToRegisterServiceDto;
+import team.anonyms.converter.dto.service.user.UserToUpdateEmailServiceDto;
 import team.anonyms.converter.dto.service.user.UserToUpdateServiceDto;
 import team.anonyms.converter.entities.Pattern;
 import team.anonyms.converter.entities.User;
@@ -15,7 +16,7 @@ import team.anonyms.converter.mappers.UserMapper;
 import team.anonyms.converter.repositories.ModificationRepository;
 import team.anonyms.converter.repositories.PatternRepository;
 import team.anonyms.converter.repositories.UserRepository;
-import team.anonyms.converter.repositories.VerificationCodeRepository;
+import team.anonyms.converter.repositories.codes.EmailVerificationCodeRepository;
 import team.anonyms.converter.exceptions.EmailExistsException;
 
 import java.util.List;
@@ -28,7 +29,7 @@ public class UserService {
     private final EmailService emailService;
 
     private final UserRepository userRepository;
-    private final VerificationCodeRepository verificationCodeRepository;
+    private final EmailVerificationCodeRepository emailVerificationCodeRepository;
     private final PatternRepository patternRepository;
     private final ModificationRepository modificationRepository;
 
@@ -40,7 +41,7 @@ public class UserService {
             JwtService jwtService,
             EmailService emailService,
             UserRepository userRepository,
-            VerificationCodeRepository verificationCodeRepository,
+            EmailVerificationCodeRepository emailVerificationCodeRepository,
             PatternRepository patternRepository,
             ModificationRepository modificationRepository,
             UserMapper userMapper,
@@ -50,7 +51,7 @@ public class UserService {
         this.emailService = emailService;
 
         this.userRepository = userRepository;
-        this.verificationCodeRepository = verificationCodeRepository;
+        this.emailVerificationCodeRepository = emailVerificationCodeRepository;
         this.patternRepository = patternRepository;
         this.modificationRepository = modificationRepository;
 
@@ -59,7 +60,6 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    @Transactional
     public Pair<LoginResultServiceDto, String> register(UserToRegisterServiceDto userToRegister) {
         Optional<User> userOptional = userRepository.findByEmail(userToRegister.email());
         if (userOptional.isPresent()) {
@@ -70,7 +70,7 @@ public class UserService {
         userRegistered.setPassword(passwordEncoder.encode(userToRegister.password()));
         userRegistered = userRepository.save(userRegistered);
 
-        emailService.sendVerificationCode(userRegistered);
+        emailService.sendEmailVerificationCode(userRegistered);
 
         LoginResultServiceDto result = new LoginResultServiceDto(
                 true,
@@ -90,10 +90,25 @@ public class UserService {
 
         User userUpdated = userOptional.get();
         userUpdated.setUsername(userToUpdate.username());
-        userUpdated.setEmail(userToUpdate.email());
         userUpdated.setPassword(passwordEncoder.encode(userToUpdate.password()));
 
         userRepository.save(userUpdated);
+
+        return userMapper.userToServiceDto(userUpdated);
+    }
+
+    public UserServiceDto updateEmail(UserToUpdateEmailServiceDto userToUpdateEmail) {
+        Optional<User> userOptional = userRepository.findById(userToUpdateEmail.id());
+        if (userOptional.isEmpty()) {
+            throw new EntityNotFoundException("User not found; id=" + userToUpdateEmail.id());
+        }
+
+        User userUpdated = userOptional.get();
+        userUpdated.setEmail(userToUpdateEmail.email());
+        userUpdated.setIsVerified(false);
+
+        userRepository.save(userUpdated);
+        emailService.sendEmailVerificationCode(userUpdated);
 
         return userMapper.userToServiceDto(userUpdated);
     }
@@ -112,7 +127,7 @@ public class UserService {
         }
 
         patternRepository.deleteAllByUserId(userId);
-        verificationCodeRepository.deleteByUserId(userId);
+        emailVerificationCodeRepository.deleteByUserId(userId);
         userRepository.delete(userOptional.get());
     }
 }

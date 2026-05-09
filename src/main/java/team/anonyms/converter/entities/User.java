@@ -32,6 +32,6 @@ public class User {
     @Column(nullable = false)
     private String password;
 
-    @Column(name = "is_verified", nullable = false)
+    @Column(nullable = false)
     private Boolean isVerified;
 }
