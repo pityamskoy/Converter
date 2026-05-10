@@ -1,4 +1,4 @@
-package team.anonyms.converter.repositories;
+package team.anonyms.converter.repositories.codes;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -7,14 +7,15 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.transaction.annotation.Transactional;
 import team.anonyms.converter.entities.User;
 import team.anonyms.converter.entities.codes.EmailVerificationCode;
-import team.anonyms.converter.repositories.codes.EmailVerificationCodeRepository;
+import team.anonyms.converter.repositories.UserRepository;
 import team.anonyms.converter.services.frontend.AuthenticationService;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(
         webEnvironment = SpringBootTest.WebEnvironment.NONE,
@@ -52,11 +53,11 @@ class EmailVerificationCodeRepositoryTest {
 
     @Test
     void testFindByUserId_Success() {
-        User savedUser = createAndSaveUser("test1@gmail.com");
+        User savedUser = createAndSaveUser("email1@gmail.com");
 
         EmailVerificationCode code = EmailVerificationCode.builder()
                 .user(savedUser)
-                .code("123456")
+                .code("111111")
                 .expiration(Instant.now().plus(1, ChronoUnit.HOURS))
                 .build();
 
@@ -65,16 +66,16 @@ class EmailVerificationCodeRepositoryTest {
         Optional<EmailVerificationCode> foundCode = emailVerificationCodeRepository.findByUserId(savedUser.getId());
 
         assertTrue(foundCode.isPresent());
-        assertEquals("123456", foundCode.get().getCode());
+        assertEquals("111111", foundCode.get().getCode());
     }
 
     @Test
     void testDeleteByUserId_Success() {
-        User savedUser = createAndSaveUser("test2@gmail.com");
+        User savedUser = createAndSaveUser("email2@gmail.com");
 
         EmailVerificationCode code = EmailVerificationCode.builder()
                 .user(savedUser)
-                .code("654321")
+                .code("222222")
                 .expiration(Instant.now().plus(1, ChronoUnit.HOURS))
                 .build();
 
@@ -88,19 +89,19 @@ class EmailVerificationCodeRepositoryTest {
 
     @Test
     void testDeleteAllByExpirationBefore_Success() {
-        User user1 = createAndSaveUser("expired@gmail.com");
-        User user2 = createAndSaveUser("valid@gmail.com");
+        User user1 = createAndSaveUser("expired_email@gmail.com");
+        User user2 = createAndSaveUser("valid_email@gmail.com");
 
         EmailVerificationCode expiredCode = EmailVerificationCode.builder()
                 .user(user1)
-                .code("111111")
+                .code("333333")
                 .expiration(Instant.now().minus(1, ChronoUnit.DAYS))
                 .build();
         emailVerificationCodeRepository.save(expiredCode);
 
         EmailVerificationCode validCode = EmailVerificationCode.builder()
                 .user(user2)
-                .code("222222")
+                .code("444444")
                 .expiration(Instant.now().plus(1, ChronoUnit.DAYS))
                 .build();
         emailVerificationCodeRepository.save(validCode);
