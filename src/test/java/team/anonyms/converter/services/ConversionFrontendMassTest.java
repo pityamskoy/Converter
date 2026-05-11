@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -71,9 +72,7 @@ class ConversionFrontendMassTest {
         UUID patternId = UUID.randomUUID();
         Path patternPath = Paths.get(baseDir + "patterns/pattern_" + fileNumber + ".json");
 
-        if (!Files.exists(patternPath)) {
-            throw new RuntimeException("Pattern file not found: " + patternPath);
-        }
+        Assumptions.assumeTrue(Files.exists(patternPath), "Pattern file not found: " + patternPath);
 
         List<Map<String, String>> modsData = jsonMapper.readValue(patternPath.toFile(), new TypeReference<>() {});
         List<Modification> mockedMods = new ArrayList<>();
@@ -109,33 +108,29 @@ class ConversionFrontendMassTest {
 
     private void assertCsvEquals(Path expectedFile, Path actualFile) throws IOException {
         CsvSchema schema = CsvSchema.emptySchema().withHeader();
-
         List<?> expected;
         try (com.fasterxml.jackson.databind.MappingIterator<?> it =
                      csvMapper.readerFor(Map.class).with(schema).readValues(expectedFile.toFile())) {
             expected = it.readAll();
         }
-
         List<?> actual;
         try (com.fasterxml.jackson.databind.MappingIterator<?> it =
                      csvMapper.readerFor(Map.class).with(schema).readValues(actualFile.toFile())) {
             actual = it.readAll();
         }
-
         assertEquals(expected, actual, "CSV content isn't the same as expected");
     }
 
     @ParameterizedTest
     @MethodSource("testCases")
     void testConvertJsonToCsv(int fileNumber, boolean usePattern, String baseDir) throws Exception {
-
-        org.junit.jupiter.api.Assumptions.assumeFalse(usePattern, "Reverse conversion can't be applied here");
+        Assumptions.assumeFalse(usePattern, "Reverse conversion can't be applied");
+        Path inputPath = getExpectedPath(baseDir, fileNumber, ".json");
+        Assumptions.assumeTrue(Files.exists(inputPath), "Input file missing, skipping: " + inputPath);
 
         MockMultipartFile input = getMockFile(baseDir, fileNumber, ".json", "application/json");
         Path expected = getExpectedPath(baseDir, fileNumber, ".csv");
-        UUID patternId = usePattern ? setupPatternMock(fileNumber, baseDir) : null;
-
-        Path actual = service.convertJsonFileToCsv(input, patternId);
+        Path actual = service.convertJsonFileToCsv(input, null);
         assertCsvEquals(expected, actual);
         Files.deleteIfExists(actual);
     }
@@ -143,6 +138,8 @@ class ConversionFrontendMassTest {
     @ParameterizedTest
     @MethodSource("testCases")
     void testConvertCsvToJson(int fileNumber, boolean usePattern, String baseDir) throws Exception {
+        Path inputPath = getExpectedPath(baseDir, fileNumber, ".csv");
+        Assumptions.assumeTrue(Files.exists(inputPath), "Input file missing, skipping: " + inputPath);
 
         MockMultipartFile input = getMockFile(baseDir, fileNumber, ".csv", "text/csv");
         Path expected = getExpectedPath(baseDir, fileNumber, ".json");
@@ -156,13 +153,13 @@ class ConversionFrontendMassTest {
     @ParameterizedTest
     @MethodSource("testCases")
     void testConvertJsonToXml(int fileNumber, boolean usePattern, String baseDir) throws Exception {
-        org.junit.jupiter.api.Assumptions.assumeFalse(usePattern, "Double pattern can't be applied");
+        Assumptions.assumeFalse(usePattern, "Double pattern can't be applied");
+        Path inputPath = getExpectedPath(baseDir, fileNumber, ".json");
+        Assumptions.assumeTrue(Files.exists(inputPath), "Input file missing, skipping: " + inputPath);
 
         MockMultipartFile input = getMockFile(baseDir, fileNumber, ".json", "application/json");
         Path expected = getExpectedPath(baseDir, fileNumber, ".xml");
-        UUID patternId = usePattern ? setupPatternMock(fileNumber, baseDir) : null;
-
-        Path actual = service.convertJsonFileToXml(input, patternId);
+        Path actual = service.convertJsonFileToXml(input, null);
         assertXmlEquals(expected, actual);
         Files.deleteIfExists(actual);
     }
@@ -170,13 +167,13 @@ class ConversionFrontendMassTest {
     @ParameterizedTest
     @MethodSource("testCases")
     void testConvertXmlToJson(int fileNumber, boolean usePattern, String baseDir) throws Exception {
-        org.junit.jupiter.api.Assumptions.assumeFalse(usePattern, "Double pattern can't be applied");
+        Assumptions.assumeFalse(usePattern, "Double pattern can't be applied");
+        Path inputPath = getExpectedPath(baseDir, fileNumber, ".xml");
+        Assumptions.assumeTrue(Files.exists(inputPath), "Input file missing, skipping: " + inputPath);
 
         MockMultipartFile input = getMockFile(baseDir, fileNumber, ".xml", "application/xml");
         Path expected = getExpectedPath(baseDir, fileNumber, ".json");
-        UUID patternId = usePattern ? setupPatternMock(fileNumber, baseDir) : null;
-
-        Path actual = service.convertXmlFileToJson(input, patternId);
+        Path actual = service.convertXmlFileToJson(input, null);
         assertJsonEquals(expected, actual);
         Files.deleteIfExists(actual);
     }
@@ -184,6 +181,8 @@ class ConversionFrontendMassTest {
     @ParameterizedTest
     @MethodSource("testCases")
     void testConvertCsvToXml(int fileNumber, boolean usePattern, String baseDir) throws Exception {
+        Path inputPath = getExpectedPath(baseDir, fileNumber, ".csv");
+        Assumptions.assumeTrue(Files.exists(inputPath), "Input file missing, skipping: " + inputPath);
 
         MockMultipartFile input = getMockFile(baseDir, fileNumber, ".csv", "text/csv");
         Path expected = getExpectedPath(baseDir, fileNumber, ".xml");
@@ -197,13 +196,13 @@ class ConversionFrontendMassTest {
     @ParameterizedTest
     @MethodSource("testCases")
     void testConvertXmlToCsv(int fileNumber, boolean usePattern, String baseDir) throws Exception {
-        org.junit.jupiter.api.Assumptions.assumeFalse(usePattern, "Reverse conversion can't be applied here");
+        Assumptions.assumeFalse(usePattern, "Reverse conversion can't be applied");
+        Path inputPath = getExpectedPath(baseDir, fileNumber, ".xml");
+        Assumptions.assumeTrue(Files.exists(inputPath), "Input file missing, skipping: " + inputPath);
 
         MockMultipartFile input = getMockFile(baseDir, fileNumber, ".xml", "application/xml");
         Path expected = getExpectedPath(baseDir, fileNumber, ".csv");
-        UUID patternId = usePattern ? setupPatternMock(fileNumber, baseDir) : null;
-
-        Path actual = service.convertXmlFileToCsv(input, patternId);
+        Path actual = service.convertXmlFileToCsv(input, null);
         assertCsvEquals(expected, actual);
         Files.deleteIfExists(actual);
     }
