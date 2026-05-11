@@ -1,16 +1,16 @@
 package team.anonyms.converter.mappers;
 import org.junit.jupiter.api.Test;
-import team.anonyms.converter.dto.controller.credentials.CredentialsControllerDto;
-import team.anonyms.converter.dto.controller.credentials.LoginResultControllerDto;
-import team.anonyms.converter.dto.service.credentials.CredentialsServiceDto;
-import team.anonyms.converter.dto.service.credentials.LoginResultServiceDto;
+import team.anonyms.converter.dto.controller.authentication.CredentialsControllerDto;
+import team.anonyms.converter.dto.controller.authentication.LoginResultControllerDto;
+import team.anonyms.converter.dto.service.authentication.CredentialsServiceDto;
+import team.anonyms.converter.dto.service.authentication.LoginResultServiceDto;
 
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class CredentialsMapperTest {
-    private final CredentialsMapper mapper = new CredentialsMapper();
+class AuthenticationMapperTest {
+    private final AuthenticationMapper mapper = new AuthenticationMapper();
 
     // тест на то, что все прогнанные через маппер поля точно перенеслись
     @Test

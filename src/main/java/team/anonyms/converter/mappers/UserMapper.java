@@ -1,14 +1,8 @@
 package team.anonyms.converter.mappers;
 
 import org.springframework.stereotype.Component;
-import team.anonyms.converter.dto.controller.user.UserControllerDto;
-import team.anonyms.converter.dto.controller.user.UserToRegisterControllerDto;
-import team.anonyms.converter.dto.controller.user.UserToUpdateControllerDto;
-import team.anonyms.converter.dto.controller.user.UserToUpdateEmailControllerDto;
-import team.anonyms.converter.dto.service.user.UserServiceDto;
-import team.anonyms.converter.dto.service.user.UserToRegisterServiceDto;
-import team.anonyms.converter.dto.service.user.UserToUpdateEmailServiceDto;
-import team.anonyms.converter.dto.service.user.UserToUpdateServiceDto;
+import team.anonyms.converter.dto.controller.user.*;
+import team.anonyms.converter.dto.service.user.*;
 import team.anonyms.converter.entities.User;
 
 @Component

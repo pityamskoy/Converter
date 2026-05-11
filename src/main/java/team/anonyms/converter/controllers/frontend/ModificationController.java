@@ -47,7 +47,7 @@ public class ModificationController {
     }
 
     @GetMapping("/{patternId}")
-    public ResponseEntity<Integer> getNumberOfAllModificationsByPatternId(
+    public ResponseEntity<Long> getNumberOfAllModificationsByPatternId(
             @PathVariable UUID patternId
     ) {
         logger.info("Called getNumberOfModificationsByPatternId; patternId={}", patternId);

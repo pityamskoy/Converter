@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import team.anonyms.converter.entities.User;
 import team.anonyms.converter.entities.codes.EmailVerificationCode;
 import team.anonyms.converter.entities.codes.PasswordResetVerificationCode;
+import team.anonyms.converter.exceptions.email.EmailAlreadyVerifiedException;
 import team.anonyms.converter.repositories.UserRepository;
 import team.anonyms.converter.repositories.codes.EmailVerificationCodeRepository;
 import team.anonyms.converter.repositories.codes.PasswordResetVerificationCodeRepository;
@@ -50,7 +51,12 @@ public class EmailService {
             throw new EntityNotFoundException("User not found; id=" + userId);
         }
 
-        sendEmailVerificationCode(userOptional.get());
+        User user = userOptional.get();
+        if (user.getIsVerified()) {
+            throw new EmailAlreadyVerifiedException("Email already verified");
+        }
+
+        sendEmailVerificationCode(user);
     }
 
     public void sendEmailVerificationCode(User receiver) {
@@ -80,10 +86,10 @@ public class EmailService {
         emailVerificationCodeRepository.save(emailVerificationCode);
     }
 
-    public void sendPasswordResetVerificationCode(UUID userId) {
-        Optional<User> userOptional = userRepository.findById(userId);
+    public void sendPasswordResetVerificationCode(String email) {
+        Optional<User> userOptional = userRepository.findByEmail(email);
         if (userOptional.isEmpty()) {
-            throw new EntityNotFoundException("User not found; id=" + userId);
+            throw new EntityNotFoundException("User not found");
         }
 
         sendPasswordResetVerificationCode(userOptional.get());
@@ -95,7 +101,7 @@ public class EmailService {
         passwordResetVerificationCodeOptional.ifPresent(passwordResetVerificationCodeRepository::delete);
 
         String emailVerificationCode = generateVerificationCode();
-        saveEmailVerificationCode(emailVerificationCode, receiver);
+        savePasswordResetVerificationCode(emailVerificationCode, receiver);
 
         SimpleMailMessage mailMessage = new SimpleMailMessage();
         mailMessage.setFrom(emailFrom);

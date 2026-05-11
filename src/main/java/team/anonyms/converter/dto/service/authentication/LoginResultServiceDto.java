@@ -1,8 +1,8 @@
-package team.anonyms.converter.dto.controller.credentials;
+package team.anonyms.converter.dto.service.authentication;
 
 import java.util.UUID;
 
-public record LoginResultControllerDto(
+public record LoginResultServiceDto(
         Boolean success,
         String username,
         String email,

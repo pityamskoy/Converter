@@ -75,14 +75,13 @@ class PatternServiceTest {
     @Test
     void testGetNumberOfAllPatternsByUserId_Success() {
         UUID userId = UUID.randomUUID();
-        Pattern mockPattern = Mockito.mock(Pattern.class);
 
         Mockito.when(userRepository.existsById(userId)).thenReturn(true);
-        Mockito.when(patternRepository.findAllByUserId(userId)).thenReturn(List.of(mockPattern, mockPattern));
+        Mockito.when(patternRepository.countAllByUserId(userId)).thenReturn(2L);
 
-        Integer result = patternService.getNumberOfAllPatternsByUserId(userId);
+        Long result = patternService.getNumberOfAllPatternsByUserId(userId);
 
-        assertEquals(2, result);
+        assertEquals(2L, result);
     }
 
     @Test

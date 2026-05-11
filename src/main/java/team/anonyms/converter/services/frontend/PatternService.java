@@ -49,13 +49,12 @@ public class PatternService {
         return patternRepository.findAllByUserId(userId).stream().map(patternMapper::patternToServiceDto).toList();
     }
 
-    public Integer getNumberOfAllPatternsByUserId(UUID userId) {
+    public Long getNumberOfAllPatternsByUserId(UUID userId) {
         if (!userRepository.existsById(userId)) {
             throw new EntityNotFoundException("User not found; id=" + userId);
         }
 
-        return patternRepository.findAllByUserId(userId)
-                .stream().map(patternMapper::patternToServiceDto).toList().size();
+        return patternRepository.countAllByUserId(userId);
     }
 
     @Transactional

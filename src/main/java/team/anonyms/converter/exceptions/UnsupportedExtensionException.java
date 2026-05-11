@@ -1,16 +1,8 @@
 package team.anonyms.converter.exceptions;
 
-public class UnsupportedExtensionException extends RuntimeException {
-    public UnsupportedExtensionException() {
-        super();
-    }
-
+public final class UnsupportedExtensionException extends IllegalArgumentException {
     public UnsupportedExtensionException(String message) {
         super(message);
-    }
-
-    public UnsupportedExtensionException(Throwable cause) {
-        super(cause);
     }
 
     public UnsupportedExtensionException(String message, Throwable cause) {

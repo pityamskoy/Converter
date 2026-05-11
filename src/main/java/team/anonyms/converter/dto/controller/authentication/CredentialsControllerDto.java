@@ -1,4 +1,4 @@
-package team.anonyms.converter.dto.controller.credentials;
+package team.anonyms.converter.dto.controller.authentication;
 
 public record CredentialsControllerDto(
         String email,

@@ -11,7 +11,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
  *     {@code Main} class is the entrypoint of the backend, which based on {@link SpringApplication}.
  * </p>
  */
-// Substitute EntityNotFoundException on my own ResourceNotFoundException
 @SpringBootApplication
 @EnableScheduling
 @EntityScan(basePackages = {"team.anonyms.converter.entities"})

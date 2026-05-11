@@ -9,6 +9,13 @@ import java.util.Map;
 
 @Service
 public class ConversionApiService {
+    private final JsonMapper jsonMapper;
+    private final XmlMapper xmlMapper;
+
+    public ConversionApiService(JsonMapper jsonMapper, XmlMapper xmlMapper) {
+        this.jsonMapper = jsonMapper;
+        this.xmlMapper = xmlMapper;
+    }
 
     /**
      * <p>
@@ -23,7 +30,7 @@ public class ConversionApiService {
      */
     public String convertJsonToXml(Map<String, Object> body) {
         try {
-            return new XmlMapper().writeValueAsString(body);
+            return xmlMapper.writeValueAsString(body);
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
@@ -42,7 +49,7 @@ public class ConversionApiService {
      */
     public String convertXmlToJson(Map<String, Object> body) {
         try {
-            return new JsonMapper().writeValueAsString(body);
+            return jsonMapper.writeValueAsString(body);
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException(e.getMessage());
         }

@@ -1,12 +1,13 @@
 package team.anonyms.converter.services.frontend;
 
 import jakarta.persistence.EntityNotFoundException;
-import org.antlr.v4.runtime.misc.Pair;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import team.anonyms.converter.dto.service.credentials.CredentialsServiceDto;
-import team.anonyms.converter.dto.service.credentials.LoginResultServiceDto;
+import team.anonyms.converter.dto.service.authentication.AuthenticationServiceDto;
+import team.anonyms.converter.dto.service.authentication.CredentialsServiceDto;
+import team.anonyms.converter.dto.service.authentication.LoginResultServiceDto;
+import team.anonyms.converter.dto.service.authentication.PasswordResetServiceDto;
 import team.anonyms.converter.entities.User;
 import team.anonyms.converter.entities.codes.EmailVerificationCode;
 import team.anonyms.converter.entities.codes.PasswordResetVerificationCode;
@@ -56,11 +57,11 @@ public class AuthenticationService {
      * @param credentials login credentials.
      * @param jwtToken jwtToken extracted from cookie
      *
-     * @return {@link Pair} where A is the result of login, B is jwtToken.
+     * @return {@link AuthenticationServiceDto}.
      *
      * @throws CredentialException if {@code jwtToken}, {@code email} and {@code password} are null.
      */
-    public Pair<LoginResultServiceDto, String> login(
+    public AuthenticationServiceDto login(
             CredentialsServiceDto credentials,
             @Nullable String jwtToken
     ) throws CredentialException {
@@ -78,14 +79,14 @@ public class AuthenticationService {
 
             User user = userOptional.get();
             LoginResultServiceDto result = new LoginResultServiceDto(true, user.getUsername(), user.getEmail(), userId);
-            return new Pair<>(result, jwtToken);
+            return new AuthenticationServiceDto(result, jwtToken);
         }
 
         String email = credentials.email();
         Optional<User> userOptional = userRepository.findByEmail(email);
 
         if (userOptional.isEmpty()) {
-            throw new EntityNotFoundException("User not found; email=" + email);
+            throw new EntityNotFoundException("User not found");
         }
 
         User user = userOptional.get();
@@ -98,7 +99,7 @@ public class AuthenticationService {
                     user.getId()
             );
 
-            return new Pair<>(result, newJwtToken);
+            return new AuthenticationServiceDto(result, newJwtToken);
         }
 
         LoginResultServiceDto result = new LoginResultServiceDto(
@@ -108,7 +109,7 @@ public class AuthenticationService {
                 null
         );
 
-        return new Pair<>(result, jwtToken);
+        return new AuthenticationServiceDto(result, jwtToken);
     }
 
     public Boolean verifyEmail(UUID userId, String emailVerificationCode) {
@@ -138,26 +139,26 @@ public class AuthenticationService {
         }
     }
 
-    public Boolean verifyPasswordReset(UUID userId, String passwordResetVerificationCode) {
-        Optional<PasswordResetVerificationCode> passwordResetVerificationCodeOptional =
-                passwordResetVerificationCodeRepository.findByUserId(userId);
-        if (passwordResetVerificationCodeOptional.isEmpty()) {
-            throw new EntityNotFoundException("Password reset verification code not found; userId=" + userId);
+    public Boolean verifyPasswordReset(PasswordResetServiceDto passwordResetServiceDto) {
+        Optional<User> userOptional = userRepository.findByEmail(passwordResetServiceDto.email());
+        if (userOptional.isEmpty()) {
+            throw new EntityNotFoundException("User not found");
         }
 
-        PasswordResetVerificationCode actualPasswordResetVerificationCode = passwordResetVerificationCodeOptional.get();
-        if (passwordResetVerificationCode.equals(actualPasswordResetVerificationCode.getCode())
-                && actualPasswordResetVerificationCode.getExpiration().isAfter(Instant.now())) {
-            Optional<User> userOptional = userRepository.findById(userId);
-            if (userOptional.isEmpty()) {
-                throw new EntityNotFoundException("User not found; userId=" + userId);
-            }
+        User user = userOptional.get();
+        Optional<PasswordResetVerificationCode> verificationCodeOptional = passwordResetVerificationCodeRepository
+                .findByUserId(user.getId());
+        if (verificationCodeOptional.isEmpty()) {
+            throw new EntityNotFoundException("Password reset verification code not found; userId=" + user.getId());
+        }
 
-            User user = userOptional.get();
-            user.setIsVerified(true);
+        PasswordResetVerificationCode actualVerificationCode = verificationCodeOptional.get();
+        if (passwordResetServiceDto.verificationCode().equals(actualVerificationCode.getCode())
+                && actualVerificationCode.getExpiration().isAfter(Instant.now())) {
+            user.setPassword(passwordEncoder.encode(passwordResetServiceDto.newPassword()));
 
             userRepository.save(user);
-            passwordResetVerificationCodeRepository.delete(actualPasswordResetVerificationCode);
+            passwordResetVerificationCodeRepository.delete(actualVerificationCode);
 
             return true;
         } else {

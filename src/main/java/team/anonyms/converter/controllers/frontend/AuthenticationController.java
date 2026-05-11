@@ -1,7 +1,6 @@
 package team.anonyms.converter.controllers.frontend;
 
 import jakarta.servlet.http.HttpServletResponse;
-import org.antlr.v4.runtime.misc.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
@@ -9,10 +8,11 @@ import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import team.anonyms.converter.dto.controller.credentials.CredentialsControllerDto;
-import team.anonyms.converter.dto.controller.credentials.LoginResultControllerDto;
-import team.anonyms.converter.dto.service.credentials.LoginResultServiceDto;
-import team.anonyms.converter.mappers.CredentialsMapper;
+import team.anonyms.converter.dto.controller.authentication.AuthenticationControllerDto;
+import team.anonyms.converter.dto.controller.authentication.CredentialsControllerDto;
+import team.anonyms.converter.dto.controller.authentication.LoginResultControllerDto;
+import team.anonyms.converter.dto.controller.authentication.PasswordResetControllerDto;
+import team.anonyms.converter.mappers.AuthenticationMapper;
 import team.anonyms.converter.services.frontend.AuthenticationService;
 import team.anonyms.converter.services.frontend.EmailService;
 
@@ -27,16 +27,26 @@ public class AuthenticationController {
 
     private final AuthenticationService authenticationService;
     private final EmailService emailService;
-    private final CredentialsMapper credentialsMapper;
+    private final AuthenticationMapper authenticationMapper;
 
     public AuthenticationController(
             AuthenticationService authenticationService,
             EmailService emailService,
-            CredentialsMapper credentialsMapper
+            AuthenticationMapper authenticationMapper
     ) {
         this.authenticationService = authenticationService;
         this.emailService = emailService;
-        this.credentialsMapper = credentialsMapper;
+        this.authenticationMapper = authenticationMapper;
+    }
+
+    public static ResponseCookie createJwtCookie(String jwtToken, int maxAgeSeconds) {
+        return ResponseCookie.from("jwtToken", jwtToken)
+                .path("/")
+                .maxAge(maxAgeSeconds)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Strict")
+                .build();
     }
 
     @PostMapping
@@ -47,21 +57,15 @@ public class AuthenticationController {
     ) throws CredentialException {
         logger.info("Called login");
 
-        Pair<LoginResultServiceDto, String> result = authenticationService.login(
-                credentialsMapper.credentialsControllerDtoToService(credentials),
-                jwtToken
+        AuthenticationControllerDto result = authenticationMapper.authenticationServiceDtoToControllerDto(
+                authenticationService.login(
+                        authenticationMapper.credentialsControllerDtoToService(credentials),
+                        jwtToken
+                )
         );
 
-        ResponseCookie responseCookie = ResponseCookie.from("jwtToken", result.b)
-                .path("/")
-                .maxAge(14400)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Strict")
-                .build();
-
-        response.addHeader(HttpHeaders.SET_COOKIE, responseCookie.toString());
-        return ResponseEntity.ok(credentialsMapper.loginResultServiceDtoToController(result.a));
+        response.addHeader(HttpHeaders.SET_COOKIE, createJwtCookie(result.jwtToken(), 14400).toString());
+        return ResponseEntity.ok(result.result());
     }
 
     @PostMapping("/email/resending")
@@ -84,37 +88,30 @@ public class AuthenticationController {
     }
 
     @PostMapping("/password/reset")
-    public ResponseEntity<Void> sendPasswordResetVerificationCode() {
+    public ResponseEntity<Void> sendPasswordResetVerificationCode(@RequestBody String email) {
         logger.info("Called sendVerificationCodeForPasswordReset");
 
-        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        emailService.sendPasswordResetVerificationCode(userId);
+        emailService.sendPasswordResetVerificationCode(email);
 
         return ResponseEntity.noContent().build();
     }
 
     @PostMapping("/password/verification")
-    public ResponseEntity<Boolean> verifyPasswordReset(@RequestBody String verificationCode) {
+    public ResponseEntity<Boolean> verifyPasswordReset(
+            @RequestBody PasswordResetControllerDto passwordResetControllerDto
+    ) {
         logger.info("Called verifyPasswordReset");
 
-        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        return ResponseEntity.ok(authenticationService.verifyPasswordReset(userId, verificationCode));
+        return ResponseEntity.ok(authenticationService.verifyPasswordReset(
+                authenticationMapper.passwordResetControllerDtoToService(passwordResetControllerDto))
+        );
     }
 
     @DeleteMapping
     public ResponseEntity<Void> logout(HttpServletResponse response) {
         logger.info("Called logout");
 
-        ResponseCookie responseCookie = ResponseCookie.from("jwtToken", "")
-                .path("/")
-                .maxAge(0)
-                .httpOnly(true)
-                .secure(true)
-                .sameSite("Strict")
-                .build();
-
-        response.addHeader(HttpHeaders.SET_COOKIE, responseCookie.toString());
-        return ResponseEntity.ok().build();
+        response.addHeader(HttpHeaders.SET_COOKIE, createJwtCookie("", 0).toString());
+        return ResponseEntity.noContent().build();
     }
 }

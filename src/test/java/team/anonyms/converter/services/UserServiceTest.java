@@ -1,7 +1,6 @@
 package team.anonyms.converter.services;
 
 import jakarta.persistence.EntityNotFoundException;
-import org.antlr.v4.runtime.misc.Pair;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -9,13 +8,13 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import team.anonyms.converter.dto.service.credentials.LoginResultServiceDto;
+import team.anonyms.converter.dto.service.authentication.AuthenticationServiceDto;
 import team.anonyms.converter.dto.service.user.UserServiceDto;
 import team.anonyms.converter.dto.service.user.UserToRegisterServiceDto;
 import team.anonyms.converter.dto.service.user.UserToUpdateServiceDto;
 import team.anonyms.converter.entities.Pattern;
 import team.anonyms.converter.entities.User;
-import team.anonyms.converter.exceptions.EmailExistsException;
+import team.anonyms.converter.exceptions.email.EmailExistsException;
 import team.anonyms.converter.mappers.UserMapper;
 import team.anonyms.converter.repositories.ModificationRepository;
 import team.anonyms.converter.repositories.PatternRepository;
@@ -71,10 +70,10 @@ class UserServiceTest {
         Mockito.when(userRepository.save(mockUser)).thenReturn(mockUser);
         Mockito.when(jwtService.generate(userId)).thenReturn("jwt.token.here");
 
-        Pair<LoginResultServiceDto, String> result = userService.register(dto);
+        AuthenticationServiceDto result = userService.register(dto);
 
-        assertTrue(result.a.success());
-        assertEquals("jwt.token.here", result.b);
+        assertTrue(result.result().success());
+        assertEquals("jwt.token.here", result.jwtToken());
 
         Mockito.verify(emailService).sendEmailVerificationCode(mockUser);
         Mockito.verify(mockUser).setPassword("encoded_pass");

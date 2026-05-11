@@ -36,14 +36,11 @@ public class ModificationService {
                 .toList();
     }
 
-    public Integer getNumberOfAllModificationsByPatternId(UUID patternId) {
+    public Long getNumberOfAllModificationsByPatternId(UUID patternId) {
         if (!patternRepository.existsById(patternId)) {
             throw new EntityNotFoundException("Pattern not found; id=" + patternId);
         }
 
-        return modificationRepository.findAllByPatternId(patternId).stream()
-                .map(modificationMapper::modificationToServiceDto)
-                .toList()
-                .size();
+        return modificationRepository.countAllByPatternId(patternId);
     }
 }

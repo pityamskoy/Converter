@@ -12,4 +12,6 @@ public interface ModificationRepository extends JpaRepository<Modification, UUID
     List<Modification> findAllByPatternId(UUID patternId);
 
     void deleteAllByPatternId(UUID patternId);
+
+    long countAllByPatternId(UUID patternId);
 }

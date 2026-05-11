@@ -2,7 +2,6 @@ package team.anonyms.converter.controllers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
-import org.antlr.v4.runtime.misc.Pair;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,11 +14,13 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
 import team.anonyms.converter.controllers.frontend.AuthenticationController;
-import team.anonyms.converter.dto.controller.credentials.CredentialsControllerDto;
-import team.anonyms.converter.dto.controller.credentials.LoginResultControllerDto;
-import team.anonyms.converter.dto.service.credentials.CredentialsServiceDto;
-import team.anonyms.converter.dto.service.credentials.LoginResultServiceDto;
-import team.anonyms.converter.mappers.CredentialsMapper;
+import team.anonyms.converter.dto.controller.authentication.AuthenticationControllerDto;
+import team.anonyms.converter.dto.controller.authentication.CredentialsControllerDto;
+import team.anonyms.converter.dto.controller.authentication.LoginResultControllerDto;
+import team.anonyms.converter.dto.service.authentication.AuthenticationServiceDto;
+import team.anonyms.converter.dto.service.authentication.CredentialsServiceDto;
+import team.anonyms.converter.dto.service.authentication.LoginResultServiceDto;
+import team.anonyms.converter.mappers.AuthenticationMapper;
 import team.anonyms.converter.services.frontend.AuthenticationService;
 import team.anonyms.converter.services.frontend.EmailService;
 
@@ -45,7 +46,7 @@ class AuthenticationControllerTest {
     @MockitoBean
     private EmailService emailService;
     @MockitoBean
-    private CredentialsMapper credentialsMapper;
+    private AuthenticationMapper authenticationMapper;
 
     @Test
     void testLogin_Success() throws Exception {
@@ -66,18 +67,26 @@ class AuthenticationControllerTest {
                 true, fakeUsername, fakeEmail, fakeUserId
         );
 
-        LoginResultControllerDto responseDto = new LoginResultControllerDto(
+        LoginResultControllerDto loginResultControllerDto = new LoginResultControllerDto(
                 true, fakeUsername, fakeEmail, fakeUserId
         );
 
-        Mockito.when(credentialsMapper.credentialsControllerDtoToService(any(CredentialsControllerDto.class)))
+        AuthenticationServiceDto authenticationServiceDto = new AuthenticationServiceDto(
+                mockServiceResult, generatedToken
+        );
+
+        AuthenticationControllerDto authenticationControllerDto = new AuthenticationControllerDto(
+                loginResultControllerDto, generatedToken
+        );
+
+        Mockito.when(authenticationMapper.credentialsControllerDtoToService(any(CredentialsControllerDto.class)))
                 .thenReturn(mockServiceCredentials);
 
         Mockito.when(authenticationService.login(any(CredentialsServiceDto.class), eq(null)))
-                .thenReturn(new Pair<>(mockServiceResult, generatedToken));
+                .thenReturn(authenticationServiceDto);
 
-        Mockito.when(credentialsMapper.loginResultServiceDtoToController(any(LoginResultServiceDto.class)))
-                .thenReturn(responseDto);
+        Mockito.when(authenticationMapper.authenticationServiceDtoToControllerDto(any(AuthenticationServiceDto.class)))
+                .thenReturn(authenticationControllerDto);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/auth")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -108,14 +117,17 @@ class AuthenticationControllerTest {
                 true, fakeUsername, fakeEmail, fakeUserId
         );
 
-        Mockito.when(credentialsMapper.credentialsControllerDtoToService(any(CredentialsControllerDto.class)))
+        Mockito.when(authenticationMapper.credentialsControllerDtoToService(any(CredentialsControllerDto.class)))
                 .thenReturn(mockServiceCredentials);
 
-        Mockito.when(authenticationService.login(any(CredentialsServiceDto.class), eq(existingToken)))
-                .thenReturn(new Pair<>(mockServiceResult, existingToken));
+        AuthenticationServiceDto authenticationServiceDto = new AuthenticationServiceDto(mockServiceResult, existingToken);
+        AuthenticationControllerDto authenticationControllerDto = new AuthenticationControllerDto(responseDto, existingToken);
 
-        Mockito.when(credentialsMapper.loginResultServiceDtoToController(any(LoginResultServiceDto.class)))
-                .thenReturn(responseDto);
+        Mockito.when(authenticationService.login(any(CredentialsServiceDto.class), eq(existingToken)))
+                .thenReturn(authenticationServiceDto);
+
+        Mockito.when(authenticationMapper.authenticationServiceDtoToControllerDto(any(AuthenticationServiceDto.class)))
+                .thenReturn(authenticationControllerDto);
 
         mockMvc.perform(MockMvcRequestBuilders.post("/auth")
                         .cookie(new Cookie("jwtToken", existingToken))
@@ -131,7 +143,7 @@ class AuthenticationControllerTest {
         CredentialsControllerDto requestDto = new CredentialsControllerDto("wrong@mail.com", "wrongpass");
         CredentialsServiceDto mockServiceCredentials = new CredentialsServiceDto("wrong@mail.com", "wrongpass");
 
-        Mockito.when(credentialsMapper.credentialsControllerDtoToService(any(CredentialsControllerDto.class)))
+        Mockito.when(authenticationMapper.credentialsControllerDtoToService(any(CredentialsControllerDto.class)))
                 .thenReturn(mockServiceCredentials);
 
         Mockito.when(authenticationService.login(any(CredentialsServiceDto.class), eq(null)))
@@ -146,7 +158,7 @@ class AuthenticationControllerTest {
     @Test
     void testLogout_Success() throws Exception {
         mockMvc.perform(MockMvcRequestBuilders.delete("/auth"))
-                .andExpect(status().isOk())
+                .andExpect(status().isNoContent())
                 .andExpect(cookie().maxAge("jwtToken", 0))
                 .andExpect(cookie().value("jwtToken", ""));
     }

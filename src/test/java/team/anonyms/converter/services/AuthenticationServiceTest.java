@@ -1,7 +1,6 @@
 package team.anonyms.converter.services;
 
 import jakarta.persistence.EntityNotFoundException;
-import org.antlr.v4.runtime.misc.Pair;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -9,8 +8,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import team.anonyms.converter.dto.service.credentials.CredentialsServiceDto;
-import team.anonyms.converter.dto.service.credentials.LoginResultServiceDto;
+import team.anonyms.converter.dto.service.authentication.AuthenticationServiceDto;
+import team.anonyms.converter.dto.service.authentication.CredentialsServiceDto;
 import team.anonyms.converter.entities.User;
 import team.anonyms.converter.repositories.UserRepository;
 import team.anonyms.converter.services.frontend.AuthenticationService;
@@ -61,7 +60,7 @@ class AuthenticationServiceTest {
                 () -> authenticationService.login(credentials, null)
         );
 
-        assertTrue(exception.getMessage().contains("User not found; email=" + email));
+        assertTrue(exception.getMessage().contains("User not found"));
     }
 
     @Test
@@ -97,11 +96,11 @@ class AuthenticationServiceTest {
         Mockito.when(jwtService.extractUserId(token)).thenReturn(userId.toString());
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
 
-        Pair<LoginResultServiceDto, String> result = authenticationService.login(credentials, token);
+        AuthenticationServiceDto result = authenticationService.login(credentials, token);
 
-        assertTrue(result.a.success());
-        assertEquals(userId, result.a.userId());
-        assertEquals(token, result.b);
+        assertTrue(result.result().success());
+        assertEquals(userId, result.result().userId());
+        assertEquals(token, result.jwtToken());
     }
 
     @Test
@@ -126,11 +125,11 @@ class AuthenticationServiceTest {
         Mockito.when(passwordEncoder.matches(rawPassword, encodedPassword)).thenReturn(true);
         Mockito.when(jwtService.generate(userId)).thenReturn(newToken);
 
-        Pair<LoginResultServiceDto, String> result = authenticationService.login(credentials, null);
+        AuthenticationServiceDto result = authenticationService.login(credentials, null);
 
-        assertTrue(result.a.success());
-        assertEquals(userId, result.a.userId());
-        assertEquals(newToken, result.b);
+        assertTrue(result.result().success());
+        assertEquals(userId, result.result().userId());
+        assertEquals(newToken, result.jwtToken());
     }
 
     @Test
@@ -149,9 +148,9 @@ class AuthenticationServiceTest {
 
         Mockito.when(passwordEncoder.matches(rawPassword, encodedPassword)).thenReturn(false);
 
-        Pair<LoginResultServiceDto, String> result = authenticationService.login(credentials, null);
+        AuthenticationServiceDto result = authenticationService.login(credentials, null);
 
-        assertFalse(result.a.success());
-        assertNull(result.b);
+        assertFalse(result.result().success());
+        assertNull(result.jwtToken());
     }
 }

@@ -52,7 +52,7 @@ public class PatternController {
     }
 
     @GetMapping("/{userId}")
-    public ResponseEntity<Integer> getNumberOfAllPatternsByUserId(@PathVariable UUID userId) {
+    public ResponseEntity<Long> getNumberOfAllPatternsByUserId(@PathVariable UUID userId) {
         logger.info("Called getNumberOfPatternsByUserId; userId={}", userId);
 
         return ResponseEntity.ok(patternService.getNumberOfAllPatternsByUserId(userId));

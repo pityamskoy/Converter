@@ -16,6 +16,8 @@ public interface PatternRepository extends JpaRepository<Pattern, UUID> {
 
     void deleteAllByUserId(UUID userId);
 
+    long countAllByUserId(UUID userId);
+
     /**
      * <p>
      *     Finds a pattern by its ID.

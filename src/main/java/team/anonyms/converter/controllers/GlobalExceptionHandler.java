@@ -6,10 +6,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import team.anonyms.converter.dto.controller.responses.errors.CredentialExceptionErrorResponse;
-import team.anonyms.converter.dto.controller.responses.errors.EmailExistsExceptionErrorResponse;
-import team.anonyms.converter.dto.controller.responses.errors.IllegalPatternExceptionErrorResponse;
-import team.anonyms.converter.exceptions.EmailExistsException;
+import team.anonyms.converter.dto.controller.responses.ExceptionResponse;
+import team.anonyms.converter.exceptions.email.EmailAlreadyVerifiedException;
+import team.anonyms.converter.exceptions.email.EmailExistsException;
 import team.anonyms.converter.exceptions.IllegalPatternException;
 import team.anonyms.converter.exceptions.UnsupportedExtensionException;
 
@@ -26,9 +25,9 @@ public class GlobalExceptionHandler {
     private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(exception = CredentialException.class)
-    public ResponseEntity<CredentialExceptionErrorResponse> handleCredentialException(CredentialException e) {
+    public ResponseEntity<ExceptionResponse> handleCredentialException(CredentialException e) {
         logger.error(e.getMessage());
-        return ResponseEntity.badRequest().body(new CredentialExceptionErrorResponse());
+        return ResponseEntity.badRequest().body(new ExceptionResponse(400, "CREDENTIAL"));
     }
 
     @ExceptionHandler(exception = EntityNotFoundException.class)
@@ -45,7 +44,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(exception = NullPointerException.class)
     public ResponseEntity<Void> handleNullPointerException(NullPointerException e) {
-        logger.error(e.getMessage());
+        logger.error("Unexpected NullPointerException", e);
         return ResponseEntity.internalServerError().build();
     }
 
@@ -56,16 +55,22 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(exception = IllegalPatternException.class)
-    public ResponseEntity<IllegalPatternExceptionErrorResponse> handleIllegalPatternException(
+    public ResponseEntity<ExceptionResponse> handleIllegalPatternException(
             IllegalPatternException e
     ) {
         logger.error(e.getMessage());
-        return ResponseEntity.badRequest().body(new IllegalPatternExceptionErrorResponse());
+        return ResponseEntity.badRequest().body(new ExceptionResponse(400, "PATTERN"));
     }
 
     @ExceptionHandler(exception = EmailExistsException.class)
-    public ResponseEntity<EmailExistsExceptionErrorResponse> handleEmailExistsException(EmailExistsException e) {
+    public ResponseEntity<ExceptionResponse> handleEmailExistsException(EmailExistsException e) {
         logger.error(e.getMessage());
-        return ResponseEntity.badRequest().body(new EmailExistsExceptionErrorResponse());
+        return ResponseEntity.badRequest().body(new ExceptionResponse(400, "EMAIL EXISTS"));
+    }
+
+    @ExceptionHandler(exception = EmailAlreadyVerifiedException.class)
+    public ResponseEntity<ExceptionResponse> handleException(EmailAlreadyVerifiedException e) {
+        logger.error(e.getMessage());
+        return ResponseEntity.badRequest().body(new ExceptionResponse(400, "EMAIL ALREADY VERIFIED"));
     }
 }

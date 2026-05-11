@@ -2,6 +2,7 @@ package team.anonyms.converter.configs;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -34,8 +35,9 @@ public class SecurityConfiguration {
                 .sessionManagement(sm ->
                         sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth", "/auth/password/**", "/conversion/**", "/direct/**")
-                        .permitAll().anyRequest().authenticated())
+                        .requestMatchers("/conversion/**", "/auth/password/**", "/direct/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/auth", "/users").permitAll()
+                        .anyRequest().authenticated())
                 .addFilterBefore(requestFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
