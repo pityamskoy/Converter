@@ -4,7 +4,9 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
@@ -20,15 +22,16 @@ import java.util.UUID;
  */
 @Service
 public class JwtService {
-    // Default secret for running tests
-    // (if env variable is empty)
-    // Fix needed
-    private static final String SECRET = System.getenv("JWT_SECRET") != null
-            ? System.getenv("JWT_SECRET")
-            : "dGhpc2lzYXN1cGVyc2VjcmV0a2V5dGhhdGlzYXRsZWFzdDMyYnl0ZXNsb25n"; // Carry this out to .env file
-
     // Secret key for validating or creating JWT tokens
-    private static final SecretKey KEY = Keys.hmacShaKeyFor(Decoders.BASE64.decode(SECRET));
+    private SecretKey key;
+
+    @Value("${jwt.secret}")
+    private String secret;
+
+    @PostConstruct
+    private void init() {
+        this.key = Keys.hmacShaKeyFor(Decoders.BASE64.decode(secret));
+    }
 
     /**
      * <p>
@@ -45,7 +48,7 @@ public class JwtService {
                 .subject(userId.toString())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(4, ChronoUnit.HOURS)))
-                .signWith(KEY)
+                .signWith(key)
                 .compact();
     }
 
@@ -59,7 +62,7 @@ public class JwtService {
      * @return user ID
      */
     public String extractUserId(String token) {
-        return Jwts.parser().verifyWith(KEY).build().parseSignedClaims(token).getPayload().getSubject();
+        return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload().getSubject();
     }
 
     /**

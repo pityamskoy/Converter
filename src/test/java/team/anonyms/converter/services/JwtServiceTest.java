@@ -9,7 +9,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 
 class JwtServiceTest {
-
+    //tests: "dGhpc2lzYXN1cGVyc2VjcmV0a2V5dGhhdGlzYXRsZWFzdDMyYnl0ZXNsb25n"
     private JwtService jwtService;
 
     @BeforeEach
