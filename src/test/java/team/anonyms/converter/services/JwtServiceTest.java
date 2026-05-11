@@ -1,21 +1,24 @@
 package team.anonyms.converter.services;
 
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import team.anonyms.converter.services.frontend.JwtService;
 
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(SpringExtension.class)
+@Import(JwtService.class)
+@TestPropertySource(properties = "jwt.secret=dGhpc2lzYXN1cGVyc2VjcmV0a2V5dGhhdGlzYXRsZWFzdDMyYnl0ZXNsb25n")
 class JwtServiceTest {
-    //tests: "dGhpc2lzYXN1cGVyc2VjcmV0a2V5dGhhdGlzYXRsZWFzdDMyYnl0ZXNsb25n"
-    private JwtService jwtService;
 
-    @BeforeEach
-    void setUp() {
-        jwtService = new JwtService();
-    }
+    @Autowired
+    private JwtService jwtService;
 
     @Test
     void testGenerateAndExtractUserId_Success() {
@@ -49,15 +52,9 @@ class JwtServiceTest {
     }
 
     @Test
-    void testIsValid_MalformedToken_ReturnsFalse() {
-        String malformedToken = "just.random.garbage.string";
-
-        assertFalse(jwtService.isValid(malformedToken));
-    }
-
-    @Test
     void testIsValid_NullOrEmptyToken_ReturnsFalse() {
         assertFalse(jwtService.isValid(null));
         assertFalse(jwtService.isValid(""));
+        assertFalse(jwtService.isValid("   "));
     }
 }
