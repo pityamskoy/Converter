@@ -64,11 +64,11 @@ class AuthenticationControllerTest {
         );
 
         LoginResultServiceDto mockServiceResult = new LoginResultServiceDto(
-                true, fakeUsername, fakeEmail, fakeUserId
+                true, fakeUserId, fakeUsername, fakeEmail, false
         );
 
         LoginResultControllerDto loginResultControllerDto = new LoginResultControllerDto(
-                true, fakeUsername, fakeEmail, fakeUserId
+                true, fakeUserId, fakeUsername, fakeEmail, false
         );
 
         AuthenticationServiceDto authenticationServiceDto = new AuthenticationServiceDto(
@@ -110,11 +110,11 @@ class AuthenticationControllerTest {
         CredentialsServiceDto mockServiceCredentials = new CredentialsServiceDto(null, null);
 
         LoginResultServiceDto mockServiceResult = new LoginResultServiceDto(
-                true, fakeUsername, fakeEmail, fakeUserId
+                true,  fakeUserId, fakeUsername, fakeEmail, false
         );
 
         LoginResultControllerDto responseDto = new LoginResultControllerDto(
-                true, fakeUsername, fakeEmail, fakeUserId
+                true, fakeUserId, fakeUsername, fakeEmail, false
         );
 
         Mockito.when(authenticationMapper.credentialsControllerDtoToService(any(CredentialsControllerDto.class)))

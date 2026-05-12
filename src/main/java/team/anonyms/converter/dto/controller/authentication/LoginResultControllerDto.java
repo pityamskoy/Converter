@@ -4,8 +4,9 @@ import java.util.UUID;
 
 public record LoginResultControllerDto(
         Boolean success,
+        UUID userId,
         String username,
         String email,
-        UUID userId
+        Boolean isVerified
 ) {
 }

@@ -69,13 +69,12 @@ public class UserService {
         userRegistered.setPassword(passwordEncoder.encode(userToRegister.password()));
         userRegistered = userRepository.save(userRegistered);
 
-        emailService.sendEmailVerificationCode(userRegistered);
-
         LoginResultServiceDto result = new LoginResultServiceDto(
                 true,
+                userRegistered.getId(),
                 userRegistered.getUsername(),
                 userRegistered.getEmail(),
-                userRegistered.getId()
+                userRegistered.getIsVerified()
         );
 
         return new AuthenticationServiceDto(result, jwtService.generate(userRegistered.getId()));

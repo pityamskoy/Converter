@@ -32,9 +32,10 @@ public class AuthenticationMapper {
     public LoginResultControllerDto loginResultServiceDtoToController(LoginResultServiceDto loginResultServiceDto) {
         return new LoginResultControllerDto(
                 loginResultServiceDto.success(),
+                loginResultServiceDto.userId(),
                 loginResultServiceDto.username(),
                 loginResultServiceDto.email(),
-                loginResultServiceDto.userId()
+                loginResultServiceDto.isVerified()
         );
     }
 

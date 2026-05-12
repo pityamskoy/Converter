@@ -32,7 +32,7 @@ class AuthenticationMapperTest {
         UUID fakeUserId = UUID.randomUUID();
         String fakeUsername = "fakeUsername";
         String fakeEmail = "fakeEmail";
-        LoginResultServiceDto serviceDto = new LoginResultServiceDto(true, fakeUsername, fakeEmail, fakeUserId);
+        LoginResultServiceDto serviceDto = new LoginResultServiceDto(true, fakeUserId, fakeUsername, fakeEmail, false);
 
         LoginResultControllerDto controllerDto = mapper.loginResultServiceDtoToController(serviceDto);
 

@@ -78,7 +78,13 @@ public class AuthenticationService {
             }
 
             User user = userOptional.get();
-            LoginResultServiceDto result = new LoginResultServiceDto(true, user.getUsername(), user.getEmail(), userId);
+            LoginResultServiceDto result = new LoginResultServiceDto(
+                    true,
+                    userId,
+                    user.getUsername(),
+                    user.getEmail(),
+                    user.getIsVerified()
+            );
             return new AuthenticationServiceDto(result, jwtToken);
         }
 
@@ -94,9 +100,10 @@ public class AuthenticationService {
             String newJwtToken = jwtService.generate(user.getId());
             LoginResultServiceDto result = new LoginResultServiceDto(
                     true,
+                    user.getId(),
                     user.getUsername(),
                     user.getEmail(),
-                    user.getId()
+                    user.getIsVerified()
             );
 
             return new AuthenticationServiceDto(result, newJwtToken);
@@ -104,6 +111,7 @@ public class AuthenticationService {
 
         LoginResultServiceDto result = new LoginResultServiceDto(
                 false,
+                null,
                 null,
                 null,
                 null

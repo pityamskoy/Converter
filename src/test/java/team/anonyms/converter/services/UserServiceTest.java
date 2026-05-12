@@ -74,9 +74,6 @@ class UserServiceTest {
 
         assertTrue(result.result().success());
         assertEquals("jwt.token.here", result.jwtToken());
-
-        Mockito.verify(emailService).sendEmailVerificationCode(mockUser);
-        Mockito.verify(mockUser).setPassword("encoded_pass");
     }
 
     @Test

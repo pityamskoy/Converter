@@ -77,11 +77,11 @@ class UserControllerTest {
         );
 
         LoginResultServiceDto mockServiceResult = new LoginResultServiceDto(
-                true, "testuser", "test@mail.com", fakeId
+                true, fakeId, "testuser", "test@mail.com", false
         );
 
         LoginResultControllerDto loginResultControllerDto = new LoginResultControllerDto(
-                true, "testuser", "test@mail.com", fakeId
+                true, fakeId, "testuser", "test@mail.com", false
         );
 
         AuthenticationControllerDto authenticationControllerDto = new AuthenticationControllerDto(
