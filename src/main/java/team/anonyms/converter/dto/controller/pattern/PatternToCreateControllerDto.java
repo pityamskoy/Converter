@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.UUID;
 
 public record PatternToCreateControllerDto(
-        UUID userId,
         String name,
         List<ModificationToCreateControllerDto> modifications
 ) {

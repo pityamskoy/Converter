@@ -29,7 +29,6 @@ public class PatternMapper {
                 map(modificationMapper::modificationToCreateControllerDtoToService).toList();
 
         return new PatternToCreateServiceDto(
-                patternToCreateControllerDto.userId(),
                 patternToCreateControllerDto.name(),
                 modifications
         );

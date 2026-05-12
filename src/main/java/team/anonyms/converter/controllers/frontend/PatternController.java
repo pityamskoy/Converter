@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import team.anonyms.converter.controllers.frontend.pagination.PaginationHandler;
 import team.anonyms.converter.dto.controller.pattern.PatternControllerDto;
@@ -19,6 +20,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/patterns")
+@SuppressWarnings(value = {"DataFlowIssue"})
 public class PatternController {
     private static final Logger logger = LoggerFactory.getLogger(PatternController.class);
 
@@ -36,24 +38,27 @@ public class PatternController {
         this.paginationHandler = paginationHandler;
     }
 
-    @GetMapping("/{userId}/{limit}/{offset}")
+    @GetMapping("/{limit}/{offset}")
     public ResponseEntity<List<PatternControllerDto>> getPatternsByUserId(
-            @PathVariable UUID userId,
             @PathVariable int limit,
             @PathVariable int offset
     ) {
-        logger.info("Called getPatternsByUserId; id={}", userId);
+        logger.info("Called getPatternsByUserId");
 
-        List<PatternControllerDto> allPatterns = patternService.getAllPatternsByUserId(userId).stream()
+        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        List<PatternControllerDto> allPatterns = patternService.getAllPatternsByUserId(userId)
+                .stream()
                 .map(patternMapper::patternServiceDtoToControllerDto)
                 .toList();
 
         return ResponseEntity.ok(paginationHandler.makeSliceFromList(allPatterns, offset, limit));
     }
 
-    @GetMapping("/{userId}")
-    public ResponseEntity<Long> getNumberOfAllPatternsByUserId(@PathVariable UUID userId) {
-        logger.info("Called getNumberOfPatternsByUserId; userId={}", userId);
+    @GetMapping()
+    public ResponseEntity<Long> getNumberOfAllPatternsByUserId() {
+        logger.info("Called getNumberOfPatternsByUserId");
+
+        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
         return ResponseEntity.ok(patternService.getNumberOfAllPatternsByUserId(userId));
     }
@@ -64,13 +69,14 @@ public class PatternController {
     ) {
         logger.info("Called createPattern; patternToCreate={}", patternToCreate);
 
-        PatternToCreateServiceDto patternToCreateServiceDto = patternMapper.
-                patternToCreateControllerDtoToService(patternToCreate);
+        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        PatternToCreateServiceDto patternToCreateServiceDto = patternMapper
+                .patternToCreateControllerDtoToService(patternToCreate);
 
-        PatternServiceDto patternCreated = patternService.createPattern(patternToCreateServiceDto);
+        PatternServiceDto patternCreated = patternService.createPattern(patternToCreateServiceDto, userId);
 
-        return ResponseEntity.status(HttpStatus.CREATED).
-                body(patternMapper.patternServiceDtoToControllerDto(patternCreated));
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(patternMapper.patternServiceDtoToControllerDto(patternCreated));
     }
 
     @PutMapping
@@ -79,9 +85,12 @@ public class PatternController {
     ) {
         logger.info("Called updatePattern; patternToUpdateControllerDto={}", patternToUpdate);
 
+        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         PatternServiceDto patternUpdated = patternService.updatePattern(
-                patternMapper.patternToUpdateControllerDtoToService(patternToUpdate)
+                patternMapper.patternToUpdateControllerDtoToService(patternToUpdate),
+                userId
         );
+
 
         return ResponseEntity.ok(patternMapper.patternServiceDtoToControllerDto(patternUpdated));
     }
@@ -90,7 +99,8 @@ public class PatternController {
     public ResponseEntity<Void> deletePattern(@PathVariable UUID patternId) {
         logger.info("Called deletePattern; id={}", patternId);
 
-        patternService.deletePattern(patternId);
+        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        patternService.deletePattern(patternId, userId);
 
         return ResponseEntity.noContent().build();
     }

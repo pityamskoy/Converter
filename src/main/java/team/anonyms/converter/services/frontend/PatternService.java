@@ -1,6 +1,7 @@
 package team.anonyms.converter.services.frontend;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import team.anonyms.converter.dto.service.pattern.PatternServiceDto;
@@ -58,11 +59,11 @@ public class PatternService {
     }
 
     @Transactional
-    public PatternServiceDto createPattern(PatternToCreateServiceDto patternToCreate) {
-        Optional<User> userOptional = userRepository.findById(patternToCreate.userId());
+    public PatternServiceDto createPattern(PatternToCreateServiceDto patternToCreate, UUID userId) {
+        Optional<User> userOptional = userRepository.findById(userId);
 
         if (userOptional.isEmpty()) {
-            throw new EntityNotFoundException("User not found; id=" + patternToCreate.userId());
+            throw new EntityNotFoundException("User not found; id=" + userId);
         }
 
         Pattern patternCreated = patternMapper.patternToCreateServiceDtoToEntity(patternToCreate, userOptional.get());
@@ -78,14 +79,20 @@ public class PatternService {
     }
 
     @Transactional
-    public PatternServiceDto updatePattern(PatternToUpdateServiceDto patternToUpdate) {
-        Optional<Pattern> pattern = patternRepository.findById(patternToUpdate.id());
-
-        if (pattern.isEmpty()) {
+    public PatternServiceDto updatePattern(PatternToUpdateServiceDto patternToUpdate, UUID userId) {
+        Optional<Pattern> patternOptional = patternRepository.findById(patternToUpdate.id());
+        if (patternOptional.isEmpty()) {
             throw new EntityNotFoundException("Pattern not found; id=" + patternToUpdate.id());
         }
 
-        Pattern patternUpdated = pattern.get();
+        Pattern patternUpdated = patternOptional.get();
+        if (!patternUpdated.getUser().getId().equals(userId)) {
+            throw new AccessDeniedException(
+                    "Sender ID doesn't match with user ID of that pattern; userId=" + patternUpdated.getUser().getId()
+                            + "; senderId=" + userId
+            );
+        }
+
         List<Modification> modifications = patternToUpdate.modifications().stream()
                 .map(m -> modificationMapper.modificationToUpdateServiceDtoToEntity(m, patternUpdated))
                 .toList();
@@ -100,14 +107,21 @@ public class PatternService {
     }
 
     @Transactional
-    public void deletePattern(UUID patternId) {
+    public void deletePattern(UUID patternId, UUID userId) {
         Optional<Pattern> patternOptional = patternRepository.findById(patternId);
-
         if (patternOptional.isEmpty()) {
             throw new EntityNotFoundException("Pattern not found; patternId=" + patternId);
         }
 
+        Pattern patternDeleted = patternOptional.get();
+        if (!patternDeleted.getUser().getId().equals(userId)) {
+            throw new AccessDeniedException(
+                    "Sender ID doesn't match with user ID of that pattern; userId=" + patternDeleted.getUser().getId()
+                            + "; senderId=" + userId
+            );
+        }
+
         modificationRepository.deleteAllByPatternId(patternId);
-        patternRepository.delete(patternOptional.get());
+        patternRepository.delete(patternDeleted);
     }
 }

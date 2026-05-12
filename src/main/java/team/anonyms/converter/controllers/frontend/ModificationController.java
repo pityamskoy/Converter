@@ -3,6 +3,7 @@ package team.anonyms.converter.controllers.frontend;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import team.anonyms.converter.controllers.frontend.pagination.PaginationHandler;
 import team.anonyms.converter.dto.controller.modification.ModificationControllerDto;
@@ -14,6 +15,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/modifications")
+@SuppressWarnings(value = {"DataFlowIssue"})
 public class ModificationController {
     private static final Logger logger = LoggerFactory.getLogger(ModificationController.class);
 
@@ -39,7 +41,11 @@ public class ModificationController {
     ) {
         logger.info("Called getAllModificationsByPatternId; id={}", patternId);
 
-        List<ModificationControllerDto> allModifications = modificationService.getAllModificationsByPatternId(patternId)
+        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        List<ModificationControllerDto> allModifications = modificationService.getAllModificationsByPatternId(
+                patternId,
+                userId
+                )
                 .stream().map(modificationMapper::modificationServiceDtoToControllerDto)
                 .toList();
 
@@ -52,6 +58,8 @@ public class ModificationController {
     ) {
         logger.info("Called getNumberOfModificationsByPatternId; patternId={}", patternId);
 
-        return ResponseEntity.ok(modificationService.getNumberOfAllModificationsByPatternId(patternId));
+        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        return ResponseEntity.ok(modificationService.getNumberOfAllModificationsByPatternId(patternId, userId));
     }
 }

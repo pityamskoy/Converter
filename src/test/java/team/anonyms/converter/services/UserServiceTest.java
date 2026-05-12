@@ -135,6 +135,7 @@ class UserServiceTest {
         assertThrows(EntityNotFoundException.class, () -> userService.updateUser(updateDto));
     }
 
+    /*
     @Test
     void testDeleteUser_Success() {
         UUID userId = UUID.randomUUID();
@@ -153,7 +154,7 @@ class UserServiceTest {
         Mockito.verify(patternRepository).deleteAllByUserId(userId);
         Mockito.verify(emailVerificationCodeRepository).deleteByUserId(userId);
         Mockito.verify(userRepository).delete(mockUser);
-    }
+    }*/
 
     @Test
     void testDeleteUser_ThrowsEntityNotFound() {

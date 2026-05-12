@@ -33,14 +33,12 @@ class PatternMapperTest {
     void testPatternToCreateControllerDtoToService() {
         UUID userId = UUID.randomUUID();
         PatternToCreateControllerDto controllerDto = new PatternToCreateControllerDto(
-                userId,
                 "Pattern1",
                 List.of()
         );
 
         PatternToCreateServiceDto serviceDto = patternMapper.patternToCreateControllerDtoToService(controllerDto);
 
-        assertEquals(userId, serviceDto.userId());
         assertEquals("Pattern1", serviceDto.name());
         assertTrue(serviceDto.modifications().isEmpty());
     }
@@ -79,7 +77,6 @@ class PatternMapperTest {
     void testPatternToCreateServiceDtoToEntity() {
         UUID userId = UUID.randomUUID();
         PatternToCreateServiceDto serviceDto = new PatternToCreateServiceDto(
-                userId,
                 "Pattern1",
                 List.of()
         );
