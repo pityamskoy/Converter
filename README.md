@@ -82,8 +82,8 @@ if still valid, it is reused; otherwise a new one is generated.
 
 ---
 
-#### `POST /auth/verification`
-Submit the 6-digit code that was emailed after registration.
+#### `POST /auth/email/verification`
+Submit the 6-digit code that was emailed after registration. Requires authentication.
 
 **Request body** (`text/plain`): the 6-digit code string.
 
@@ -93,19 +93,52 @@ true
 ```
 Returns `false` if the code is wrong or expired.
 
+**Response `400 Bad Request`** (`EMAIL ALREADY VERIFIED`) — email is already verified.
+
 ---
 
-#### `POST /auth/resending` TEMPORARILY DOES NOT WORK
-Request a new verification code to be sent to the user's email. 
+#### `POST /auth/email/resending`
+Request a new email verification code. Requires authentication.
 
-**Response `200 OK`**
+**Response `204 No Content`**
+
+---
+
+#### `POST /auth/password/reset`
+Request a password-reset verification code to be sent to the provided email address.
+No authentication required.
+
+**Request body** (`text/plain`): the email address.
+
+**Response `204 No Content`**
+
+---
+
+#### `POST /auth/password/verification`
+Verify the password-reset code and set a new password.
+No authentication required.
+
+**Request body** (`application/json`):
+```json
+{
+  "email": "user@example.com",
+  "verificationCode": "123456",
+  "newPassword": "newSecret"
+}
+```
+
+**Response `200 OK`**:
+```json
+true
+```
+Returns `false` if the code is wrong or expired.
 
 ---
 
 #### `DELETE /auth`
 Log out — clears the `jwtToken` cookie.
 
-**Response `200 OK`**
+**Response `204 No Content`**
 
 ---
 
@@ -136,14 +169,12 @@ Create a new account. Triggers a verification email to the provided address.
 **Response `400 Bad Request`** (`EMAIL EXISTS`) — email already registered.
 
 #### `PUT /users`
-Update the current user's profile.
+Update the current user's username and/or password. The user is identified by the JWT. Requires authentication.
 
 **Request body** (`application/json`):
 ```json
 {
-  "id": "uuid",
   "username": "new_name",
-  "email": "new@example.com",
   "password": "newPassword"
 }
 ```
@@ -153,7 +184,8 @@ Update the current user's profile.
 {
   "id": "uuid",
   "username": "new_name",
-  "email": "new@example.com"
+  "email": "current@example.com",
+  "isVerified": true
 }
 ```
 
@@ -161,10 +193,28 @@ Update the current user's profile.
 
 ---
 
-#### `DELETE /users/{userId}`
-Delete a user account.
+#### `PUT /users/email`
+Update the current user's email address. The user is identified by the JWT. Requires authentication.
+After updating, the new address is unverified and a verification email is sent automatically.
 
-**Path variable:** `userId` (UUID)
+**Request body** (`text/plain`): the new email address.
+
+**Response `200 OK`**:
+```json
+{
+  "id": "uuid",
+  "username": "john",
+  "email": "new@example.com",
+  "isVerified": false
+}
+```
+
+**Response `404 Not Found`** — user not found.
+
+---
+
+#### `DELETE /users`
+Delete the current user's account. The user is identified by the JWT. Requires authentication.
 
 **Response `204 No Content`**
 
@@ -390,15 +440,16 @@ Convert an XML body to JSON.
 
 All unhandled exceptions are caught by `GlobalExceptionHandler`. The mapping is:
 
-| Exception                       | HTTP Status                 | Response body                    |
-|---------------------------------|-----------------------------|----------------------------------|
-| `EntityNotFoundException`       | `404 Not Found`             | empty                            |
-| `UnsupportedExtensionException` | `400 Bad Request`           | empty                            |
-| `IllegalArgumentException`      | `400 Bad Request`           | empty                            |
-| `NullPointerException`          | `500 Internal Server Error` | empty                            |
-| `CredentialException`           | `400 Bad Request`           | JSON — `message: "CREDENTIAL"`   |
-| `IllegalPatternException`       | `400 Bad Request`           | JSON — `message: "PATTERN"`      |
-| `EmailExistsException`          | `400 Bad Request`           | JSON — `message: "EMAIL EXISTS"` |
+| Exception                        | HTTP Status                 | Response body                              |
+|----------------------------------|-----------------------------|--------------------------------------------|
+| `EntityNotFoundException`        | `404 Not Found`             | empty                                      |
+| `UnsupportedExtensionException`  | `400 Bad Request`           | empty                                      |
+| `IllegalArgumentException`       | `400 Bad Request`           | empty                                      |
+| `NullPointerException`           | `500 Internal Server Error` | empty                                      |
+| `CredentialException`            | `400 Bad Request`           | JSON — `message: "CREDENTIAL"`             |
+| `IllegalPatternException`        | `400 Bad Request`           | JSON — `message: "PATTERN"`                |
+| `EmailExistsException`           | `400 Bad Request`           | JSON — `message: "EMAIL EXISTS"`           |
+| `EmailAlreadyVerifiedException`  | `400 Bad Request`           | JSON — `message: "EMAIL ALREADY VERIFIED"` |
 
 Exceptions that return a JSON body use the following envelope (defined in `ErrorResponse`):
 
