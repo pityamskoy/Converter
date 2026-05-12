@@ -224,11 +224,12 @@ Delete the current user's account. The user is identified by the JWT. Requires a
 
 ### Patterns — `/patterns`
 
-#### `GET /patterns/{userId}/{limit}/{offset}`
-Get a paginated slice of patterns belonging to a user.
+All pattern endpoints require authentication. The user is identified by the JWT cookie.
+
+#### `GET /patterns/{limit}/{offset}`
+Get a paginated slice of patterns belonging to the authenticated user.
 
 **Path variables:**
-- `userId` — UUID of the user
 - `limit` — maximum number of items to return
 - `offset` — number of items to skip
 
@@ -246,31 +247,24 @@ Get a paginated slice of patterns belonging to a user.
 ]
 ```
 
-**Response `404 Not Found`** — user not found.
-
 ---
 
-#### `GET /patterns/{userId}`
-Get the total number of patterns belonging to a user.
-
-**Path variable:** `userId` (UUID)
+#### `GET /patterns`
+Get the total number of patterns belonging to the authenticated user.
 
 **Response `200 OK`**:
 ```json
 5
 ```
 
-**Response `404 Not Found`** — user not found.
-
 ---
 
 #### `POST /patterns`
-Create a new pattern.
+Create a new pattern for the authenticated user.
 
 **Request body** (`application/json`):
 ```json
 {
-  "userId": "uuid",
   "name": "My Pattern",
   "modifications": [
     {
@@ -291,14 +285,12 @@ Create a new pattern.
 }
 ```
 
-**Response `404 Not Found`** — user not found.
-
 ---
 
 #### `PUT /patterns`
-Update an existing pattern. The `id` must be present in the body. <br>
-Note, that this API endpoint is the only way to update modifications. 
-Modification are updated only through updating a pattern they belong to.
+Update an existing pattern. The `id` must be present in the body. Requires ownership — the pattern must belong to the authenticated user.
+Note, that this API endpoint is the only way to update modifications.
+Modifications are updated only through updating a pattern they belong to.
 
 **Request body** (`application/json`):
 ```json
@@ -325,22 +317,28 @@ Modification are updated only through updating a pattern they belong to.
 }
 ```
 
+**Response `403 Forbidden`** — pattern belongs to another user.
+
 **Response `404 Not Found`** — pattern not found.
 
 ---
 
 #### `DELETE /patterns/{patternId}`
-Delete a pattern and all its modifications.
+Delete a pattern and all its modifications. Requires ownership — the pattern must belong to the authenticated user.
 
 **Path variable:** `patternId` (UUID)
 
 **Response `204 No Content`**
+
+**Response `403 Forbidden`** — pattern belongs to another user.
 
 **Response `404 Not Found`** — pattern not found.
 
 ---
 
 ### Modifications — `/modifications`
+
+All modification endpoints require authentication. Ownership is verified — the pattern must belong to the authenticated user.
 
 #### `GET /modifications/{patternId}/{limit}/{offset}`
 Get a paginated slice of modifications belonging to a pattern.
@@ -363,6 +361,8 @@ Get a paginated slice of modifications belonging to a pattern.
 ]
 ```
 
+**Response `403 Forbidden`** — pattern belongs to another user.
+
 **Response `404 Not Found`** — pattern not found.
 
 ---
@@ -376,6 +376,8 @@ Get the total number of modifications belonging to a pattern.
 ```json
 3
 ```
+
+**Response `403 Forbidden`** — pattern belongs to another user.
 
 **Response `404 Not Found`** — pattern not found.
 
@@ -450,6 +452,7 @@ All unhandled exceptions are caught by `GlobalExceptionHandler`. The mapping is:
 | `IllegalPatternException`        | `400 Bad Request`           | JSON — `message: "PATTERN"`                |
 | `EmailExistsException`           | `400 Bad Request`           | JSON — `message: "EMAIL EXISTS"`           |
 | `EmailAlreadyVerifiedException`  | `400 Bad Request`           | JSON — `message: "EMAIL ALREADY VERIFIED"` |
+| `AccessDeniedException`          | `403 Forbidden`             | JSON — `message: "ACCESS DENIED"`          |
 
 Exceptions that return a JSON body use the following envelope (defined in `ErrorResponse`):
 
