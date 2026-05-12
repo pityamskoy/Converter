@@ -30,7 +30,7 @@ public class Modification {
 
     private String newType;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pattern_id", nullable = false)
     private Pattern pattern;
 }

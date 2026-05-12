@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import team.anonyms.converter.dto.service.authentication.AuthenticationServiceDto;
 import team.anonyms.converter.dto.service.authentication.LoginResultServiceDto;
 import team.anonyms.converter.dto.service.user.*;
-import team.anonyms.converter.entities.Pattern;
 import team.anonyms.converter.entities.User;
 import team.anonyms.converter.mappers.UserMapper;
 import team.anonyms.converter.repositories.ModificationRepository;
@@ -15,8 +14,8 @@ import team.anonyms.converter.repositories.PatternRepository;
 import team.anonyms.converter.repositories.UserRepository;
 import team.anonyms.converter.repositories.codes.EmailVerificationCodeRepository;
 import team.anonyms.converter.exceptions.email.EmailExistsException;
+import team.anonyms.converter.repositories.codes.PasswordResetVerificationCodeRepository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -27,6 +26,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final EmailVerificationCodeRepository emailVerificationCodeRepository;
+    private final PasswordResetVerificationCodeRepository passwordResetVerificationCodeRepository;
     private final PatternRepository patternRepository;
     private final ModificationRepository modificationRepository;
 
@@ -39,6 +39,7 @@ public class UserService {
             EmailService emailService,
             UserRepository userRepository,
             EmailVerificationCodeRepository emailVerificationCodeRepository,
+            PasswordResetVerificationCodeRepository passwordResetVerificationCodeRepository,
             PatternRepository patternRepository,
             ModificationRepository modificationRepository,
             UserMapper userMapper,
@@ -49,6 +50,7 @@ public class UserService {
 
         this.userRepository = userRepository;
         this.emailVerificationCodeRepository = emailVerificationCodeRepository;
+        this.passwordResetVerificationCodeRepository = passwordResetVerificationCodeRepository;
         this.patternRepository = patternRepository;
         this.modificationRepository = modificationRepository;
 
@@ -123,13 +125,10 @@ public class UserService {
             throw new EntityNotFoundException("User not found; id=" + userId);
         }
 
-        List<Pattern> patternsToDelete = patternRepository.findAllByUserId(userId);
-        for (Pattern pattern : patternsToDelete) {
-            modificationRepository.deleteAllByPatternId(pattern.getId());
-        }
-
+        modificationRepository.deleteAllByUserId(userId);
         patternRepository.deleteAllByUserId(userId);
         emailVerificationCodeRepository.deleteByUserId(userId);
+        passwordResetVerificationCodeRepository.deleteByUserId(userId);
         userRepository.delete(userOptional.get());
     }
 }
