@@ -33,9 +33,9 @@ spring:
     password: ${EMAIL_PASSWORD}
     properties:
       mail:
-        SMTP:
+        smtp:
           auth: true
-          STARTTLS:
+          starttls:
             enable: true
 
 app:
@@ -47,6 +47,6 @@ logging:
     root: INFO
     team.anonyms.converter.services: DEBUG
   file:
-    name: /logs/backend/converter.log
+    name: /logs/converter.log
   pattern:
     file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
