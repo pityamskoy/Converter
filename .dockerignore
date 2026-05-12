@@ -1,3 +1,11 @@
+.claude/
 .idea/
 target/
 src/test/
+Dockerfile
+.gitignore
+.gitlab-ci.yml
+README.md
+LICENSE
+docker-compose.yaml
+Converter.iml
