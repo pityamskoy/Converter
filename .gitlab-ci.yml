@@ -63,8 +63,8 @@ deploy-job:
       export EMAIL_ADDRESS=$EMAIL_ADDRESS &&
       export EMAIL_PASSWORD=$EMAIL_PASSWORD &&
       export EMAIL_SENDER_ADDRESS=$EMAIL_SENDER_ADDRESS &&
-      docker stop converter-backend-1 || true &&
-      docker rm converter-backend-1 || true &&
+      docker stop cson-converter-backend-1 || true &&
+      docker rm cson-converter-backend-1 || true &&
       docker image rm $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:latest &&
       docker compose up -d
       "
