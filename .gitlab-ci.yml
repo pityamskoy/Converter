@@ -5,7 +5,7 @@ stages:
 
 variables:
   DOCKERHUB_USER: kekishev
-  DOCKERHUB_REPOSITORY_NAME: converter
+  DOCKERHUB_REPOSITORY_NAME: cson-converter
 
 test-job:
   stage: test
