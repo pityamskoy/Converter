@@ -9,8 +9,8 @@
     </parent>
 
     <groupId>team.anonyms</groupId>
-    <artifactId>converter</artifactId>
-    <version>0.0.1</version>
+    <artifactId>cson-converter</artifactId>
+    <version>0.1.0</version>
     <name>backend</name>
 
     <licenses>

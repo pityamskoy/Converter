@@ -1,4 +1,4 @@
-name: converter
+name: cson-converter
 
 services:
   backend:
