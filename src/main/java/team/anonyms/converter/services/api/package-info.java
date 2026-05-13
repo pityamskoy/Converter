@@ -1,6 +1,6 @@
 /**
  * <p>
- *     This package only includes services, designed to work with API controllers
+ *     This package includes services, designed to work only with API controllers
  *     (controllers, placed in {@link team.anonyms.converter.controllers.api} package).
  * </p>
  */

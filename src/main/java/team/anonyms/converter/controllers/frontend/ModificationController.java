@@ -42,11 +42,10 @@ public class ModificationController {
         logger.info("Called getAllModificationsByPatternId; id={}", patternId);
 
         UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<ModificationControllerDto> allModifications = modificationService.getAllModificationsByPatternId(
-                patternId,
-                userId
-                )
-                .stream().map(modificationMapper::modificationServiceDtoToControllerDto)
+        List<ModificationControllerDto> allModifications = modificationService
+                .getAllModificationsByPatternId(patternId, userId)
+                .stream()
+                .map(modificationMapper::modificationServiceDtoToControllerDto)
                 .toList();
 
         return ResponseEntity.ok(paginationHandler.makeSliceFromList(allModifications, offset, limit));

@@ -2,7 +2,6 @@ package team.anonyms.converter.controllers.frontend;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -11,7 +10,6 @@ import team.anonyms.converter.dto.controller.pattern.PatternControllerDto;
 import team.anonyms.converter.dto.controller.pattern.PatternToCreateControllerDto;
 import team.anonyms.converter.dto.controller.pattern.PatternToUpdateControllerDto;
 import team.anonyms.converter.dto.service.pattern.PatternServiceDto;
-import team.anonyms.converter.dto.service.pattern.PatternToCreateServiceDto;
 import team.anonyms.converter.mappers.PatternMapper;
 import team.anonyms.converter.services.frontend.PatternService;
 
@@ -54,7 +52,7 @@ public class PatternController {
         return ResponseEntity.ok(paginationHandler.makeSliceFromList(allPatterns, offset, limit));
     }
 
-    @GetMapping()
+    @GetMapping
     public ResponseEntity<Long> getNumberOfAllPatternsByUserId() {
         logger.info("Called getNumberOfPatternsByUserId");
 
@@ -70,13 +68,12 @@ public class PatternController {
         logger.info("Called createPattern; patternToCreate={}", patternToCreate);
 
         UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        PatternToCreateServiceDto patternToCreateServiceDto = patternMapper
-                .patternToCreateControllerDtoToService(patternToCreate);
+        PatternServiceDto patternCreated = patternService.createPattern(
+                patternMapper.patternToCreateControllerDtoToService(patternToCreate),
+                userId
+        );
 
-        PatternServiceDto patternCreated = patternService.createPattern(patternToCreateServiceDto, userId);
-
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(patternMapper.patternServiceDtoToControllerDto(patternCreated));
+        return ResponseEntity.status(201).body(patternMapper.patternServiceDtoToControllerDto(patternCreated));
     }
 
     @PutMapping
@@ -90,7 +87,6 @@ public class PatternController {
                 patternMapper.patternToUpdateControllerDtoToService(patternToUpdate),
                 userId
         );
-
 
         return ResponseEntity.ok(patternMapper.patternServiceDtoToControllerDto(patternUpdated));
     }

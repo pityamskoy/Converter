@@ -90,7 +90,6 @@ class UserServiceTest {
     void testUpdateUser_Success() {
         UUID userId = UUID.randomUUID();
         UserToUpdateServiceDto updateDto = new UserToUpdateServiceDto(
-                userId,
                 "new_user",
                 "newpass"
         );
@@ -107,7 +106,7 @@ class UserServiceTest {
         Mockito.when(passwordEncoder.encode("newpass")).thenReturn("encoded_newpass");
         Mockito.when(userMapper.userToServiceDto(mockUser)).thenReturn(responseDto);
 
-        UserServiceDto result = userService.updateUser(updateDto);
+        UserServiceDto result = userService.updateUser(updateDto, userId);
 
         assertNotNull(result);
         assertEquals("new_user", result.username());
@@ -122,14 +121,13 @@ class UserServiceTest {
     void testUpdateUser_ThrowsEntityNotFound() {
         UUID userId = UUID.randomUUID();
         UserToUpdateServiceDto updateDto = new UserToUpdateServiceDto(
-                userId,
                 "name",
                 "МЕГАНАИКРУТЕЙШИЙСИГМАПАССВОРД"
         );
 
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        assertThrows(EntityNotFoundException.class, () -> userService.updateUser(updateDto));
+        assertThrows(EntityNotFoundException.class, () -> userService.updateUser(updateDto, userId));
     }
 
     /*

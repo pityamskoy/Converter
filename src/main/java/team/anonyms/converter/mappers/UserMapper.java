@@ -21,18 +21,8 @@ public class UserMapper {
             UserToUpdateControllerDto userToUpdateControllerDto
     ) {
         return new UserToUpdateServiceDto(
-                userToUpdateControllerDto.id(),
                 userToUpdateControllerDto.username(),
                 userToUpdateControllerDto.password()
-        );
-    }
-
-    public UserToUpdateEmailServiceDto userToUpdateEmailControllerDtoToService(
-            UserToUpdateEmailControllerDto userToUpdateEmailControllerDto
-    ) {
-        return new UserToUpdateEmailServiceDto(
-                userToUpdateEmailControllerDto.id(),
-                userToUpdateEmailControllerDto.email()
         );
     }
 

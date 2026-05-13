@@ -80,10 +80,10 @@ public class UserService {
         return new AuthenticationServiceDto(result, jwtService.generate(userRegistered.getId()));
     }
 
-    public UserServiceDto updateUser(UserToUpdateServiceDto userToUpdate) {
-        Optional<User> userOptional = userRepository.findById(userToUpdate.id());
+    public UserServiceDto updateUser(UserToUpdateServiceDto userToUpdate, UUID userId) {
+        Optional<User> userOptional = userRepository.findById(userId);
         if (userOptional.isEmpty()) {
-            throw new EntityNotFoundException("User not found; id=" + userToUpdate.id());
+            throw new EntityNotFoundException("User not found; id=" + userId);
         }
 
         User userUpdated = userOptional.get();
@@ -95,19 +95,19 @@ public class UserService {
         return userMapper.userToServiceDto(userUpdated);
     }
 
-    public UserServiceDto updateEmail(UserToUpdateEmailServiceDto userToUpdateEmail) {
-        Optional<User> userOptional = userRepository.findById(userToUpdateEmail.id());
+    public UserServiceDto updateEmail(String email, UUID userId) {
+        Optional<User> userOptional = userRepository.findById(userId);
         if (userOptional.isEmpty()) {
-            throw new EntityNotFoundException("User not found; id=" + userToUpdateEmail.id());
+            throw new EntityNotFoundException("User not found; id=" + userId);
         }
 
-        Optional<User> userWithExistedEmail = userRepository.findByEmail(userToUpdateEmail.email());
+        Optional<User> userWithExistedEmail = userRepository.findByEmail(email);
         if (userWithExistedEmail.isPresent()) {
-            throw new EmailExistsException("Email already exists; email=" + userToUpdateEmail.email());
+            throw new EmailExistsException("Email already exists; email=" + email);
         }
 
         User userUpdated = userOptional.get();
-        userUpdated.setEmail(userToUpdateEmail.email());
+        userUpdated.setEmail(email);
         userUpdated.setIsVerified(false);
 
         userRepository.save(userUpdated);

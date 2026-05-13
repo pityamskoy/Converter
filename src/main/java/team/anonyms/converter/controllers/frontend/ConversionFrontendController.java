@@ -19,7 +19,7 @@ import java.util.UUID;
 import static org.springframework.http.MediaType.*;
 
 /*
-Still it is highly reasonable to add separator to return for CSV format
+TODO: add option of choosing separator for CSV format
  */
 @RestController
 @CrossOrigin(exposedHeaders = {"Content-Disposition"})
@@ -33,41 +33,13 @@ public class ConversionFrontendController {
         this.conversionFrontendService = conversionFrontendService;
     }
 
-    /**
-     *
-     * @param path path to converted file.
-     * @param outputFilename output filename.
-     * @param mediaType media type of response file.
-     *
-     * @return prepared {@link ResponseEntity}, which can be transferred right into return statement.
-     */
-    private @NonNull ResponseEntity<StreamingResponseBody> getResponseEntityForConversionEndpoints(
-            @NonNull Path path,
-            @NonNull String outputFilename,
-            @NonNull MediaType mediaType
-    ) throws IOException {
-        StreamingResponseBody stream = outputStream -> {
-            try (InputStream in = Files.newInputStream(path)) {
-                in.transferTo(outputStream);
-            } finally {
-                Files.deleteIfExists(path);
-            }
-        };
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentDisposition(ContentDisposition.attachment().filename(outputFilename).build());
-        headers.setContentType(mediaType);
-        headers.setContentLength(Files.size(path));
-
-        return new ResponseEntity<>(stream, headers, HttpStatus.OK);
-    }
-
     @PostMapping(value = "/json/csv", consumes = MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<StreamingResponseBody> convertJsonFileToCsv(
             @RequestPart(name = "file") MultipartFile file,
             @RequestParam(name = "pattern", required = false) UUID patternId
     ) {
         String filename = file.getOriginalFilename();
+
         logger.info("Called convertJsonFileToCsv; filename={}; patternId={}", filename, patternId);
         Objects.requireNonNull(filename, "Filename must not be null");
 
@@ -75,7 +47,7 @@ public class ConversionFrontendController {
             Path csvPath = conversionFrontendService.convertJsonFileToCsv(file, patternId);
             String outputFilename = filename.substring(0, filename.lastIndexOf('.')) + ".csv";
 
-            return getResponseEntityForConversionEndpoints(csvPath, outputFilename, parseMediaType("text/csv"));
+            return createResponse(csvPath, outputFilename, parseMediaType("text/csv"));
         } catch (IOException e) {
             logger.error("Unexpected IOException", e);
             return ResponseEntity.internalServerError().build();
@@ -96,7 +68,7 @@ public class ConversionFrontendController {
             Path jsonPath = conversionFrontendService.convertCsvFileToJson(file, patternId);
             String outputFilename = filename.substring(0, filename.lastIndexOf('.')) + ".json";
 
-            return getResponseEntityForConversionEndpoints(jsonPath, outputFilename, APPLICATION_OCTET_STREAM);
+            return createResponse(jsonPath, outputFilename, APPLICATION_OCTET_STREAM);
         } catch (IOException e) {
             logger.error("Unexpected IOException", e);
             return ResponseEntity.internalServerError().build();
@@ -117,7 +89,7 @@ public class ConversionFrontendController {
             Path xmlPath = conversionFrontendService.convertJsonFileToXml(file, patternId);
             String outputFilename = filename.substring(0, filename.lastIndexOf('.')) + ".xml";
 
-            return getResponseEntityForConversionEndpoints(xmlPath, outputFilename, APPLICATION_OCTET_STREAM);
+            return createResponse(xmlPath, outputFilename, APPLICATION_OCTET_STREAM);
         } catch (IOException e) {
             logger.error("Unexpected IOException", e);
             return ResponseEntity.internalServerError().build();
@@ -138,7 +110,7 @@ public class ConversionFrontendController {
             Path jsonPath = conversionFrontendService.convertXmlFileToJson(file, patternId);
             String outputFilename = filename.substring(0, filename.lastIndexOf('.')) + ".json";
 
-            return getResponseEntityForConversionEndpoints(jsonPath, outputFilename, APPLICATION_OCTET_STREAM);
+            return createResponse(jsonPath, outputFilename, APPLICATION_OCTET_STREAM);
         } catch (IOException e) {
             logger.error("Unexpected IOException", e);
             return ResponseEntity.internalServerError().build();
@@ -159,7 +131,7 @@ public class ConversionFrontendController {
             Path csvPath = conversionFrontendService.convertXmlFileToCsv(file, patternId);
             String outputFilename = filename.substring(0, filename.lastIndexOf('.')) + ".csv";
 
-            return getResponseEntityForConversionEndpoints(csvPath, outputFilename, parseMediaType("text/csv"));
+            return createResponse(csvPath, outputFilename, parseMediaType("text/csv"));
         } catch (IOException e) {
             logger.error("Unexpected IOException", e);
             return ResponseEntity.internalServerError().build();
@@ -180,10 +152,38 @@ public class ConversionFrontendController {
             Path xmlPath = conversionFrontendService.convertCsvFileToXml(file, patternId);
             String outputFilename = filename.substring(0, filename.lastIndexOf('.')) + ".xml";
 
-            return getResponseEntityForConversionEndpoints(xmlPath, outputFilename, APPLICATION_OCTET_STREAM);
+            return createResponse(xmlPath, outputFilename, APPLICATION_OCTET_STREAM);
         } catch (IOException e) {
             logger.error("Unexpected IOException", e);
             return ResponseEntity.internalServerError().build();
         }
+    }
+
+    /**
+     * @param path path to converted file.
+     * @param outputFilename output filename.
+     * @param mediaType media type of response file.
+     *
+     * @return prepared {@link ResponseEntity}, which can be transferred right into return statement.
+     */
+    private @NonNull ResponseEntity<StreamingResponseBody> createResponse(
+            @NonNull Path path,
+            @NonNull String outputFilename,
+            @NonNull MediaType mediaType
+    ) throws IOException {
+        StreamingResponseBody stream = outputStream -> {
+            try (InputStream in = Files.newInputStream(path)) {
+                in.transferTo(outputStream);
+            } finally {
+                Files.deleteIfExists(path);
+            }
+        };
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentDisposition(ContentDisposition.attachment().filename(outputFilename).build());
+        headers.setContentType(mediaType);
+        headers.setContentLength(Files.size(path));
+
+        return new ResponseEntity<>(stream, headers, HttpStatus.OK);
     }
 }

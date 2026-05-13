@@ -27,7 +27,7 @@ public class ConversionApiController {
             produces = MediaType.APPLICATION_XML_VALUE
     )
     public ResponseEntity<String> convertJsonToXml(@RequestBody Map<String, Object> body) {
-        logger.info("Called convertJsonToXml, body={}", body);
+        logger.info("Called convertJsonToXml");
         return ResponseEntity.ok(conversionApiService.convertJsonToXml(body));
     }
 
@@ -37,7 +37,7 @@ public class ConversionApiController {
             produces = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<String> convertXmlToJson(@RequestBody Map<String, Object> body) {
-        logger.info("Called convertXmlToJson, body={}", body);
+        logger.info("Called convertXmlToJson");
         return ResponseEntity.ok(conversionApiService.convertXmlToJson(body));
     }
 }

@@ -56,19 +56,13 @@ public class UserController {
     }
 
     @PutMapping
-    public ResponseEntity<UserControllerDto> updateUser(@RequestBody UserToUpdateCredentials userToUpdateCredentials) {
+    public ResponseEntity<UserControllerDto> updateUser(@RequestBody UserToUpdateControllerDto userToUpdate) {
         logger.info("Called updateUser");
 
         UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
         UserServiceDto userUpdated = userService.updateUser(
-                userMapper.userToUpdateControllerDtoToService(
-                        new UserToUpdateControllerDto(
-                            userId,
-                            userToUpdateCredentials.username(),
-                            userToUpdateCredentials.password()
-                        )
-                )
+                userMapper.userToUpdateControllerDtoToService(userToUpdate),
+                userId
         );
 
         return ResponseEntity.ok(userMapper.userServiceDtoToControllerDto(userUpdated));
@@ -79,9 +73,7 @@ public class UserController {
         logger.info("Called updateEmail");
 
         UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserServiceDto userUpdated = userService.updateEmail(
-                userMapper.userToUpdateEmailControllerDtoToService(new UserToUpdateEmailControllerDto(userId, email))
-        );
+        UserServiceDto userUpdated = userService.updateEmail(email, userId);
 
         return ResponseEntity.ok(userMapper.userServiceDtoToControllerDto(userUpdated));
     }

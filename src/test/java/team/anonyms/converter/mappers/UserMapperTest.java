@@ -36,16 +36,13 @@ class UserMapperTest {
 
     @Test
     void testUserToUpdateControllerDtoToService() {
-        UUID id = UUID.randomUUID();
         UserToUpdateControllerDto controllerDto = new UserToUpdateControllerDto(
-                id,
                 "newname",
                 "mega_krutoi_parol"
         );
 
         UserToUpdateServiceDto serviceDto = userMapper.userToUpdateControllerDtoToService(controllerDto);
 
-        assertEquals(id, serviceDto.id());
         assertEquals("newname", serviceDto.username());
         assertEquals("mega_krutoi_parol", serviceDto.password());
     }

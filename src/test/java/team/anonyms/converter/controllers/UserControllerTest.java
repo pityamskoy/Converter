@@ -19,7 +19,6 @@ import team.anonyms.converter.dto.controller.authentication.LoginResultControlle
 import team.anonyms.converter.dto.controller.user.UserControllerDto;
 import team.anonyms.converter.dto.controller.user.UserToRegisterControllerDto;
 import team.anonyms.converter.dto.controller.user.UserToUpdateControllerDto;
-import team.anonyms.converter.dto.controller.user.UserToUpdateCredentials;
 import team.anonyms.converter.dto.service.authentication.AuthenticationServiceDto;
 import team.anonyms.converter.dto.service.authentication.LoginResultServiceDto;
 import team.anonyms.converter.dto.service.user.UserServiceDto;
@@ -37,6 +36,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -116,10 +116,9 @@ class UserControllerTest {
                 new UsernamePasswordAuthenticationToken(userId, null, List.of())
         );
 
-        UserToUpdateCredentials requestDto = new UserToUpdateCredentials("newname", "test password");
+        UserToUpdateControllerDto requestDto = new UserToUpdateControllerDto("newname", "test password");
 
         UserToUpdateServiceDto serviceRequestDto = new UserToUpdateServiceDto(
-                userId,
                 "newname",
                 "test password"
         );
@@ -141,7 +140,7 @@ class UserControllerTest {
         Mockito.when(userMapper.userToUpdateControllerDtoToService(any(UserToUpdateControllerDto.class)))
                 .thenReturn(serviceRequestDto);
 
-        Mockito.when(userService.updateUser(any(UserToUpdateServiceDto.class)))
+        Mockito.when(userService.updateUser(any(UserToUpdateServiceDto.class), eq(userId)))
                 .thenReturn(serviceResponseDto);
 
         Mockito.when(userMapper.userServiceDtoToControllerDto(any(UserServiceDto.class)))
