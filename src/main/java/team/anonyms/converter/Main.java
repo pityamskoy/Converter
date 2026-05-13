@@ -7,9 +7,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
- * <p>
- *     {@code Main} class is the entrypoint of the backend, which based on {@link SpringApplication}.
- * </p>
+ * {@code Main} class is the entrypoint of the application, which based on {@link SpringApplication}.
  */
 @SpringBootApplication
 @EnableScheduling

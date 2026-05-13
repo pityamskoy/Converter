@@ -25,8 +25,10 @@ public class PatternMapper {
     public PatternToCreateServiceDto patternToCreateControllerDtoToService(
             PatternToCreateControllerDto patternToCreateControllerDto
     ) {
-        List<ModificationToCreateServiceDto> modifications = patternToCreateControllerDto.modifications().stream().
-                map(modificationMapper::modificationToCreateControllerDtoToService).toList();
+        List<ModificationToCreateServiceDto> modifications = patternToCreateControllerDto.modifications()
+                .stream()
+                .map(modificationMapper::modificationToCreateControllerDtoToService)
+                .toList();
 
         return new PatternToCreateServiceDto(
                 patternToCreateControllerDto.name(),
@@ -37,8 +39,10 @@ public class PatternMapper {
     public PatternToUpdateServiceDto patternToUpdateControllerDtoToService(
             PatternToUpdateControllerDto patternToUpdateControllerDto
     ) {
-        List<ModificationToUpdateServiceDto> modifications = patternToUpdateControllerDto.modifications().stream().
-                map(modificationMapper::modificationToUpdateControllerDtoToService).toList();
+        List<ModificationToUpdateServiceDto> modifications = patternToUpdateControllerDto.modifications()
+                .stream()
+                .map(modificationMapper::modificationToUpdateControllerDtoToService)
+                .toList();
 
         return new PatternToUpdateServiceDto(
                 patternToUpdateControllerDto.id(),

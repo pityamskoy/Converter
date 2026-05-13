@@ -7,9 +7,7 @@ import java.util.UUID;
 
 
 /**
- * <p>
- *     Patterns provide possibility to alter a file during conversion.
- * </p>
+ * Patterns provide possibility to alter a file during conversion.
  */
 @Getter
 @Setter

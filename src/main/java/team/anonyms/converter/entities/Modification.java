@@ -6,9 +6,7 @@ import lombok.*;
 import java.util.UUID;
 
 /**
- * <p>
- *     Modifications are necessary to know how to apply a pattern.
- * </p>
+ * Modifications are necessary to know how to apply a pattern.
  */
 @Getter
 @Setter

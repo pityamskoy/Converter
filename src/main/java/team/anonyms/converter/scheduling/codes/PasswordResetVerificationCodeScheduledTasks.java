@@ -9,16 +9,14 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class PasswordResetVerificationCodeScheduledTasks {
-    PasswordResetVerificationCodeRepository passwordResetVerificationCodeRepository;
+    PasswordResetVerificationCodeRepository repository;
 
-    public PasswordResetVerificationCodeScheduledTasks(
-            PasswordResetVerificationCodeRepository passwordResetVerificationCodeRepository
-    ) {
-        this.passwordResetVerificationCodeRepository = passwordResetVerificationCodeRepository;
+    public PasswordResetVerificationCodeScheduledTasks(PasswordResetVerificationCodeRepository repository) {
+        this.repository = repository;
     }
 
     @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     public void deleteAllExpiredVerificationCodes() {
-        passwordResetVerificationCodeRepository.deleteAllByExpirationBefore(Instant.now());
+        repository.deleteAllByExpirationBefore(Instant.now());
     }
 }

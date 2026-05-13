@@ -9,8 +9,8 @@ import team.anonyms.converter.entities.codes.PasswordResetVerificationCode;
 import java.time.Instant;
 
 @Repository
-public interface PasswordResetVerificationCodeRepository extends
-        VerificationCodeRepository<PasswordResetVerificationCode> {
+public interface PasswordResetVerificationCodeRepository
+        extends VerificationCodeRepository<PasswordResetVerificationCode> {
     @Transactional
     @Modifying
     @Query("DELETE FROM PasswordResetVerificationCode vc WHERE vc.expiration < :now")

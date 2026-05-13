@@ -9,14 +9,14 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class EmailVerificationCodeScheduledTasks {
-    EmailVerificationCodeRepository emailVerificationCodeRepository;
+    EmailVerificationCodeRepository repository;
 
-    public EmailVerificationCodeScheduledTasks(EmailVerificationCodeRepository emailVerificationCodeRepository) {
-        this.emailVerificationCodeRepository = emailVerificationCodeRepository;
+    public EmailVerificationCodeScheduledTasks(EmailVerificationCodeRepository repository) {
+        this.repository = repository;
     }
 
     @Scheduled(fixedRate = 5, timeUnit = TimeUnit.MINUTES)
     public void deleteAllExpiredVerificationCodes() {
-        emailVerificationCodeRepository.deleteAllByExpirationBefore(Instant.now());
+        repository.deleteAllByExpirationBefore(Instant.now());
     }
 }

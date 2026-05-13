@@ -6,7 +6,7 @@ import team.anonyms.converter.entities.codes.VerificationCode;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface VerificationCodeRepository<T extends VerificationCode> extends JpaRepository<T, Long> {
+interface VerificationCodeRepository<T extends VerificationCode> extends JpaRepository<T, Long> {
     Optional<T> findByUserId(UUID userId);
 
     void deleteByUserId(UUID userId);

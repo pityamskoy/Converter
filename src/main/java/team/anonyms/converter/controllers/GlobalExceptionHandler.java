@@ -9,16 +9,14 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import team.anonyms.converter.dto.controller.responses.ExceptionResponse;
 import team.anonyms.converter.exceptions.email.EmailAlreadyVerifiedException;
-import team.anonyms.converter.exceptions.email.EmailExistsException;
+import team.anonyms.converter.exceptions.email.EmailAlreadyExistsException;
 import team.anonyms.converter.exceptions.IllegalPatternException;
 import team.anonyms.converter.exceptions.UnsupportedExtensionException;
 
 import javax.security.auth.login.CredentialException;
 
 /**
- * <p>
- *     {@code GlobalExceptionHandler} is supposed to handle all {@link RuntimeException}, which all controllers may throw.
- * </p>
+ * {@code GlobalExceptionHandler} should handle all {@link RuntimeException}, which all controllers may throw.
  */
 @RestControllerAdvice
 @SuppressWarnings(value = "unused")
@@ -63,10 +61,10 @@ public class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(new ExceptionResponse(400, "PATTERN"));
     }
 
-    @ExceptionHandler(exception = EmailExistsException.class)
-    public ResponseEntity<ExceptionResponse> handleEmailExistsException(EmailExistsException e) {
+    @ExceptionHandler(exception = EmailAlreadyExistsException.class)
+    public ResponseEntity<ExceptionResponse> handleEmailExistsException(EmailAlreadyExistsException e) {
         logger.error(e.getMessage());
-        return ResponseEntity.badRequest().body(new ExceptionResponse(400, "EMAIL EXISTS"));
+        return ResponseEntity.badRequest().body(new ExceptionResponse(400, "EMAIL ALREADY EXISTS"));
     }
 
     @ExceptionHandler(exception = EmailAlreadyVerifiedException.class)

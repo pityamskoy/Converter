@@ -6,10 +6,8 @@ import lombok.*;
 import java.util.UUID;
 
 /**
- * <p>
- *     {@code User} is basic user entity. Not all client are saved in database as users since
- *     it is possible for a client to use the application without being registered.
- * </p>
+ * {@code User} is basic user entity. A client should not be forced to register.
+ * They should be able to use conversion without patterns.
  */
 @Getter
 @Setter

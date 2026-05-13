@@ -47,9 +47,7 @@ public class RequestFilter extends OncePerRequestFilter {
     }
 
     /**
-     * <p>
-     *     Authenticates JWT token for requests.
-     * </p>
+     * Authenticates a user for a request by JWT token.
      */
     @Override
     protected void doFilterInternal(
@@ -60,7 +58,9 @@ public class RequestFilter extends OncePerRequestFilter {
         boolean hasValidToken = false;
         boolean isVerified = false;
 
-        // Authenticate user by JWT token
+        boolean isConversionRequest = request.getRequestURI().contains("/conversion");
+        boolean hasPatternParam = request.getParameter("pattern") != null;
+
         String jwtToken = extractJwtToken(request);
         if (jwtService.isValid(jwtToken)) {
             hasValidToken = true;
@@ -72,9 +72,6 @@ public class RequestFilter extends OncePerRequestFilter {
                     new UsernamePasswordAuthenticationToken(UUID.fromString(userId), null, List.of())
             );
         }
-
-        boolean isConversionRequest = request.getRequestURI().contains("/conversion");
-        boolean hasPatternParam = request.getParameter("pattern") != null;
 
         if (isConversionRequest && hasPatternParam && (!hasValidToken || !isVerified)) {
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);

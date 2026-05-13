@@ -12,9 +12,8 @@ import team.anonyms.converter.dto.service.authentication.AuthenticationServiceDt
 import team.anonyms.converter.dto.service.user.UserServiceDto;
 import team.anonyms.converter.dto.service.user.UserToRegisterServiceDto;
 import team.anonyms.converter.dto.service.user.UserToUpdateServiceDto;
-import team.anonyms.converter.entities.Pattern;
 import team.anonyms.converter.entities.User;
-import team.anonyms.converter.exceptions.email.EmailExistsException;
+import team.anonyms.converter.exceptions.email.EmailAlreadyExistsException;
 import team.anonyms.converter.mappers.UserMapper;
 import team.anonyms.converter.repositories.ModificationRepository;
 import team.anonyms.converter.repositories.PatternRepository;
@@ -24,7 +23,6 @@ import team.anonyms.converter.services.frontend.EmailService;
 import team.anonyms.converter.services.frontend.JwtService;
 import team.anonyms.converter.services.frontend.UserService;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -83,7 +81,7 @@ class UserServiceTest {
         User mockUser = Mockito.mock(User.class);
         Mockito.when(userRepository.findByEmail(dto.email())).thenReturn(Optional.of(mockUser));
 
-        assertThrows(EmailExistsException.class, () -> userService.register(dto));
+        assertThrows(EmailAlreadyExistsException.class, () -> userService.register(dto));
     }
 
     @Test

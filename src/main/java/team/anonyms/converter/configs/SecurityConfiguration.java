@@ -22,12 +22,15 @@ public class SecurityConfiguration {
     }
 
     /**
-     * <p>
-     *     Configures security setting for every HTTP request.
-     * </p>
+     * Configures requirement of authorization for every HTTP request. <br>
+     * Uses {@link RequestFilter} to authenticate requests.
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+        /*
+        Note, that .anyRequest().authenticated() should be applied only to the last .requestMatchers() method.
+        Otherwise, there will be a bug on start up.
+        */
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)

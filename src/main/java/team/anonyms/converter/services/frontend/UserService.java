@@ -13,7 +13,7 @@ import team.anonyms.converter.repositories.ModificationRepository;
 import team.anonyms.converter.repositories.PatternRepository;
 import team.anonyms.converter.repositories.UserRepository;
 import team.anonyms.converter.repositories.codes.EmailVerificationCodeRepository;
-import team.anonyms.converter.exceptions.email.EmailExistsException;
+import team.anonyms.converter.exceptions.email.EmailAlreadyExistsException;
 import team.anonyms.converter.repositories.codes.PasswordResetVerificationCodeRepository;
 
 import java.util.Optional;
@@ -62,7 +62,7 @@ public class UserService {
     public AuthenticationServiceDto register(UserToRegisterServiceDto userToRegister) {
         Optional<User> userOptional = userRepository.findByEmail(userToRegister.email());
         if (userOptional.isPresent()) {
-            throw new EmailExistsException("Email already exists; email=" + userToRegister.email());
+            throw new EmailAlreadyExistsException("Email already exists; email=" + userToRegister.email());
         }
 
         User userRegistered = userMapper.userToRegisterServiceDtoToEntity(userToRegister);
@@ -103,7 +103,7 @@ public class UserService {
 
         Optional<User> userWithExistedEmail = userRepository.findByEmail(email);
         if (userWithExistedEmail.isPresent()) {
-            throw new EmailExistsException("Email already exists; email=" + email);
+            throw new EmailAlreadyExistsException("Email already exists; email=" + email);
         }
 
         User userUpdated = userOptional.get();
