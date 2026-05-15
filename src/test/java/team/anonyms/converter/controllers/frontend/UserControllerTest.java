@@ -1,4 +1,4 @@
-package team.anonyms.converter.controllers;
+package team.anonyms.converter.controllers.frontend;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
@@ -13,7 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
-import team.anonyms.converter.controllers.frontend.UserController;
+import team.anonyms.converter.controllers.GlobalExceptionHandler;
 import team.anonyms.converter.dto.controller.authentication.AuthenticationControllerDto;
 import team.anonyms.converter.dto.controller.authentication.LoginResultControllerDto;
 import team.anonyms.converter.dto.controller.user.UserControllerDto;

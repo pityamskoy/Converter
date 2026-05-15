@@ -25,8 +25,15 @@ public class PaginationHandler<T> {
     public List<T> makeSliceFromList(List<T> objectsToMakeSlice, int offset, int limit) {
         List<T> slice = new ArrayList<>();
 
+        // Had to add this to prevent java.util.NoSuchElementException
+        if (objectsToMakeSlice == null || objectsToMakeSlice.isEmpty()) {
+            return slice;
+        }
+
         if (offset < 1) {
             logger.info("Offset must be positive; offset={}", offset);
+            // Had to add this to prevent java.lang.IndexOutOfBoundsException
+            return slice;
         }
 
         if (limit * (offset - 1) > objectsToMakeSlice.size()) {
