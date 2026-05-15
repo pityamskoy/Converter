@@ -16,8 +16,7 @@ import team.anonyms.converter.exceptions.UnsupportedExtensionException;
 import javax.security.auth.login.CredentialException;
 
 /**
- * {@code GlobalExceptionHandler} should handle all {@link RuntimeException}
- * TODO: add response status to header
+ * {@code GlobalExceptionHandler} handles all {@link RuntimeException} occurred during runtime.
  */
 @RestControllerAdvice
 @SuppressWarnings(value = "unused")
@@ -27,7 +26,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(exception = CredentialException.class)
     public ResponseEntity<ExceptionResponse> handleCredentialException(CredentialException e) {
         logger.error(e.getMessage());
-        return ResponseEntity.badRequest().body(new ExceptionResponse(400, "CREDENTIAL"));
+        return ResponseEntity.badRequest().body(new ExceptionResponse("CREDENTIAL"));
     }
 
     @ExceptionHandler(exception = EntityNotFoundException.class)
@@ -59,24 +58,24 @@ public class GlobalExceptionHandler {
             IllegalPatternException e
     ) {
         logger.error(e.getMessage());
-        return ResponseEntity.badRequest().body(new ExceptionResponse(400, "PATTERN"));
+        return ResponseEntity.badRequest().body(new ExceptionResponse("PATTERN"));
     }
 
     @ExceptionHandler(exception = EmailAlreadyExistsException.class)
     public ResponseEntity<ExceptionResponse> handleEmailExistsException(EmailAlreadyExistsException e) {
         logger.error(e.getMessage());
-        return ResponseEntity.badRequest().body(new ExceptionResponse(400, "EMAIL ALREADY EXISTS"));
+        return ResponseEntity.badRequest().body(new ExceptionResponse("EMAIL ALREADY EXISTS"));
     }
 
     @ExceptionHandler(exception = EmailAlreadyVerifiedException.class)
     public ResponseEntity<ExceptionResponse> handleEmailAlreadyVerifiedException(EmailAlreadyVerifiedException e) {
         logger.error(e.getMessage());
-        return ResponseEntity.badRequest().body(new ExceptionResponse(400, "EMAIL ALREADY VERIFIED"));
+        return ResponseEntity.badRequest().body(new ExceptionResponse("EMAIL ALREADY VERIFIED"));
     }
 
     @ExceptionHandler(exception = AccessDeniedException.class)
     public ResponseEntity<ExceptionResponse> handleAccessDeniedException(AccessDeniedException e) {
         logger.error(e.getMessage());
-        return ResponseEntity.status(403).body(new ExceptionResponse(403, "ACCESS DENIED"));
+        return ResponseEntity.status(403).body(new ExceptionResponse("ACCESS DENIED"));
     }
 }
