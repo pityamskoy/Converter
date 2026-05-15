@@ -19,6 +19,7 @@ import team.anonyms.converter.repositories.ModificationRepository;
 import team.anonyms.converter.repositories.PatternRepository;
 import team.anonyms.converter.repositories.UserRepository;
 import team.anonyms.converter.repositories.codes.EmailVerificationCodeRepository;
+import team.anonyms.converter.repositories.codes.PasswordResetVerificationCodeRepository;
 import team.anonyms.converter.services.frontend.EmailService;
 import team.anonyms.converter.services.frontend.JwtService;
 import team.anonyms.converter.services.frontend.UserService;
@@ -28,7 +29,6 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-// Update needed
 @ExtendWith(MockitoExtension.class)
 class UserServiceTest {
 
@@ -44,6 +44,8 @@ class UserServiceTest {
     private PatternRepository patternRepository;
     @Mock
     private ModificationRepository modificationRepository;
+    @Mock
+    private PasswordResetVerificationCodeRepository passwordResetVerificationCodeRepository;
     @Mock
     private UserMapper userMapper;
     @Mock
@@ -128,26 +130,22 @@ class UserServiceTest {
         assertThrows(EntityNotFoundException.class, () -> userService.updateUser(updateDto, userId));
     }
 
-    /*
     @Test
     void testDeleteUser_Success() {
         UUID userId = UUID.randomUUID();
-        UUID patternId = UUID.randomUUID();
 
         User mockUser = Mockito.mock(User.class);
-        Pattern mockPattern = Mockito.mock(Pattern.class);
-        Mockito.when(mockPattern.getId()).thenReturn(patternId);
 
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
-        Mockito.when(patternRepository.findAllByUserId(userId)).thenReturn(List.of(mockPattern));
 
         userService.deleteUser(userId);
 
-        Mockito.verify(modificationRepository).deleteAllByPatternId(patternId);
+        Mockito.verify(modificationRepository).deleteAllByUserId(userId);
         Mockito.verify(patternRepository).deleteAllByUserId(userId);
         Mockito.verify(emailVerificationCodeRepository).deleteByUserId(userId);
+        Mockito.verify(passwordResetVerificationCodeRepository).deleteByUserId(userId);
         Mockito.verify(userRepository).delete(mockUser);
-    }*/
+    }
 
     @Test
     void testDeleteUser_ThrowsEntityNotFound() {
