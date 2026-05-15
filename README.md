@@ -1,4 +1,4 @@
-# Converter — Backend
+# CSON Converter — Backend
 
 A REST API service for converting structured data files between **JSON↔XML↔CSV** formats,
 with support for pattern-based field transformations applied during conversion.
@@ -7,32 +7,9 @@ with support for pattern-based field transformations applied during conversion.
 
 ## Table of Contents
 
-- [Technology Stack](#technology-stack)
 - [Architecture](#architecture)
-- [Project Structure](#project-structure)
-- [Inner Logic](#inner-logic)
 - [API Endpoints](#api-endpoints)
 - [Error Responses](#error-responses)
-- [Configuration & Environment](#configuration--environment)
-- [Running Locally](#running-locally)
-
----
-
-## Technology Stack
-
-| Category          | Technology              |
-|-------------------|-------------------------|
-| Language          | Java 25                 |
-| Framework         | Spring Boot 4.0.1       |
-| Web layer         | Spring MVC              |
-| Security          | Spring Security + JWT   |
-| Persistence layer | Spring Data JPA         |
-| Database          | PostgreSQL 15           |
-| Conversion        | Jackson 2.17.2          |
-| Code generation   | Lombok 1.18.42          |
-| Build tool        | Maven 4.0.0             |
-| Containerization  | Docker + Docker Compose |
-| CI/CD             | Gitlab CI/CD            |
 
 ---
 
@@ -44,7 +21,7 @@ The project follows a three-layered architecture:
 HTTP Request
     │
     ▼
-JwtAuthFilter (validates Bearer token, populates SecurityContext)
+RequestFilter (validates JWT token, populates SecurityContext)
     │
     ▼
 Controllers (controllers/frontend/, controllers/api/)
@@ -66,165 +43,10 @@ Database (PostgreSQL)
 CORS configured for `https://cson.site`.
   - `api/` — direct body-based JSON↔XML conversion.
 - **Services** — business logic: file parsing, format conversion, pattern application, user authentication, JWT generation.
-- **Repositories** — Spring Data JPA repositories for `User`, `Pattern`, `Modification` entities.
-- **Mappers** — bidirectional conversion between entities and DTOs.
+- **Repositories** — Spring Data JPA repositories for `User`, `Pattern`, `Modification`, `VerificationCode` entities.
 - **DTOs** — separate controller DTOs (exchanged with clients) and service DTOs (passed between layers).
   Creation and update operations use dedicated `ToCreate` / `ToUpdate` variants.
-
----
-
-## Project Structure
-
-```
-src/main/java/team/anonyms/converter/
-│
-├── Main.java                          # Application entry point
-│
-├── configs/
-│   ├── CorsConfiguration.java         # Global CORS setup
-│   ├── JacksonConfiguration.java      # Jackson mapper beans
-│   └── SecurityConfiguration.java     # Spring Security filter chain + JWT wiring
-│
-├── controllers/
-│   ├── GlobalExceptionHandler.java    # @RestControllerAdvice for all exceptions
-│   ├── api/
-│   │   └── ConversionApiController.java   # POST /direct/conversion (JSON↔XML, no auth)
-│   └── frontend/
-│       ├── AuthenticationController.java  # POST /auth/login, POST /auth/registration, DELETE /auth
-│       ├── ConversionFrontendController.java # POST /conversion/* (multipart file upload)
-│       ├── ModificationController.java    # GET /modifications/{patternId}/{limit}/{offset}
-│       ├── PatternController.java         # CRUD /patterns
-│       ├── UserController.java            # PUT /users, DELETE /users/{userId}
-│       └── pagination/
-│           └── PaginationHandler.java     # Generic slice helper for paginated responses
-│
-├── dto/
-│   ├── controller/
-│   │   ├── credentials/
-│   │   ├── modification/
-│   │   ├── pattern/
-│   │   ├── responses/errors/
-│   │   └── user/
-│   │     
-│   └── service/    # Mirrors some of controller dtos to be used in service layer
-│       ├── credentials/
-│       ├── modification/
-│       ├── pattern/
-│       └── user/
-│
-├── entities/
-│   ├── Modification.java
-│   ├── Pattern.java
-│   └── User.java
-│
-├── mappers/
-│   ├── CredentialsMapper.java
-│   ├── ModificationMapper.java
-│   ├── PatternMapper.java
-│   └── UserMapper.java
-│
-├── repositories/
-│   ├── ModificationRepository.java
-│   ├── PatternRepository.java
-│   └── UserRepository.java
-│
-├── services/
-│   ├── api/
-│   │   └── ConversionApiService.java       # JSON↔XML conversion (no file I/O)
-│   └── frontend/
-│       ├── AuthenticationService.java      # Login / register + JWT generation
-│       ├── JwtService.java                 # JWT generation, validation, claim extraction
-│       ├── ConversionFrontendService.java  # File-based conversions (all 6 pairs)
-│       ├── ModificationService.java
-│       ├── PatternService.java
-│       └── UserService.java
-│
-└── utility/
-    ├── annotations/
-    │   └── LastSupportedProjectVersion.java
-    ├── enums/
-    │   └── ProjectVersion.java
-    ├── exceptions/
-    │   ├── IllegalPatternException.java
-    │   └── UnsupportedExtensionException.java
-    └── security/
-        └── JwtAuthFilter.java             # Reads Bearer token, sets SecurityContext
-```
-
----
-
-### DTOs
-
-DTOs are split into two layers: **controller DTOs** (used in HTTP requests/responses) and **service DTOs** 
-(used for service layer). The naming convention is:
-
-| Suffix         | Purpose                                    |
-|----------------|--------------------------------------------|
-| `Dto`          | Read / response DTO                        |
-| `ToCreateDto`  | Request body for creation (no `id` field)  |
-| `ToUpdateDto`  | Request body for updates                   |
-
----
-
-## Inner Logic
-
-### Authentication
-
-Authentication uses **stateless JWT** (JSON Web Tokens). On a successful login or registration the server
-returns a signed token valid for **4 hours**. The client must attach it to every subsequent request:
-
-```
-Authorization: Bearer <token>
-```
-
-`JwtAuthFilter` intercepts every request, validates the token signature using `HMAC-SHA256` and the
-`JWT_SECRET` key, and populates the Spring Security context with the user ID. Requests without a
-valid token are rejected before reaching any controller.
-
-Logout is **client-side only** — the client discards the token. No server call is required.
-
-### Conversion pipeline
-
-Every file conversion follows these steps:
-
-1. Validate the uploaded file's extension against the declared source format.
-2. Deserialize the file into `List<Map<String, Object>>` (one map per row/object).
-3. Apply pattern modifications to each row (if a pattern was provided).
-4. Serialize the modified list to the target format.
-5. Stream the result back to the client and delete the temporary file.
-
-Supported conversion pairs: `json↔csv`, `json↔xml`, `xml↔csv`.
-
-### Pattern & modification system
-
-A **Pattern** belongs to a user and targets all conversion types.
-It contains an ordered list of **Modifications**, each capable of:
-
-| `oldName` | `newName`     | `newType`   | `newValue` | Effect                           |
-|-----------|---------------|-------------|------------|----------------------------------|
-| `"field"` | `null`        | `null`      | `null`     | Delete the field                 |
-| `"field"` | `"renamed"`   | `null`      | `null`     | Rename the field                 |
-| `"field"` | `null`        | `"Integer"` | `null`     | Cast a value to a different type |
-| `"field"` | `null`        | `null`      | `"value"`  | Reassign a field's value         |
-| `null`    | `"new field"` | `null`      | `"value"`  | Add a new field                  |
-
-Supported `newType` values: `Integer`, `Float`, `Boolean`, `String`.
-
-It is important to know that ***it is possible to combine*** in one modification
-renaming field with reassigning a new value and with changing field's data type.
-
-Please, note that when serializing to CSV, nested objects and arrays are stringified as JSON/XML.
-
-### CSV auto-type detection
-
-When reading a CSV file, each cell value is inspected and cast:
-
-| Value pattern          | Java type                              |
-|------------------------|----------------------------------------|
-| Starts with `{` or `[` | Nested `Map` / `List` (parsed as JSON) |
-| Matches `-?\d+`        | `Long`                                 |
-| Matches `-?\d*\.\d+`   | `Double`                               |
-| Anything else          | `String`                               |
+- **Mappers** — bidirectional conversion between entities and DTOs, and between service-layer DTOs and controller-layer DTOs.
 
 ---
 
@@ -234,26 +56,25 @@ All endpoints are served under the base path `/api/v1`
 
 ### Authentication — `/auth`
 
-#### `POST /auth/login`
-Log in with credentials.
+#### `POST /auth`
+Log in with credentials. The existing JWT is read from the `jwtToken` cookie —
+if still valid, it is reused; otherwise a new one is generated.
 
 **Request body** (`application/json`):
 ```json
 {
   "email": "user@example.com",
-  "password": "secret",
-  "jwtToken": "eyJhbGciOiJIUzI1NiJ9..."
+  "password": "secret"
 }
 ```
 
-**Response `200 OK`**:
+**Response `200 OK`** — sets `jwtToken` `HttpOnly` cookie (4 h) and returns:
 ```json
 {
   "success": true,
   "username": "john",
   "email": "john@example.com",
-  "userId": "uuid",
-  "token": "eyJhbGciOiJIUzI1NiJ9..."
+  "userId": "uuid"
 }
 ```
 
@@ -261,8 +82,70 @@ Log in with credentials.
 
 ---
 
-#### `POST /auth/registration`
-Create a new account.
+#### `POST /auth/email/verification`
+Submit the 6-digit code that was emailed after registration. Requires authentication.
+
+**Request body** (`text/plain`): the 6-digit code string.
+
+**Response `200 OK`**:
+```json
+true
+```
+Returns `false` if the code is wrong or expired.
+
+**Response `400 Bad Request`** (`EMAIL ALREADY VERIFIED`) — email is already verified.
+
+---
+
+#### `POST /auth/email/resending`
+Request a new email verification code. Requires authentication.
+
+**Response `204 No Content`**
+
+---
+
+#### `POST /auth/password/reset`
+Request a password-reset verification code to be sent to the provided email address.
+No authentication required.
+
+**Request body** (`text/plain`): the email address.
+
+**Response `204 No Content`**
+
+---
+
+#### `POST /auth/password/verification`
+Verify the password-reset code and set a new password.
+No authentication required.
+
+**Request body** (`application/json`):
+```json
+{
+  "email": "user@example.com",
+  "verificationCode": "123456",
+  "newPassword": "newSecret"
+}
+```
+
+**Response `200 OK`**:
+```json
+true
+```
+Returns `false` if the code is wrong or expired.
+
+---
+
+#### `DELETE /auth`
+Log out — clears the `jwtToken` cookie.
+
+**Response `204 No Content`**
+
+---
+
+### Users — `/users`
+
+#### `POST /users`
+Create a new account. Triggers a verification email to the provided address.
 
 **Request body** (`application/json`):
 ```json
@@ -273,37 +156,26 @@ Create a new account.
 }
 ```
 
-**Response `201 Created`**:
+**Response `201 Created`** — sets `jwtToken` `HttpOnly` cookie and returns:
 ```json
 {
   "success": true,
   "username": "john",
   "email": "john@example.com",
-  "userId": "uuid",
-  "token": "eyJhbGciOiJIUzI1NiJ9..."
+  "userId": "uuid"
 }
 ```
 
----
-
-### Users — `/users`
+**Response `400 Bad Request`** (`EMAIL EXISTS`) — email already registered.
 
 #### `PUT /users`
-Update the current user's profile.
+Update the current user's username and/or password. The user is identified by the JWT. Requires authentication.
 
 **Request body** (`application/json`):
 ```json
 {
-  "id": "uuid",
   "username": "new_name",
-  "email": "new@example.com",
-  "password": "newPassword",
-  "patterns": [
-    { 
-      "id": "uuid",
-      "name": "My Pattern"
-    }
-  ]
+  "password": "newPassword"
 }
 ```
 
@@ -312,13 +184,8 @@ Update the current user's profile.
 {
   "id": "uuid",
   "username": "new_name",
-  "email": "new@example.com",
-  "patterns": [
-    { 
-      "id": "uuid", 
-      "name": "My Pattern"
-    }
-  ]
+  "email": "current@example.com",
+  "isVerified": true
 }
 ```
 
@@ -326,10 +193,28 @@ Update the current user's profile.
 
 ---
 
-#### `DELETE /users/{userId}`
-Delete a user account.
+#### `PUT /users/email`
+Update the current user's email address. The user is identified by the JWT. Requires authentication.
+After updating, the new address is unverified and a verification email is sent automatically.
 
-**Path variable:** `userId` (UUID)
+**Request body** (`text/plain`): the new email address.
+
+**Response `200 OK`**:
+```json
+{
+  "id": "uuid",
+  "username": "john",
+  "email": "new@example.com",
+  "isVerified": false
+}
+```
+
+**Response `404 Not Found`** — user not found.
+
+---
+
+#### `DELETE /users`
+Delete the current user's account. The user is identified by the JWT. Requires authentication.
 
 **Response `204 No Content`**
 
@@ -339,11 +224,12 @@ Delete a user account.
 
 ### Patterns — `/patterns`
 
-#### `GET /patterns/{userId}/{limit}/{offset}`
-Get a paginated slice of patterns belonging to a user.
+All pattern endpoints require authentication. The user is identified by the JWT cookie.
+
+#### `GET /patterns/{limit}/{offset}`
+Get a paginated slice of patterns belonging to the authenticated user.
 
 **Path variables:**
-- `userId` — UUID of the user
 - `limit` — maximum number of items to return
 - `offset` — number of items to skip
 
@@ -361,31 +247,24 @@ Get a paginated slice of patterns belonging to a user.
 ]
 ```
 
-**Response `404 Not Found`** — user not found.
-
 ---
 
-#### `GET /patterns/{userId}`
-Get the total number of patterns belonging to a user.
-
-**Path variable:** `userId` (UUID)
+#### `GET /patterns`
+Get the total number of patterns belonging to the authenticated user.
 
 **Response `200 OK`**:
 ```json
 5
 ```
 
-**Response `404 Not Found`** — user not found.
-
 ---
 
 #### `POST /patterns`
-Create a new pattern.
+Create a new pattern for the authenticated user.
 
 **Request body** (`application/json`):
 ```json
 {
-  "userId": "uuid",
   "name": "My Pattern",
   "modifications": [
     {
@@ -406,13 +285,12 @@ Create a new pattern.
 }
 ```
 
-**Response `404 Not Found`** — user not found.
-
 ---
 
 #### `PUT /patterns`
-Update an existing pattern. The `id` must be present in the body. 
-Note that this API endpoint is the only way to update modifications. Modification are updated only through updating a pattern they belong to.
+Update an existing pattern. The `id` must be present in the body. Requires ownership — the pattern must belong to the authenticated user.
+Note, that this API endpoint is the only way to update modifications.
+Modifications are updated only through updating a pattern they belong to.
 
 **Request body** (`application/json`):
 ```json
@@ -430,7 +308,6 @@ Note that this API endpoint is the only way to update modifications. Modificatio
   ]
 }
 ```
-> If a modification in the list has `id: null`, it is treated as a new modification to create.
 
 **Response `200 OK`**:
 ```json
@@ -440,22 +317,28 @@ Note that this API endpoint is the only way to update modifications. Modificatio
 }
 ```
 
+**Response `403 Forbidden`** — pattern belongs to another user.
+
 **Response `404 Not Found`** — pattern not found.
 
 ---
 
 #### `DELETE /patterns/{patternId}`
-Delete a pattern and all its modifications.
+Delete a pattern and all its modifications. Requires ownership — the pattern must belong to the authenticated user.
 
 **Path variable:** `patternId` (UUID)
 
 **Response `204 No Content`**
+
+**Response `403 Forbidden`** — pattern belongs to another user.
 
 **Response `404 Not Found`** — pattern not found.
 
 ---
 
 ### Modifications — `/modifications`
+
+All modification endpoints require authentication. Ownership is verified — the pattern must belong to the authenticated user.
 
 #### `GET /modifications/{patternId}/{limit}/{offset}`
 Get a paginated slice of modifications belonging to a pattern.
@@ -478,6 +361,8 @@ Get a paginated slice of modifications belonging to a pattern.
 ]
 ```
 
+**Response `403 Forbidden`** — pattern belongs to another user.
+
 **Response `404 Not Found`** — pattern not found.
 
 ---
@@ -492,6 +377,8 @@ Get the total number of modifications belonging to a pattern.
 3
 ```
 
+**Response `403 Forbidden`** — pattern belongs to another user.
+
 **Response `404 Not Found`** — pattern not found.
 
 ---
@@ -500,9 +387,17 @@ Get the total number of modifications belonging to a pattern.
 
 All endpoints consume `multipart/form-data` and stream the converted file back as an attachment.
 
-**Form parts:**
-- `file` (required) — the source file to convert.
-- `pattern` (optional, query param) — UUID of a saved pattern to apply during conversion.
+**Multipart form part:**
+
+| Part   | Type            | Required | Description               |
+|--------|-----------------|----------|---------------------------|
+| `file` | `multipart/form-data` part | yes | The source file to convert |
+
+**Query parameter:**
+
+| Parameter | Type   | Required | Description |
+|-----------|--------|----------|-------------|
+| `pattern` | UUID   | no       | ID of a saved pattern to apply during conversion. When provided, each row of the data is transformed by the pattern's modifications (rename, retype, reassign, add, or delete fields) before the output is written. If omitted, the file is converted as-is. |
 
 **Common error responses:**
 - `400 Bad Request` — file extension does not match the declared source format.
@@ -547,15 +442,17 @@ Convert an XML body to JSON.
 
 All unhandled exceptions are caught by `GlobalExceptionHandler`. The mapping is:
 
-| Exception                       | HTTP Status                 | Response body                    |
-|---------------------------------|-----------------------------|----------------------------------|
-| `EntityNotFoundException`       | `404 Not Found`             | empty                            |
-| `UnsupportedExtensionException` | `400 Bad Request`           | empty                            |
-| `IllegalArgumentException`      | `400 Bad Request`           | empty                            |
-| `NullPointerException`          | `500 Internal Server Error` | empty                            |
-| `CredentialException`           | `400 Bad Request`           | JSON — `message: "CREDENTIAL"`   |
-| `IllegalPatternException`       | `400 Bad Request`           | JSON — `message: "PATTERN"`      |
-| `EmailExistsException`          | `400 Bad Request`           | JSON — `message: "EMAIL EXISTS"` |
+| Exception                        | HTTP Status                 | Response body                              |
+|----------------------------------|-----------------------------|--------------------------------------------|
+| `EntityNotFoundException`        | `404 Not Found`             | empty                                      |
+| `UnsupportedExtensionException`  | `400 Bad Request`           | empty                                      |
+| `IllegalArgumentException`       | `400 Bad Request`           | empty                                      |
+| `NullPointerException`           | `500 Internal Server Error` | empty                                      |
+| `CredentialException`            | `400 Bad Request`           | JSON — `message: "CREDENTIAL"`             |
+| `IllegalPatternException`        | `400 Bad Request`           | JSON — `message: "PATTERN"`                |
+| `EmailExistsException`           | `400 Bad Request`           | JSON — `message: "EMAIL EXISTS"`           |
+| `EmailAlreadyVerifiedException`  | `400 Bad Request`           | JSON — `message: "EMAIL ALREADY VERIFIED"` |
+| `AccessDeniedException`          | `403 Forbidden`             | JSON — `message: "ACCESS DENIED"`          |
 
 Exceptions that return a JSON body use the following envelope (defined in `ErrorResponse`):
 
@@ -566,43 +463,3 @@ Exceptions that return a JSON body use the following envelope (defined in `Error
   "time": "2025-01-01T00:00:00Z"
 }
 ```
-
----
-
-## Configuration & Environment
-
-### Required environment variables
-
-| Variable            | Description                            |
-|---------------------|----------------------------------------|
-| `POSTGRES_USERNAME` | PostgreSQL superuser (Docker Compose)  |
-| `POSTGRES_PASSWORD` | PostgreSQL password (Docker Compose)   |
-| `POSTGRES_DB`       | Database name (used by Docker Compose) |
-| `DATABASE_URL`      | PostgreSQL JDBC URL                    |
-
-### Key application settings (`application.yaml`)
-
-```yaml
-spring:
-  mvc.servlet.path: /api/v1
-  servlet.multipart:
-    max-file-size: 10MB
-    max-request-size: 10MB
-  jpa.hibernate.ddl-auto: update
-logging:
-  file.name: /logs/converter.log
-```
-
----
-
-## Running Locally
-
-### With Docker Compose
-
-```bash
-# Create a .env file with the required variables, then run:
-docker compose up -d
-```
-
-The backend will be available at `http://localhost:8080/api/v1`.
-PostgreSQL is exposed on port `1234`.

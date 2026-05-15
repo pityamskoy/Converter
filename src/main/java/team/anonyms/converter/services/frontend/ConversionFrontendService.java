@@ -16,8 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import team.anonyms.converter.entities.Modification;
 import team.anonyms.converter.entities.Pattern;
-import team.anonyms.converter.utility.exceptions.IllegalPatternException;
-import team.anonyms.converter.utility.exceptions.UnsupportedExtensionException;
+import team.anonyms.converter.repositories.ModificationRepository;
+import team.anonyms.converter.repositories.PatternRepository;
+import team.anonyms.converter.exceptions.IllegalPatternException;
+import team.anonyms.converter.exceptions.UnsupportedExtensionException;
 import com.fasterxml.jackson.databind.JsonNode;
 
 import java.io.*;
@@ -26,22 +28,25 @@ import java.nio.file.Path;
 import java.util.*;
 
 @Service
-public final class ConversionFrontendService {
-    private static final Logger log = LoggerFactory.getLogger(ConversionFrontendService.class);
+public class ConversionFrontendService {
+    private static final Logger logger = LoggerFactory.getLogger(ConversionFrontendService.class);
 
-    private final PatternService patternService;
+    private final PatternRepository patternRepository;
+    private final ModificationRepository modificationRepository;
 
     private final JsonMapper jsonMapper;
     private final XmlMapper xmlMapper;
     private final CsvMapper csvMapper;
 
     public ConversionFrontendService(
-            PatternService patternService,
+            PatternRepository patternRepository,
+            ModificationRepository modificationRepository,
             JsonMapper jsonMapper,
             XmlMapper xmlMapper,
             CsvMapper csvMapper
     ) {
-        this.patternService = patternService;
+        this.patternRepository = patternRepository;
+        this.modificationRepository = modificationRepository;
 
         this.jsonMapper = jsonMapper;
         this.xmlMapper = xmlMapper;
@@ -72,66 +77,6 @@ public final class ConversionFrontendService {
     }
 
     /**
-     * @param file any {@link MultipartFile}.
-     * @param currentExtension current extension of {@code file}. It is supposed to have "." in itself. For example,
-     * {@code .json} or {@code .csv} are valid values for {@code currentExtension}, and {@code json}, {@code csv} are not valid.
-     *
-     * @return filename without provided {@code currentExtension}.
-     *
-     * @throws IllegalArgumentException if {@code currentExtension} doesn't contain the only "." at the beginning of itself.
-     * @throws NullPointerException if the filename of {@code file} is null.
-     * @throws UnsupportedExtensionException if {@code currentExtension} is not extension of the {@code file}.
-     */
-    private @NonNull String getFilenameWithoutExtension(@NonNull MultipartFile file, @NonNull String currentExtension) {
-        if (!currentExtension.startsWith(".")) {
-            throw new IllegalArgumentException("currentExtension doesn't start with '.' symbol; currentExtension="
-                    + currentExtension);
-        }
-
-        if (countNumberOfOccurrences(currentExtension, ".") > 1) {
-            throw new IllegalArgumentException("currentExtension has more than one dot; currentExtension="
-                    + currentExtension);
-        }
-
-        String filename = file.getOriginalFilename();
-
-        if (filename == null) {
-            throw new NullPointerException("filename is null");
-        }
-
-        if (!filename.endsWith(currentExtension)) {
-            throw new UnsupportedExtensionException("Unsupported extension was provided; currentExtension="
-                    + currentExtension);
-        }
-
-        return filename.substring(0, filename.length() - currentExtension.length()) ;
-    }
-
-    /**
-     * <p>
-     *     This method validates arguments for a conversion. It throws an exception if validation doesn't pass.
-     * </p>
-     *
-     * @param file requested file to convert.
-     * @param currentExtension current extension of {@code file}. {@code currentExtension} is supposed to start with dot.
-     * For example, it is more preferably to send {@code .json} instead of {@code json} to this method despite the fact
-     * that the validation doesn't fail in both cases.
-     *
-     * @throws NullPointerException if filename is null.
-     * @throws UnsupportedExtensionException if {@code file} has extension, which doesn't correspond to {@code currentExtension}.
-     */
-    private void validateArgumentsForConversion(@NonNull MultipartFile file, @NonNull String currentExtension) {
-        String filename = file.getOriginalFilename();
-        if (filename == null) {
-            throw new NullPointerException("filename is null");
-        }
-
-        if (!filename.endsWith(currentExtension)) {
-            throw new UnsupportedExtensionException("Provided file doesn't have '" + currentExtension + "' extension");
-        }
-    }
-
-    /**
      * <p>
      *     This method represents custom conversion from {@link String} to {@link Boolean}.<br>
      *     <b>The key feature</b> is that it allows to convert '1' to true.
@@ -157,108 +102,6 @@ public final class ConversionFrontendService {
             result = Boolean.parseBoolean(string);
         }
         return result;
-    }
-
-    /**
-     * <p>
-     *     Applies provided pattern to read data.
-     * </p>
-     *
-     * @param rows read data.
-     * @param pattern any pattern to apply.
-     *
-     * @return {@code rows} after applying {@code pattern}.
-     * If {@code pattern} is null provided {@code rows} will be returned.
-     *
-     * @throws IllegalPatternException if pattern contains modification with null or empty {@code oldName} and {@code newName} fields.
-     */
-    // add more checks for modification. Also add in creation of patterns.
-    private @NonNull List<Map<String, Object>> applyPatterns(
-            @NonNull List<Map<String, Object>> rows,
-            @Nullable Pattern pattern
-    ) {
-        if (pattern == null) {
-            return rows;
-        }
-
-        List<Modification> modifications = pattern.getModifications();
-
-        for (Map<String, Object> row : rows) {
-            for (Modification modification : modifications) {
-                // Deleting fields
-                if (row.containsKey(modification.getOldName()) && (modification.getNewName() == null) &&
-                        (modification.getNewType() == null) && (modification.getNewValue() == null)
-                ) {
-                    row.remove(modification.getOldName());
-                    continue;
-                }
-
-                String fieldNameForTypeConversion = "";
-                boolean isAddingIteration = false; // flag
-
-                // Adding new fields
-                if (modification.getOldName() == null) {
-                    if (modification.getNewName() == null) {
-                        throw new IllegalPatternException(
-                                "Modification with null or empty oldName and newName was provided; modification=" +
-                                        modification
-                        );
-                    }
-
-                    isAddingIteration = true;
-                    fieldNameForTypeConversion = modification.getNewName();
-
-                    row.put(fieldNameForTypeConversion, modification.getNewValue());
-                }
-
-                // Altering existing fields
-                if (row.containsKey(modification.getOldName())) {
-                    fieldNameForTypeConversion = modification.getOldName();
-
-                    // Changing values of fields
-                    if (modification.getNewValue() != null) {
-                        row.put(modification.getOldName(), modification.getNewValue());
-                    }
-
-                    // Changing names of fields
-                    if (modification.getNewName() != null) {
-                        Object value = row.get(modification.getOldName());
-                        row.remove(modification.getOldName());
-                        row.put(modification.getNewName(), value);
-
-                        fieldNameForTypeConversion = modification.getNewName();
-                    }
-                }
-
-                // Type conversion
-                if (modification.getNewType() != null) {
-                    if (row.containsKey(fieldNameForTypeConversion) || isAddingIteration) {
-                        Object value = row.get(fieldNameForTypeConversion);
-
-                        if (value == null) {
-                            continue;
-                        }
-
-                        switch (modification.getNewType()) {
-                            case "Integer":
-                                row.put(fieldNameForTypeConversion, Integer.parseInt(value.toString()));
-                                break;
-                            case "Float":
-                                row.put(fieldNameForTypeConversion, Float.parseFloat(value.toString()));
-                                break;
-                            case "Boolean":
-                                row.put(fieldNameForTypeConversion, toBoolean(value.toString()));
-                                break;
-                            default:
-                                row.put(fieldNameForTypeConversion, value.toString());
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-
-        return rows;
     }
 
     /**
@@ -302,7 +145,7 @@ public final class ConversionFrontendService {
         try {
             root = jsonMapper.readTree(jsonFile.getInputStream());
         } catch (JsonProcessingException e) {
-            log.error("convertJsonFileToCsv: JsonProcessingException has been thrown");
+            logger.error("convertJsonFileToCsv: JsonProcessingException has been thrown");
             throw new IllegalArgumentException(e.getMessage());
         }
 
@@ -320,7 +163,7 @@ public final class ConversionFrontendService {
             throw new IllegalArgumentException("JSON file contains no rows to convert");
         }
 
-        rows = applyPatterns(rows, patternService.findPatternById(patternId));
+        rows = applyPattern(rows, patternRepository.findPatternById(patternId));
 
         CsvSchema.Builder csvSchemaBuilder = CsvSchema.builder();
         for (String column : rows.getFirst().keySet()) {
@@ -350,7 +193,7 @@ public final class ConversionFrontendService {
         try {
             csvMapper.writerFor(List.class).with(csvSchema).writeValue(csvPath.toFile(), rows);
         } catch (CsvWriteException e) {
-            log.error("convertJsonFileToCsv: CsvWriteException has been thrown");
+            logger.error("convertJsonFileToCsv: CsvWriteException has been thrown");
             throw new IllegalArgumentException(e.getMessage());
         }
 
@@ -433,7 +276,7 @@ public final class ConversionFrontendService {
             rows.add(convertedRow);
         }
 
-        rows = applyPatterns(rows, patternService.findPatternById(patternId));
+        rows = applyPattern(rows, patternRepository.findPatternById(patternId));
 
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("CSV file contains no rows to convert");
@@ -495,7 +338,7 @@ public final class ConversionFrontendService {
             throw new IllegalArgumentException("Unsupported JSON structure for XML conversion");
         }
 
-        rows = applyPatterns(rows, patternService.findPatternById(patternId));
+        rows = applyPattern(rows, patternRepository.findPatternById(patternId));
 
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("JSON file contains no rows to convert");
@@ -546,7 +389,7 @@ public final class ConversionFrontendService {
         try {
             root = xmlMapper.readTree(xmlFile.getInputStream());
         } catch (JsonProcessingException e) {
-            log.error("convertXmlFileToJson: JsonProcessingException has been thrown");
+            logger.error("convertXmlFileToJson: JsonProcessingException has been thrown");
             throw new IllegalArgumentException(e.getMessage());
         }
 
@@ -588,7 +431,7 @@ public final class ConversionFrontendService {
             }
         }
 
-        rows = applyPatterns(rows, patternService.findPatternById(patternId));
+        rows = applyPattern(rows, patternRepository.findPatternById(patternId));
 
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("XML file contains no rows to convert");
@@ -645,7 +488,7 @@ public final class ConversionFrontendService {
         try {
             root = xmlMapper.readTree(xmlFile.getInputStream());
         } catch (JsonProcessingException e) {
-            log.error("convertXmlFileToCsv: JsonProcessingException has been thrown");
+            logger.error("convertXmlFileToCsv: JsonProcessingException has been thrown");
             throw new IllegalArgumentException(e.getMessage());
         }
 
@@ -684,7 +527,7 @@ public final class ConversionFrontendService {
             }
         }
 
-        rows = applyPatterns(rows, patternService.findPatternById(patternId));
+        rows = applyPattern(rows, patternRepository.findPatternById(patternId));
 
         CsvSchema.Builder csvSchemaBuilder = CsvSchema.builder();
         for (String column : rows.getFirst().keySet()) {
@@ -696,7 +539,7 @@ public final class ConversionFrontendService {
             CsvSchema csvSchema = csvSchemaBuilder.build().withHeader();
             csvMapper.writerFor(List.class).with(csvSchema).writeValue(csvPath.toFile(), rows);
         } catch (CsvWriteException e) {
-            log.error("convertXmlFileToCsv: CsvWriteException has been thrown");
+            logger.error("convertXmlFileToCsv: CsvWriteException has been thrown");
             throw new IllegalArgumentException(e.getMessage());
         }
 
@@ -778,7 +621,7 @@ public final class ConversionFrontendService {
             rows.add(convertedRow);
         }
 
-        rows = applyPatterns(rows, patternService.findPatternById(patternId));
+        rows = applyPattern(rows, patternRepository.findPatternById(patternId));
 
         if (rows.isEmpty()) {
             throw new IllegalArgumentException("CSV file contains no rows to convert");
@@ -792,5 +635,251 @@ public final class ConversionFrontendService {
         }
 
         return xmlPath;
+    }
+
+    /**
+     * @param file any {@link MultipartFile}.
+     * @param currentExtension current extension of {@code file}. It is supposed to have "." in itself. For example,
+     * {@code .json} or {@code .csv} are valid values for {@code currentExtension}, and {@code json}, {@code csv} are not valid.
+     *
+     * @return filename without provided {@code currentExtension}.
+     *
+     * @throws IllegalArgumentException if {@code currentExtension} doesn't contain the only "." at the beginning of itself.
+     * @throws NullPointerException if the filename of {@code file} is null.
+     * @throws UnsupportedExtensionException if {@code currentExtension} is not extension of the {@code file}.
+     */
+    private @NonNull String getFilenameWithoutExtension(@NonNull MultipartFile file, @NonNull String currentExtension) {
+        if (!currentExtension.startsWith(".")) {
+            throw new IllegalArgumentException("currentExtension doesn't start with '.' symbol; currentExtension="
+                    + currentExtension);
+        }
+
+        if (countNumberOfOccurrences(currentExtension, ".") > 1) {
+            throw new IllegalArgumentException("currentExtension has more than one dot; currentExtension="
+                    + currentExtension);
+        }
+
+        String filename = file.getOriginalFilename();
+
+        if (filename == null) {
+            throw new NullPointerException("filename is null");
+        }
+
+        if (!filename.endsWith(currentExtension)) {
+            throw new UnsupportedExtensionException("Unsupported extension was provided; currentExtension="
+                    + currentExtension);
+        }
+
+        return filename.substring(0, filename.length() - currentExtension.length()) ;
+    }
+
+    /**
+     * <p>
+     *     This method validates arguments for a conversion. It throws an exception if validation doesn't pass.
+     * </p>
+     *
+     * @param file requested file to convert.
+     * @param currentExtension current extension of {@code file}. {@code currentExtension} is supposed to start with dot.
+     * For example, it is more preferably to send {@code .json} instead of {@code json} to this method despite the fact
+     * that the validation doesn't fail in both cases.
+     *
+     * @throws NullPointerException if filename is null.
+     * @throws UnsupportedExtensionException if {@code file} has extension, which doesn't correspond to {@code currentExtension}.
+     */
+    private void validateArgumentsForConversion(@NonNull MultipartFile file, @NonNull String currentExtension) {
+        String filename = file.getOriginalFilename();
+        if (filename == null) {
+            throw new NullPointerException("filename is null");
+        }
+
+        if (!filename.endsWith(currentExtension)) {
+            throw new UnsupportedExtensionException("Provided file doesn't have '" + currentExtension + "' extension");
+        }
+    }
+
+    private @NonNull List<Map<String, Object>> applyPattern(
+            @NonNull List<Map<String, Object>> rows,
+            @Nullable Pattern pattern
+    ) {
+        if (pattern == null) {
+            return rows;
+        }
+
+        List<Modification> modifications = modificationRepository.findAllByPatternId(pattern.getId());
+        return PatternHandler.applyModifications(rows, modifications);
+    }
+
+    private static class PatternHandler {
+        /**
+         * <p>
+         *     Applies provided pattern to read data.
+         * </p>
+         *
+         * @param rows read data.
+         *
+         * @return {@code rows} after applying {@code pattern}.
+         * If {@code pattern} is null provided {@code rows} will be returned.
+         *
+         * @throws IllegalPatternException if pattern contains modification with null or empty {@code oldName} and {@code newName} fields.
+         */
+        // add more checks for modification. Also add in creation of patterns.
+        public static @NonNull List<Map<String, Object>> applyModifications(
+                @NonNull List<Map<String, Object>> rows,
+                @NonNull List<Modification> modifications
+        ) {
+            for (Map<String, Object> row : rows) {
+                for (Modification modification : modifications) {
+                    ApplyingModificationsResult rowOnDeletion = delete(row, modification);
+                    if (rowOnDeletion.success()) {
+                        row = delete(row, modification).row();
+                        continue;
+                    }
+
+                    row = modify(row, modification);
+                }
+            }
+
+            return rows;
+        }
+        
+        private static @NonNull ApplyingModificationsResult delete(
+                @NonNull Map<String, Object> row,
+                @NonNull Modification modification
+        ) {
+            if (row.containsKey(modification.getOldName()) && (modification.getNewName() == null)
+                    && (modification.getNewType() == null) && (modification.getNewValue() == null)
+            ) {
+                row.remove(modification.getOldName());
+                return new ApplyingModificationsResult(row, true);
+            }
+
+            return new ApplyingModificationsResult(row, false);
+        }
+
+        private static @NonNull Map<String, Object> modify(
+                @NonNull Map<String, Object> row,
+                @NonNull Modification modification
+        ) {
+            String fieldNameForTypeConversion = null;
+            boolean isAddingIteration = false; // flag
+
+            ApplyingModificationsResult rowOnAddition = add(row, modification);
+            if (rowOnAddition.success()) {
+                row = rowOnAddition.row();
+
+                isAddingIteration = true;
+                fieldNameForTypeConversion = modification.getNewName();
+            }
+
+            RowAlteringResult rowOnAltering = alter(row, modification);
+            if (rowOnAltering.key() != null) {
+                row = rowOnAltering.row();
+                fieldNameForTypeConversion = rowOnAltering.key();
+            }
+
+            return convert(
+                    row,
+                    isAddingIteration,
+                    fieldNameForTypeConversion,
+                    modification.getNewType()
+            );
+        }
+
+        private static @NonNull ApplyingModificationsResult add(
+                @NonNull Map<String, Object> row,
+                @NonNull Modification modification
+        ) {
+            boolean success = false;
+
+            if (modification.getOldName() == null) {
+                if (modification.getNewName() == null) {
+                    throw new IllegalPatternException(
+                            "Modification with null or empty oldName and newName was provided; modification=" +
+                                    modification
+                    );
+                }
+
+                row.put(modification.getNewName(), modification.getNewValue());
+                success = true;
+            }
+
+            return new ApplyingModificationsResult(row, success);
+        }
+
+        private static @NonNull RowAlteringResult alter(
+                @NonNull Map<String, Object> row,
+                @NonNull Modification modification
+        ) {
+            String key = null;
+
+            // Altering existing fields
+            if (row.containsKey(modification.getOldName())) {
+                key = modification.getOldName();
+
+                // Changing values of fields
+                if (modification.getNewValue() != null) {
+                    row.put(modification.getOldName(), modification.getNewValue());
+                }
+
+                // Changing names of fields
+                if (modification.getNewName() != null) {
+                    Object value = row.get(modification.getOldName());
+                    row.remove(modification.getOldName());
+                    row.put(modification.getNewName(), value);
+
+                    key = modification.getNewName();
+                }
+            }
+
+            return new RowAlteringResult(row, key);
+        }
+
+        private static @NonNull Map<String, Object> convert(
+                @NonNull Map<String, Object> row,
+                @NonNull Boolean isAddingIteration,
+                @Nullable String key,
+                @Nullable String newType
+        ) {
+            if (newType == null) {
+                return row;
+            }
+
+            if (row.containsKey(key) || isAddingIteration) {
+                Object value = row.get(key);
+
+                if (value == null) {
+                    return row;
+                }
+
+                switch (newType) {
+                    case "Integer":
+                        row.put(key, Integer.parseInt(value.toString()));
+                        break;
+                    case "Float":
+                        row.put(key, Float.parseFloat(value.toString()));
+                        break;
+                    case "Boolean":
+                        row.put(key, toBoolean(value.toString()));
+                        break;
+                    default:
+                        row.put(key, value.toString());
+                        break;
+                }
+            }
+
+            return row;
+        }
+
+        private record ApplyingModificationsResult(
+                Map<String, Object> row, 
+                boolean success
+        ) {
+        }
+
+        private record RowAlteringResult(
+                Map<String, Object> row,
+                String key
+        ) {
+        }
     }
 }

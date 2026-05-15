@@ -5,7 +5,7 @@ stages:
 
 variables:
   DOCKERHUB_USER: kekishev
-  DOCKERHUB_REPOSITORY_NAME: converter
+  DOCKERHUB_REPOSITORY_NAME: cson-converter
 
 test-job:
   stage: test
@@ -55,13 +55,16 @@ deploy-job:
     - scp -i ~/.ssh/id_ed25519 docker-compose.yaml root@$SSH_REMOTE_HOST:/root/projects/converter/docker-compose.yaml
     - ssh -i ~/.ssh/id_ed25519 root@$SSH_REMOTE_HOST "
       cd /root/projects/converter &&
+      export JWT_SECRET=$JWT_SECRET &&
       export POSTGRES_USERNAME=$POSTGRES_USERNAME &&
       export POSTGRES_PASSWORD=$POSTGRES_PASSWORD &&
       export POSTGRES_DB=$POSTGRES_DB &&
       export DATABASE_URL=$DATABASE_URL &&
-      export JWT_SECRET=$JWT_SECRET &&
-      docker stop converter-backend-1 || true &&
-      docker rm converter-backend-1 || true &&
+      export EMAIL_ADDRESS=$EMAIL_ADDRESS &&
+      export EMAIL_PASSWORD=$EMAIL_PASSWORD &&
+      export EMAIL_SENDER_ADDRESS=$EMAIL_SENDER_ADDRESS &&
+      docker stop cson-converter-backend-1 || true &&
+      docker rm cson-converter-backend-1 || true &&
       docker image rm $DOCKERHUB_USER/$DOCKERHUB_REPOSITORY_NAME:latest &&
       docker compose up -d
       "

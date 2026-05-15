@@ -1,26 +1,30 @@
 package team.anonyms.converter.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.util.List;
 import java.util.UUID;
 
-@Data
+
+/**
+ * Patterns provide possibility to alter a file during conversion.
+ */
+@Getter
+@Setter
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
 @Entity
-@Table(name = "Patterns")
-public final class Pattern {
+@Table(name = "patterns")
+public class Pattern {
     @Id
-    @Column(name = "id", nullable = false, unique = true)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "name")
+    @Column(nullable = false)
     private String name;
 
-    @OneToMany(fetch = FetchType.EAGER)
-    private List<Modification> modifications;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 }

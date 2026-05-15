@@ -2,6 +2,7 @@ package team.anonyms.converter.configs;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -9,7 +10,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-import team.anonyms.converter.utility.security.RequestFilter;
+import team.anonyms.converter.security.RequestFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -21,20 +22,30 @@ public class SecurityConfiguration {
     }
 
     /**
-     * <p>
-     *     Configures security setting for every HTTP request.
-     * </p>
+     * Configures requirement of authorization for every HTTP request. <br>
+     * Uses {@link RequestFilter} to authenticate requests.
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) {
+        /*
+        Note, that .anyRequest().authenticated() should be applied only to the last .requestMatchers() method.
+        Otherwise, there will be a bug on start up.
+        */
         return http
                 .cors(Customizer.withDefaults())
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(sm ->
                         sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/auth/**", "/conversion/**", "/direct/**")
-                        .permitAll().anyRequest().authenticated())
+                        .requestMatchers("/conversion/**", "/auth/password/**", "/direct/**")
+                        .permitAll()
+                )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(HttpMethod.POST, "/auth", "/users")
+                        .permitAll()
+                        .anyRequest()
+                        .authenticated()
+                )
                 .addFilterBefore(requestFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

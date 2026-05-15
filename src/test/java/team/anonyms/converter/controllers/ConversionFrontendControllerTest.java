@@ -1,6 +1,5 @@
 package team.anonyms.converter.controllers;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,12 +16,10 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import team.anonyms.converter.controllers.frontend.ConversionFrontendController;
-import team.anonyms.converter.dto.controller.pattern.PatternControllerDto;
 import team.anonyms.converter.services.frontend.ConversionFrontendService;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -36,8 +33,6 @@ class ConversionFrontendControllerTest {
 
     @MockitoBean
     private ConversionFrontendService conversionFrontendService;
-
-    private final ObjectMapper objectMapper = new ObjectMapper();
 
     // ЭТО НУЖНО!!! вспомогательный метод для json-части запроса
     private MockPart getPatternPart() {

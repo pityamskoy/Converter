@@ -4,72 +4,78 @@ import jakarta.persistence.EntityNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import team.anonyms.converter.dto.controller.responses.errors.CredentialExceptionErrorResponse;
-import team.anonyms.converter.dto.controller.responses.errors.EmailExistsExceptionErrorResponse;
-import team.anonyms.converter.dto.controller.responses.errors.IllegalPatternExceptionErrorResponse;
-import team.anonyms.converter.utility.annotations.LastSupportedProjectVersion;
-import team.anonyms.converter.utility.exceptions.EmailExistsException;
-import team.anonyms.converter.utility.exceptions.IllegalPatternException;
-import team.anonyms.converter.utility.exceptions.UnsupportedExtensionException;
+import team.anonyms.converter.dto.controller.responses.ExceptionResponse;
+import team.anonyms.converter.exceptions.email.EmailAlreadyVerifiedException;
+import team.anonyms.converter.exceptions.email.EmailAlreadyExistsException;
+import team.anonyms.converter.exceptions.IllegalPatternException;
+import team.anonyms.converter.exceptions.UnsupportedExtensionException;
 
 import javax.security.auth.login.CredentialException;
 
-import static team.anonyms.converter.utility.enums.ProjectVersion.RELEASE_0;
-
 /**
- * <p>
- *     {@code GlobalExceptionHandler} is supposed to handle all {@link RuntimeException}, which all controllers may throw.
- * </p>
+ * {@code GlobalExceptionHandler} handles all {@link RuntimeException} occurred during runtime.
  */
-@LastSupportedProjectVersion(RELEASE_0)
 @RestControllerAdvice
 @SuppressWarnings(value = "unused")
-public final class GlobalExceptionHandler {
-    private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+public class GlobalExceptionHandler {
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
     @ExceptionHandler(exception = CredentialException.class)
-    public ResponseEntity<CredentialExceptionErrorResponse> handleCredentialException(CredentialException e) {
-        log.error(e.getMessage());
-        return ResponseEntity.badRequest().body(new CredentialExceptionErrorResponse());
+    public ResponseEntity<ExceptionResponse> handleCredentialException(CredentialException e) {
+        logger.error(e.getMessage());
+        return ResponseEntity.badRequest().body(new ExceptionResponse("CREDENTIAL"));
     }
 
     @ExceptionHandler(exception = EntityNotFoundException.class)
     public ResponseEntity<Void> handleEntityNotFoundException(EntityNotFoundException e) {
-        log.error(e.getMessage());
+        logger.error(e.getMessage());
         return ResponseEntity.notFound().build();
     }
 
     @ExceptionHandler(exception = UnsupportedExtensionException.class)
     public ResponseEntity<Void> handleUnsupportedExtensionException(UnsupportedExtensionException e) {
-        log.error(e.getMessage());
+        logger.error(e.getMessage());
         return ResponseEntity.badRequest().build();
     }
 
     @ExceptionHandler(exception = NullPointerException.class)
     public ResponseEntity<Void> handleNullPointerException(NullPointerException e) {
-        log.error(e.getMessage());
+        logger.error("Unexpected NullPointerException", e);
         return ResponseEntity.internalServerError().build();
     }
 
     @ExceptionHandler(exception = IllegalArgumentException.class)
     public ResponseEntity<Void> handleIllegalArgumentException(IllegalArgumentException e) {
-        log.error(e.getMessage());
+        logger.error(e.getMessage());
         return ResponseEntity.badRequest().build();
     }
 
     @ExceptionHandler(exception = IllegalPatternException.class)
-    public ResponseEntity<IllegalPatternExceptionErrorResponse> handleIllegalPatternException(
+    public ResponseEntity<ExceptionResponse> handleIllegalPatternException(
             IllegalPatternException e
     ) {
-        log.error(e.getMessage());
-        return ResponseEntity.badRequest().body(new IllegalPatternExceptionErrorResponse());
+        logger.error(e.getMessage());
+        return ResponseEntity.badRequest().body(new ExceptionResponse("PATTERN"));
     }
 
-    @ExceptionHandler(exception = EmailExistsException.class)
-    public ResponseEntity<EmailExistsExceptionErrorResponse> handleEmailExistsException(EmailExistsException e) {
-        log.error(e.getMessage());
-        return ResponseEntity.badRequest().body(new EmailExistsExceptionErrorResponse());
+    @ExceptionHandler(exception = EmailAlreadyExistsException.class)
+    public ResponseEntity<ExceptionResponse> handleEmailExistsException(EmailAlreadyExistsException e) {
+        logger.error(e.getMessage());
+        return ResponseEntity.badRequest().body(new ExceptionResponse("EMAIL ALREADY EXISTS"));
+    }
+
+    @ExceptionHandler(exception = EmailAlreadyVerifiedException.class)
+    public ResponseEntity<ExceptionResponse> handleEmailAlreadyVerifiedException(EmailAlreadyVerifiedException e) {
+        logger.error(e.getMessage());
+        return ResponseEntity.badRequest().body(new ExceptionResponse("EMAIL ALREADY VERIFIED"));
+    }
+
+    @ExceptionHandler(exception = AccessDeniedException.class)
+    public ResponseEntity<ExceptionResponse> handleAccessDeniedException(AccessDeniedException e) {
+        logger.error(e.getMessage());
+        return ResponseEntity.status(403).body(new ExceptionResponse("ACCESS DENIED"));
     }
 }

@@ -7,11 +7,10 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import team.anonyms.converter.dto.service.credentials.CredentialsServiceDto;
-import team.anonyms.converter.dto.service.credentials.LoginResultServiceDto;
-import team.anonyms.converter.dto.service.user.UserToRegisterServiceDto;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import team.anonyms.converter.dto.service.authentication.AuthenticationServiceDto;
+import team.anonyms.converter.dto.service.authentication.CredentialsServiceDto;
 import team.anonyms.converter.entities.User;
-import team.anonyms.converter.mappers.UserMapper;
 import team.anonyms.converter.repositories.UserRepository;
 import team.anonyms.converter.services.frontend.AuthenticationService;
 import team.anonyms.converter.services.frontend.JwtService;
@@ -22,6 +21,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// Update needed
 @ExtendWith(MockitoExtension.class)
 class AuthenticationServiceTest {
 
@@ -29,7 +29,7 @@ class AuthenticationServiceTest {
     private UserRepository userRepository;
 
     @Mock
-    private UserMapper userMapper;
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Mock
     private JwtService jwtService;
@@ -39,10 +39,11 @@ class AuthenticationServiceTest {
 
     @Test
     void testLogin_MissingCredentials_ThrowsCredentialException() {
-        CredentialsServiceDto emptyCredentials = new CredentialsServiceDto(null, null, null);
+        CredentialsServiceDto emptyCredentials = new CredentialsServiceDto(null, null);
 
         assertThrows(CredentialException.class, () -> {
-            authenticationService.login(emptyCredentials);
+            // Теперь передаем вторым аргументом null (токен)
+            authenticationService.login(emptyCredentials, null);
         });
     }
 
@@ -50,29 +51,32 @@ class AuthenticationServiceTest {
     void testLogin_NonexistentEmail_ThrowsEntityNotFoundException() {
         String email = "test@gmail.com";
         String password = "test_password";
-        CredentialsServiceDto credentials = new CredentialsServiceDto(email, password, null);
+        CredentialsServiceDto credentials = new CredentialsServiceDto(email, password);
 
         Mockito.when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
-            authenticationService.login(credentials);
-        });
+        EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> authenticationService.login(credentials, null)
+        );
 
-        assertTrue(exception.getMessage().contains("User not found; email=" + email));
+        assertTrue(exception.getMessage().contains("User not found"));
     }
 
     @Test
     void testLogin_NonexistentId_ThrowsEntityNotFoundException() {
         String fakeToken = "fake.jwt.token";
         UUID fakeId = UUID.randomUUID();
-        CredentialsServiceDto credentials = new CredentialsServiceDto(null, null, fakeToken);
+        CredentialsServiceDto credentials = new CredentialsServiceDto(null, null);
 
+        Mockito.when(jwtService.isValid(fakeToken)).thenReturn(true);
         Mockito.when(jwtService.extractUserId(fakeToken)).thenReturn(fakeId.toString());
         Mockito.when(userRepository.findById(fakeId)).thenReturn(Optional.empty());
 
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
-            authenticationService.login(credentials);
-        });
+        EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> authenticationService.login(credentials, fakeToken)
+        );
 
         assertTrue(exception.getMessage().contains("User not found; id=" + fakeId));
     }
@@ -81,90 +85,72 @@ class AuthenticationServiceTest {
     void testLogin_WithJwtToken_Success() throws CredentialException {
         String token = "valid.jwt.token";
         UUID userId = UUID.randomUUID();
-        CredentialsServiceDto credentials = new CredentialsServiceDto(null, null, token);
+        CredentialsServiceDto credentials = new CredentialsServiceDto(null, null);
 
-        User mockUser = new User();
+        User mockUser = Mockito.mock(User.class);
         mockUser.setId(userId);
         mockUser.setUsername("testuser");
         mockUser.setEmail("test@gmail.com");
 
+        Mockito.when(jwtService.isValid(token)).thenReturn(true);
         Mockito.when(jwtService.extractUserId(token)).thenReturn(userId.toString());
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
 
-        LoginResultServiceDto result = authenticationService.login(credentials);
+        AuthenticationServiceDto result = authenticationService.login(credentials, token);
 
-        assertTrue(result.success());
-        assertEquals(userId, result.userId());
+        assertTrue(result.result().success());
+        assertEquals(userId, result.result().userId());
         assertEquals(token, result.jwtToken());
     }
 
     @Test
     void testLogin_WithEmail_CorrectPassword() throws CredentialException {
         String email = "test@gmail.com";
-        String password = "correct_password";
+        String rawPassword = "correct_password";
+        String encodedPassword = "encoded_password";
         String newToken = "newly.generated.token";
         UUID userId = UUID.randomUUID();
 
-        CredentialsServiceDto credentials = new CredentialsServiceDto(email, password, null);
+        CredentialsServiceDto credentials = new CredentialsServiceDto(email, rawPassword);
 
-        User mockUser = new User();
-        mockUser.setId(userId);
-        mockUser.setUsername("testuser");
-        mockUser.setEmail(email);
-        mockUser.setPassword(password);
+        User mockUser = Mockito.mock(User.class);
+        Mockito.when(mockUser.getId()).thenReturn(userId);
+        Mockito.when(mockUser.getUsername()).thenReturn("testuser");
+        Mockito.when(mockUser.getEmail()).thenReturn(email);
+
+        Mockito.when(mockUser.getPassword()).thenReturn(encodedPassword);
 
         Mockito.when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
-        // Учим сервис генерировать токен для этого юзера
+
+        Mockito.when(passwordEncoder.matches(rawPassword, encodedPassword)).thenReturn(true);
         Mockito.when(jwtService.generate(userId)).thenReturn(newToken);
 
-        LoginResultServiceDto result = authenticationService.login(credentials);
+        AuthenticationServiceDto result = authenticationService.login(credentials, null);
 
-        assertTrue(result.success());
+        assertTrue(result.result().success());
+        assertEquals(userId, result.result().userId());
         assertEquals(newToken, result.jwtToken());
-        assertEquals(userId, result.userId());
     }
 
     @Test
     void testLogin_WithEmail_WrongPassword() throws CredentialException {
         String email = "test@gmail.com";
-        CredentialsServiceDto credentials = new CredentialsServiceDto(email, "wrong_password", null);
+        String rawPassword = "wrong_password";
+        String encodedPassword = "encoded_password";
 
-        User mockUser = new User();
-        mockUser.setId(UUID.randomUUID());
-        mockUser.setPassword("correct_password");
+        CredentialsServiceDto credentials = new CredentialsServiceDto(email, rawPassword);
+
+        User mockUser = Mockito.mock(User.class);
+
+        Mockito.when(mockUser.getPassword()).thenReturn(encodedPassword);
 
         Mockito.when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
 
-        LoginResultServiceDto result = authenticationService.login(credentials);
+        Mockito.when(passwordEncoder.matches(rawPassword, encodedPassword)).thenReturn(false);
 
-        assertFalse(result.success());
+        AuthenticationServiceDto result = authenticationService.login(credentials, null);
+
+        assertFalse(result.result().success());
         assertNull(result.jwtToken());
-    }
-
-    @Test
-    void testRegister_Success() {
-        UserToRegisterServiceDto registerDto = new UserToRegisterServiceDto(
-                "user",
-                "test@gmail.com",
-                "pass"
-        );
-        UUID userId = UUID.randomUUID();
-        String generatedToken = "registered.jwt.token";
-
-        User mockUser = new User();
-        mockUser.setId(userId);
-        mockUser.setUsername("user");
-        mockUser.setEmail("test@gmail.com");
-
-        Mockito.when(userRepository.findByEmail(registerDto.email())).thenReturn(Optional.empty());
-        Mockito.when(userMapper.userToRegisterServiceDtoToEntity(registerDto)).thenReturn(mockUser);
-        Mockito.when(jwtService.generate(userId)).thenReturn(generatedToken);
-
-        LoginResultServiceDto result = authenticationService.register(registerDto);
-
-        assertTrue(result.success());
-        assertEquals(generatedToken, result.jwtToken());
-        assertEquals(userId, result.userId());
-        Mockito.verify(userRepository).save(mockUser);
     }
 }

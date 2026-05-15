@@ -8,41 +8,44 @@ import org.springframework.stereotype.Service;
 import java.util.Map;
 
 @Service
-public final class ConversionApiService {
+public class ConversionApiService {
+    private final JsonMapper jsonMapper;
+    private final XmlMapper xmlMapper;
+
+    public ConversionApiService(JsonMapper jsonMapper, XmlMapper xmlMapper) {
+        this.jsonMapper = jsonMapper;
+        this.xmlMapper = xmlMapper;
+    }
 
     /**
-     * <p>
-     *     Converts JSON data to XML data.
-     * </p>
+     * Converts JSON data to XML data.
      *
-     * @param body body of an arbitrary JSON request.
+     * @param body an arbitrary body of JSON request.
      *
-     * @return converted XML data from {@code body} in string form.
+     * @return converted XML data from {@code body}.
      *
-     * @throws IllegalArgumentException if an unsupported JSON structure for conversion from JSON TO XML was provided.
+     * @throws IllegalArgumentException if an unsupported JSON structure for conversion from JSON to XML was provided.
      */
     public String convertJsonToXml(Map<String, Object> body) {
         try {
-            return new XmlMapper().writeValueAsString(body);
+            return xmlMapper.writeValueAsString(body);
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException(e.getMessage());
         }
     }
 
     /**
-     * <p>
-     *     Converts XML data to JSON data.
-     * </p>
+     * Converts XML data to JSON data.
      *
-     * @param body body of an arbitrary XML request.
+     * @param body an arbitrary body of XML request.
      *
-     * @return converted JSON data from {@code body} in string form.
+     * @return converted JSON data from {@code body}.
      *
-     * @throws IllegalArgumentException if an unsupported XML structure for conversion from XML TO JSON was provided.
+     * @throws IllegalArgumentException if an unsupported XML structure for conversion from XML to JSON was provided.
      */
     public String convertXmlToJson(Map<String, Object> body) {
         try {
-            return new JsonMapper().writeValueAsString(body);
+            return jsonMapper.writeValueAsString(body);
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException(e.getMessage());
         }

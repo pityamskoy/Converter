@@ -1,58 +1,123 @@
 package team.anonyms.converter.controllers.frontend;
 
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import team.anonyms.converter.dto.controller.credentials.CredentialsControllerDto;
-import team.anonyms.converter.dto.controller.credentials.LoginResultControllerDto;
-import team.anonyms.converter.dto.controller.user.UserToRegisterControllerDto;
-import team.anonyms.converter.dto.service.credentials.LoginResultServiceDto;
-import team.anonyms.converter.mappers.CredentialsMapper;
-import team.anonyms.converter.mappers.UserMapper;
+import team.anonyms.converter.dto.controller.authentication.AuthenticationControllerDto;
+import team.anonyms.converter.dto.controller.authentication.CredentialsControllerDto;
+import team.anonyms.converter.dto.controller.authentication.LoginResultControllerDto;
+import team.anonyms.converter.dto.controller.authentication.PasswordResetControllerDto;
+import team.anonyms.converter.mappers.AuthenticationMapper;
 import team.anonyms.converter.services.frontend.AuthenticationService;
+import team.anonyms.converter.services.frontend.EmailService;
 
 import javax.security.auth.login.CredentialException;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
-public final class AuthenticationController {
-    private static final Logger log = LoggerFactory.getLogger(AuthenticationController.class);
+@SuppressWarnings(value = {"DataFlowIssue"})
+public class AuthenticationController {
+    private static final Logger logger = LoggerFactory.getLogger(AuthenticationController.class);
 
     private final AuthenticationService authenticationService;
-    private final CredentialsMapper credentialsMapper;
-    private final UserMapper userMapper;
+    private final EmailService emailService;
+    private final AuthenticationMapper authenticationMapper;
 
     public AuthenticationController(
             AuthenticationService authenticationService,
-            CredentialsMapper credentialsMapper,
-            UserMapper userMapper
+            EmailService emailService,
+            AuthenticationMapper authenticationMapper
     ) {
         this.authenticationService = authenticationService;
-        this.credentialsMapper = credentialsMapper;
-        this.userMapper = userMapper;
+        this.emailService = emailService;
+        this.authenticationMapper = authenticationMapper;
     }
 
-    @PostMapping("/login")
+    /**
+     * Creates new cookie with {@code jwtToken}.
+     *
+     * @param jwtToken JWT token.
+     * @param maxAgeSeconds the expiration time of {@link ResponseCookie}.
+     */
+    public static ResponseCookie createJwtCookie(String jwtToken, int maxAgeSeconds) {
+        return ResponseCookie.from("jwtToken", jwtToken)
+                .path("/")
+                .maxAge(maxAgeSeconds)
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Strict")
+                .build();
+    }
+
+    @PostMapping
     public ResponseEntity<LoginResultControllerDto> login(
-            @RequestBody CredentialsControllerDto credentials
+            @RequestBody CredentialsControllerDto credentials,
+            @CookieValue(value = "jwtToken", required = false) String jwtToken,
+            HttpServletResponse response
     ) throws CredentialException {
-        log.info("Called login");
+        logger.info("Called login");
 
-        LoginResultServiceDto result = authenticationService.login(
-                credentialsMapper.credentialsControllerDtoToService(credentials));
+        AuthenticationControllerDto result = authenticationMapper.authenticationServiceDtoToControllerDto(
+                authenticationService.login(
+                        authenticationMapper.credentialsControllerDtoToService(credentials),
+                        jwtToken
+                )
+        );
 
-        return ResponseEntity.ok(credentialsMapper.loginResultServiceDtoToController(result));
+        response.addHeader(HttpHeaders.SET_COOKIE, createJwtCookie(result.jwtToken(), 14400).toString());
+        return ResponseEntity.ok(result.result());
     }
 
-    @PostMapping("/registration")
-    public ResponseEntity<LoginResultControllerDto> register(@RequestBody UserToRegisterControllerDto userToRegister) {
-        log.info("Called register");
+    @PostMapping("/email/resending")
+    public ResponseEntity<Void> sendEmailVerificationCode() {
+        logger.info("Called sendEmailVerificationCode");
 
-        LoginResultControllerDto result = credentialsMapper.loginResultServiceDtoToController(
-                authenticationService.register(userMapper.userToRegisterControllerDtoToService(userToRegister)));
+        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        emailService.sendEmailVerificationCode(userId);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(result);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/email/verification")
+    public ResponseEntity<Boolean> verifyEmail(@RequestBody String verificationCode) {
+        logger.info("Called verifyEmail");
+
+        UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        return ResponseEntity.ok(authenticationService.verifyEmail(userId, verificationCode));
+    }
+
+    @PostMapping("/password/reset")
+    public ResponseEntity<Void> sendPasswordResetVerificationCode(@RequestBody String email) {
+        logger.info("Called sendVerificationCodeForPasswordReset");
+
+        emailService.sendPasswordResetVerificationCode(email);
+
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/password/verification")
+    public ResponseEntity<Boolean> verifyPasswordReset(
+            @RequestBody PasswordResetControllerDto passwordResetControllerDto
+    ) {
+        logger.info("Called verifyPasswordReset");
+
+        return ResponseEntity.ok(authenticationService.verifyPasswordReset(
+                authenticationMapper.passwordResetControllerDtoToService(passwordResetControllerDto))
+        );
+    }
+
+    @DeleteMapping
+    public ResponseEntity<Void> logout(HttpServletResponse response) {
+        logger.info("Called logout");
+
+        response.addHeader(HttpHeaders.SET_COOKIE, createJwtCookie("", 0).toString());
+        return ResponseEntity.noContent().build();
     }
 }
