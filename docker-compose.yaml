@@ -1,4 +1,4 @@
-name: converter
+name: cson-converter
 
 services:
   backend:
@@ -9,9 +9,13 @@ services:
     depends_on:
       - db
     environment:
-      DB_USERNAME: ${POSTGRES_USERNAME}
+      JWT_SECRET: ${JWT_SECRET}
+      DB_USER: ${POSTGRES_USER}
       DB_PASSWORD: ${POSTGRES_PASSWORD}
       DB_URL: ${DATABASE_URL}
+      EMAIL_ADDRESS: ${EMAIL_ADDRESS}
+      EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+      EMAIL_SENDER_ADDRESS: ${EMAIL_SENDER_ADDRESS}
     volumes:
       - /root/projects/converter/logs/backend:/logs
 
@@ -21,7 +25,7 @@ services:
     ports:
       - "1234:5432"
     environment:
-      POSTGRES_USERNAME: ${POSTGRES_USERNAME}
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
     volumes:

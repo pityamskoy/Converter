@@ -1,10 +1,7 @@
 package team.anonyms.converter.mappers;
 
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.Mockito;
 import team.anonyms.converter.dto.controller.user.UserControllerDto;
 import team.anonyms.converter.dto.controller.user.UserToRegisterControllerDto;
 import team.anonyms.converter.dto.controller.user.UserToUpdateControllerDto;
@@ -13,25 +10,15 @@ import team.anonyms.converter.dto.service.user.UserToRegisterServiceDto;
 import team.anonyms.converter.dto.service.user.UserToUpdateServiceDto;
 import team.anonyms.converter.entities.User;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
-@ExtendWith(MockitoExtension.class)
+// Update needed
 class UserMapperTest {
 
-    // нужно замокать
-    @Mock
-    private PatternMapper patternMapper;
+    private final UserMapper userMapper = new UserMapper();
 
-    // сюда через mockito подгрузится само
-    @InjectMocks
-    private UserMapper userMapper;
-
-    // прогон полей и проверка
     @Test
     void testUserToRegisterControllerDtoToService() {
         UserToRegisterControllerDto controllerDto = new UserToRegisterControllerDto(
@@ -49,19 +36,14 @@ class UserMapperTest {
 
     @Test
     void testUserToUpdateControllerDtoToService() {
-        UUID id = UUID.randomUUID();
         UserToUpdateControllerDto controllerDto = new UserToUpdateControllerDto(
-                id, "newname",
-                "newtest@gmail.com",
-                "mega_krutoi_parol",
-                List.of()
+                "newname",
+                "mega_krutoi_parol"
         );
 
         UserToUpdateServiceDto serviceDto = userMapper.userToUpdateControllerDtoToService(controllerDto);
 
-        assertEquals(id, serviceDto.id());
         assertEquals("newname", serviceDto.username());
-        assertEquals("newtest@gmail.com", serviceDto.email());
         assertEquals("mega_krutoi_parol", serviceDto.password());
     }
 
@@ -69,9 +51,10 @@ class UserMapperTest {
     void testUserServiceDtoToControllerDto() {
         UUID id = UUID.randomUUID();
         UserServiceDto serviceDto = new UserServiceDto(
-                id, "username",
+                id,
+                "username",
                 "test@gmail.com",
-                List.of()
+                true
         );
 
         UserControllerDto controllerDto = userMapper.userServiceDtoToControllerDto(serviceDto);
@@ -79,6 +62,7 @@ class UserMapperTest {
         assertEquals(id, controllerDto.id());
         assertEquals("username", controllerDto.username());
         assertEquals("test@gmail.com", controllerDto.email());
+        assertTrue(controllerDto.isVerified());
     }
 
     @Test
@@ -91,28 +75,28 @@ class UserMapperTest {
 
         User entity = userMapper.userToRegisterServiceDtoToEntity(serviceDto);
 
-        assertNotNull(entity.getId());
+        assertNull(entity.getId());
         assertEquals("username", entity.getUsername());
         assertEquals("test@gmail.com", entity.getEmail());
         assertEquals("mega_krutoi_parol", entity.getPassword());
-        assertNotNull(entity.getPatterns());
+        assertFalse(entity.getIsVerified());
     }
 
     @Test
     void testUserToServiceDto() {
         UUID id = UUID.randomUUID();
-        User entity = new User(
-                id,
-                "username",
-                "test@gmail.com",
-                "mega_krutoi_parol",
-                new ArrayList<>()
-        );
+        User mockEntity = Mockito.mock(User.class);
 
-        UserServiceDto serviceDto = userMapper.userToServiceDto(entity);
+        Mockito.when(mockEntity.getId()).thenReturn(id);
+        Mockito.when(mockEntity.getUsername()).thenReturn("username");
+        Mockito.when(mockEntity.getEmail()).thenReturn("test@gmail.com");
+        Mockito.when(mockEntity.getIsVerified()).thenReturn(true);
+
+        UserServiceDto serviceDto = userMapper.userToServiceDto(mockEntity);
 
         assertEquals(id, serviceDto.id());
         assertEquals("username", serviceDto.username());
         assertEquals("test@gmail.com", serviceDto.email());
+        assertTrue(serviceDto.isVerified());
     }
 }

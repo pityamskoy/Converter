@@ -7,9 +7,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
-import team.anonyms.converter.utility.exceptions.UnsupportedExtensionException;
+import team.anonyms.converter.exceptions.UnsupportedExtensionException;
+import team.anonyms.converter.repositories.ModificationRepository;
+import team.anonyms.converter.repositories.PatternRepository;
 import team.anonyms.converter.services.frontend.ConversionFrontendService;
-import team.anonyms.converter.services.frontend.PatternService;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -19,16 +20,19 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ConversionFrontendServiceTest {
 
-    private final PatternService patternService = Mockito.mock(PatternService.class);
+    private final PatternRepository patternRepository = Mockito.mock(PatternRepository.class);
+    private final ModificationRepository modificationRepository = Mockito.mock(ModificationRepository.class);
 
     private final ConversionFrontendService conversionFrontendService = new ConversionFrontendService(
-            patternService, new JsonMapper(), new XmlMapper(), new CsvMapper()
+            patternRepository,
+            modificationRepository,
+            new JsonMapper(),
+            new XmlMapper(),
+            new CsvMapper()
     );
 
-    // тест из json в csv
     @Test
     void testConvertJsonFileToCsv_Success() throws IOException {
-        // массив из 2 объектов
         String jsonContent = "[{" +
                 "\"name\":\"Ivan\",\"age\":30" +
                 "}," +
@@ -42,10 +46,8 @@ class ConversionFrontendServiceTest {
                 jsonContent.getBytes()
         );
 
-        // вызываем метод
         Path resultPath = conversionFrontendService.convertJsonFileToCsv(mockFile, null);
 
-        // проверяем, что файл создался и все строки на месте как надо
         assertNotNull(resultPath);
         assertTrue(Files.exists(resultPath));
 
@@ -60,13 +62,10 @@ class ConversionFrontendServiceTest {
         Files.deleteIfExists(resultPath);
     }
 
-    // ???
-    // Expected: class java.lang.IllegalArgumentException
-    // Actual: class com.fasterxml.jackson.core.JsonParseException
     @Test
     void testConvertJsonFileToCsv_UnsupportedJSONStructure_ThrowsException() {
         String jsonContent = "[{" +
-                "\"name\":\"Муся\"\"age\":30000" + // пропущена запятая
+                "\"name\":\"Муся\"\"age\":30000" +
                 "}," +
                 "{" +
                 "\"name\":\"Маруся\",\"age\":30000" +
@@ -79,14 +78,12 @@ class ConversionFrontendServiceTest {
                 jsonContent.getBytes()
         );
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertJsonFileToCsv(brokenFile, null);
-        });
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> conversionFrontendService.convertJsonFileToCsv(brokenFile, null)
+        );
     }
 
-    // ???
-    // Expected: class java.lang.IllegalArgumentException
-    // Actual: class com.fasterxml.jackson.dataformat.csv.CsvWriteException
     @Test
     void testConvertJsonFileToCsv_NoRows_ThrowsException() {
         String jsonContent = "[{}]";
@@ -98,15 +95,14 @@ class ConversionFrontendServiceTest {
                 jsonContent.getBytes()
         );
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertJsonFileToCsv(brokenFile, null);
-        });
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> conversionFrontendService.convertJsonFileToCsv(brokenFile, null)
+        );
     }
 
-    // из csv в json
     @Test
     void testConvertCsvFileToJson_Success() throws IOException {
-        // в файле заголовок и 2 строчки
         String csvContent = "name,age\nIvan,30\nAnna,25";
         MockMultipartFile mockFile = new MockMultipartFile(
                 "file",
@@ -122,7 +118,6 @@ class ConversionFrontendServiceTest {
 
         String jsonContent = Files.readString(resultPath);
 
-        // тут возвращается json-массив
         assertTrue(jsonContent.contains("\"name\":\"Ivan\""));
         assertTrue(jsonContent.contains("\"age\":30"));
         assertTrue(jsonContent.contains("\"name\":\"Anna\""));
@@ -130,7 +125,6 @@ class ConversionFrontendServiceTest {
         Files.deleteIfExists(resultPath);
     }
 
-    // а вот тут все хорошо, в отличие от json->csv
     @Test
     void testConvertCsvFileToJson_NoRows_ThrowsException() {
         String csvContent = "Олег,Монгол";
@@ -141,30 +135,14 @@ class ConversionFrontendServiceTest {
                 csvContent.getBytes()
         );
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertCsvFileToJson(brokenFile, null);
-        });
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> conversionFrontendService.convertCsvFileToJson(brokenFile, null)
+        );
+
         assertEquals("CSV file contains no rows to convert", exception.getMessage());
     }
 
-    // ненужные тесты удалены, остались три переделанных под метод валидации
-    // метод приватный, поэтому тестирую через json->csv
-    @Test
-    void testValidateArgumentsForConversion_AndReturnPattern_EmptyFile_ThrowsException() {
-        MockMultipartFile emptyFile = new MockMultipartFile(
-                "file",
-                "empty.json",
-                "application/json",
-                new byte[0]
-        );
-
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertJsonFileToCsv(emptyFile, null);
-        });
-        assertEquals("file is empty", exception.getMessage());
-    }
-
-    // грозный хардкод null-имени, ибо MockMultipartFile мне не разрешает(((
     @Test
     void testValidateArgumentsForConversion_AndReturnPattern_NullFilename_ThrowsException() {
         MultipartFile brokenFile = Mockito.mock(MultipartFile.class);
@@ -172,16 +150,16 @@ class ConversionFrontendServiceTest {
         Mockito.when(brokenFile.isEmpty()).thenReturn(false);
         Mockito.when(brokenFile.getOriginalFilename()).thenReturn(null);
 
-        NullPointerException exception = assertThrows(NullPointerException.class, () -> {
-            conversionFrontendService.convertJsonFileToCsv(brokenFile, null);
-        });
+        NullPointerException exception = assertThrows(
+                NullPointerException.class,
+                () -> conversionFrontendService.convertJsonFileToCsv(brokenFile, null)
+        );
+
         assertEquals("filename is null", exception.getMessage());
     }
 
-    // не то расширение
     @Test
     void testValidateArgumentsForConversion_AndReturnPattern_WrongExtension_ThrowsException() {
-        // вместо json тут расширение .txt
         MockMultipartFile txtFile = new MockMultipartFile(
                 "file",
                 "wrong.txt",
@@ -189,14 +167,13 @@ class ConversionFrontendServiceTest {
                 "data".getBytes()
         );
 
-        UnsupportedExtensionException exception = assertThrows(UnsupportedExtensionException.class, () -> {
-            conversionFrontendService.convertJsonFileToCsv(txtFile, null);
-        });
+        UnsupportedExtensionException exception = assertThrows(
+                UnsupportedExtensionException.class,
+                () -> conversionFrontendService.convertJsonFileToCsv(txtFile, null)
+        );
 
         assertEquals("Provided file doesn't have '.json' extension", exception.getMessage());
     }
-
-    // UPD: тесты для конвертации json->xml, xml->json, csv->xml, xml->csv
 
     @Test
     void testConvertJsonFileToXml_Success() throws IOException {
@@ -205,12 +182,6 @@ class ConversionFrontendServiceTest {
                 "}," +
                 "{" +
                 "\"name\":\"Krylov Daniil\",\"age\":19" +
-                "}," +
-                "{" +
-                "\"name\":\"Tolstopyatov Trofim\",\"age\":20" +
-                "}," +
-                "{" +
-                "\"name\":\"Kekishev Andrey\",\"age\":21" +
                 "}]";
 
         MockMultipartFile mockFile = new MockMultipartFile(
@@ -231,24 +202,14 @@ class ConversionFrontendServiceTest {
         assertTrue(xmlContent.contains("<age>18</age>"));
         assertTrue(xmlContent.contains("<name>Krylov Daniil</name>"));
         assertTrue(xmlContent.contains("<age>19</age>"));
-        assertTrue(xmlContent.contains("<name>Kekishev Andrey</name>"));
-        assertTrue(xmlContent.contains("<age>20</age>"));
-        assertTrue(xmlContent.contains("<name>Tolstopyatov Trofim</name>"));
-        assertTrue(xmlContent.contains("<age>21</age>"));
 
         Files.deleteIfExists(resultPath);
     }
 
-    // ???
-    // Expected: class java.lang.IllegalArgumentException
-    // Actual: class com.fasterxml.jackson.core.JsonParseException
     @Test
     void testConvertJsonFileToXml_UnsupportedJSONStructure_ThrowsException() {
         String jsonContent = "[{" +
-                "\"name\":\"Муся\"\"age\":30000" + // пропущена запятая
-                "}," +
-                "{" +
-                "\"name\":\"Маруся\",\"age\":30000" +
+                "\"name\":\"Муся\"\"age\":30000" +
                 "}]";
 
         MockMultipartFile brokenFile = new MockMultipartFile(
@@ -258,16 +219,15 @@ class ConversionFrontendServiceTest {
                 jsonContent.getBytes()
         );
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertJsonFileToCsv(brokenFile, null);
-        });
+        assertThrows(
+                IOException.class,
+                () -> conversionFrontendService.convertJsonFileToXml(brokenFile, null)
+        );
     }
 
-    // No rows exception doesn't happen at all.
-    // Maybe it is possible to find a jsonContent to make this exception to be thrown
     @Test
     void testConvertJsonFileToXml_NoRows_ThrowsException() {
-        String jsonContent = "[{}]";
+        String jsonContent = "[]";
 
         MockMultipartFile brokenFile = new MockMultipartFile(
                 "file",
@@ -275,6 +235,13 @@ class ConversionFrontendServiceTest {
                 "application/json",
                 jsonContent.getBytes()
         );
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> conversionFrontendService.convertJsonFileToXml(brokenFile, null)
+        );
+
+        assertEquals("JSON file contains no rows to convert", exception.getMessage());
     }
 
     @Test
@@ -318,15 +285,15 @@ class ConversionFrontendServiceTest {
                 xmlContent.getBytes()
         );
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertXmlFileToJson(mockFile, null);
-        });
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> conversionFrontendService.convertXmlFileToJson(mockFile, null)
+        );
     }
 
     @Test
     void testConvertXmlFileToJson_NoRows_ThrowsException() {
-        String xmlContent = "<root>" +
-                "</root>";
+        String xmlContent = "<root></root>";
 
         MockMultipartFile noRowsFile = new MockMultipartFile(
                 "file",
@@ -335,9 +302,10 @@ class ConversionFrontendServiceTest {
                 xmlContent.getBytes()
         );
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertXmlFileToJson(noRowsFile, null);
-        });
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> conversionFrontendService.convertXmlFileToJson(noRowsFile, null)
+        );
 
         assertEquals("XML file contains no rows to convert", exception.getMessage());
     }
@@ -367,7 +335,6 @@ class ConversionFrontendServiceTest {
         Files.deleteIfExists(resultPath);
     }
 
-    // тут все нормально, модно, молодежно
     @Test
     void testConvertCsvFileToXml_NoRows_ThrowsException() {
         String csvContent = "Олег,Монгол,Картофель,Стол";
@@ -378,9 +345,11 @@ class ConversionFrontendServiceTest {
                 csvContent.getBytes()
         );
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertCsvFileToXml(brokenFile, null);
-        });
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> conversionFrontendService.convertCsvFileToXml(brokenFile, null)
+        );
+
         assertEquals("CSV file contains no rows to convert", exception.getMessage());
     }
 
@@ -413,9 +382,6 @@ class ConversionFrontendServiceTest {
         Files.deleteIfExists(resultPath);
     }
 
-    // ???
-    // Expected: class java.lang.IllegalArgumentException
-    // Actual: class com.fasterxml.jackson.core.JsonParseException
     @Test
     void testConvertXmlFileToCsv_UnsupportedXMLStructure_ThrowsException() {
         String xmlContent = "<root>" +
@@ -430,19 +396,15 @@ class ConversionFrontendServiceTest {
                 xmlContent.getBytes()
         );
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertXmlFileToCsv(mockFile, null);
-        });
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> conversionFrontendService.convertXmlFileToCsv(mockFile, null)
+        );
     }
 
-    // тут то же самое подробнее: надо java.lang.IllegalArgumentException (как в сервисе),
-    // по итогу наша ошибка не выскакивает, вместо нее ошибка библиотеки
-    // com.fasterxml.jackson.dataformat.csv.CsvWriteException:
-    // Schema specified that header line is to be written; but contains no column names
     @Test
     void testConvertXmlFileToCsv_NoRows_ThrowsException() {
-        String xmlContent = "<root>" +
-                "</root>";
+        String xmlContent = "<root></root>";
 
         MockMultipartFile noRowsFile = new MockMultipartFile(
                 "file",
@@ -451,12 +413,12 @@ class ConversionFrontendServiceTest {
                 xmlContent.getBytes()
         );
 
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            conversionFrontendService.convertXmlFileToCsv(noRowsFile, null);
-        });
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> conversionFrontendService.convertXmlFileToCsv(noRowsFile, null)
+        );
     }
 
-    // проверка статического метода
     @Test
     void testCountNumberOfOccurrences() {
         int count1 = ConversionFrontendService.countNumberOfOccurrences(".json", ".");

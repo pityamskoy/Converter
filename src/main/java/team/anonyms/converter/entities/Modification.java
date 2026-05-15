@@ -1,39 +1,34 @@
 package team.anonyms.converter.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+import lombok.*;
 
 import java.util.UUID;
 
 /**
- * <p>
- *     Modifications are necessary to know how to apply a pattern.
- * </p>
+ * Modifications are necessary to know how to apply a pattern.
  */
-@Data
+@Getter
+@Setter
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
 @Entity
-@Table(name = "Modifications")
-public final class Modification {
+@Table(name = "modifications")
+public class Modification {
     @Id
-    @Column(name = "id", nullable = false, unique = true)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "old_name")
     private String oldName;
 
-    @Column(name = "new_name")
     private String newName;
 
-    @Column(name = "new_type")
+    private String newValue;
+
     private String newType;
 
-    @Column(name = "new_value")
-    private String newValue;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "pattern_id", nullable = false)
+    private Pattern pattern;
 }

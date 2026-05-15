@@ -1,32 +1,35 @@
 package team.anonyms.converter.entities;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-import java.util.List;
 import java.util.UUID;
 
-@Data
+/**
+ * {@code User} is basic user entity. A client should not be forced to register.
+ * They should be able to use conversion without patterns.
+ */
+@Getter
+@Setter
 @AllArgsConstructor
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
 @Entity
-@Table(name = "Users")
-public final class User {
+@Table(name = "users")
+public class User {
     @Id
-    @Column(name = "id", nullable = false, unique = true)
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @Column(name = "username")
+    @Column(nullable = false)
     private String username;
 
-    @Column(name = "email", nullable = false, unique = true)
+    @Column(nullable = false, unique = true)
     private String email;
 
-    @Column(name = "password", nullable = false)
+    @Column(nullable = false)
     private String password;
 
-    @OneToMany(fetch = FetchType.EAGER)
-    private List<Pattern> patterns;
+    @Column(nullable = false)
+    private Boolean isVerified;
 }

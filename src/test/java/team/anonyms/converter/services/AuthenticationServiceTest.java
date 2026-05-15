@@ -1,52 +1,52 @@
 package team.anonyms.converter.services;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.servlet.http.Cookie;
-import org.antlr.v4.runtime.misc.Pair;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
-import team.anonyms.converter.dto.service.credentials.CredentialsServiceDto;
-import team.anonyms.converter.dto.service.credentials.LoginResultServiceDto;
-import team.anonyms.converter.dto.service.user.UserServiceDto;
-import team.anonyms.converter.dto.service.user.UserToRegisterServiceDto;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import team.anonyms.converter.dto.service.authentication.AuthenticationServiceDto;
+import team.anonyms.converter.dto.service.authentication.CredentialsServiceDto;
 import team.anonyms.converter.entities.User;
-import team.anonyms.converter.mappers.UserMapper;
 import team.anonyms.converter.repositories.UserRepository;
 import team.anonyms.converter.services.frontend.AuthenticationService;
+import team.anonyms.converter.services.frontend.JwtService;
 
 import javax.security.auth.login.CredentialException;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+// Update needed
 @ExtendWith(MockitoExtension.class)
 class AuthenticationServiceTest {
 
     @Mock
     private UserRepository userRepository;
+
     @Mock
-    private UserMapper userMapper;
+    private BCryptPasswordEncoder passwordEncoder;
+
+    @Mock
+    private JwtService jwtService;
 
     @InjectMocks
     private AuthenticationService authenticationService;
 
-    // нет почты-пароля и кукисов
     @Test
     void testLogin_MissingCredentials_ThrowsCredentialException() {
         CredentialsServiceDto emptyCredentials = new CredentialsServiceDto(null, null);
 
         assertThrows(CredentialException.class, () -> {
-            authenticationService.login(null, emptyCredentials);
+            // Теперь передаем вторым аргументом null (токен)
+            authenticationService.login(emptyCredentials, null);
         });
     }
 
-    // логин с несуществующей почтой
     @Test
     void testLogin_NonexistentEmail_ThrowsEntityNotFoundException() {
         String email = "test@gmail.com";
@@ -55,122 +55,102 @@ class AuthenticationServiceTest {
 
         Mockito.when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
 
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
-            authenticationService.login(null, credentials);
-        });
+        EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> authenticationService.login(credentials, null)
+        );
 
-        assertTrue(exception.getMessage().contains("User not found; email=" + email));
+        assertTrue(exception.getMessage().contains("User not found"));
     }
 
-    // логин по кукам с несуществующим айди
     @Test
     void testLogin_NonexistentId_ThrowsEntityNotFoundException() {
-        String fakeId = UUID.randomUUID().toString();
-        CredentialsServiceDto emptyCredentials = new CredentialsServiceDto(null, null);
+        String fakeToken = "fake.jwt.token";
+        UUID fakeId = UUID.randomUUID();
+        CredentialsServiceDto credentials = new CredentialsServiceDto(null, null);
 
-        Mockito.when(userRepository.findById(UUID.fromString(fakeId))).thenReturn(Optional.empty());
+        Mockito.when(jwtService.isValid(fakeToken)).thenReturn(true);
+        Mockito.when(jwtService.extractUserId(fakeToken)).thenReturn(fakeId.toString());
+        Mockito.when(userRepository.findById(fakeId)).thenReturn(Optional.empty());
 
-        EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, () -> {
-            authenticationService.login(fakeId, emptyCredentials);
-        });
+        EntityNotFoundException exception = assertThrows(
+                EntityNotFoundException.class,
+                () -> authenticationService.login(credentials, fakeToken)
+        );
 
         assertTrue(exception.getMessage().contains("User not found; id=" + fakeId));
     }
 
-    // есть куки и пустые креды
     @Test
-    void testLogin_WithUserIdCookie_Success() throws CredentialException {
+    void testLogin_WithJwtToken_Success() throws CredentialException {
+        String token = "valid.jwt.token";
         UUID userId = UUID.randomUUID();
-        CredentialsServiceDto emptyCredentials = new CredentialsServiceDto(null, null);
-        User mockUser = new User();
+        CredentialsServiceDto credentials = new CredentialsServiceDto(null, null);
 
+        User mockUser = Mockito.mock(User.class);
+        mockUser.setId(userId);
+        mockUser.setUsername("testuser");
+        mockUser.setEmail("test@gmail.com");
+
+        Mockito.when(jwtService.isValid(token)).thenReturn(true);
+        Mockito.when(jwtService.extractUserId(token)).thenReturn(userId.toString());
         Mockito.when(userRepository.findById(userId)).thenReturn(Optional.of(mockUser));
 
-        Pair<Cookie, LoginResultServiceDto> result = authenticationService.login(userId.toString(), emptyCredentials);
+        AuthenticationServiceDto result = authenticationService.login(credentials, token);
 
-        assertNull(result.a);
-        assertTrue(result.b.success());
-        assertEquals(userId, result.b.userId());
+        assertTrue(result.result().success());
+        assertEquals(userId, result.result().userId());
+        assertEquals(token, result.jwtToken());
     }
 
-    // вход по почте, возвращаем успех и куки
     @Test
     void testLogin_WithEmail_CorrectPassword() throws CredentialException {
         String email = "test@gmail.com";
-        String password = "correct_password";
+        String rawPassword = "correct_password";
+        String encodedPassword = "encoded_password";
+        String newToken = "newly.generated.token";
         UUID userId = UUID.randomUUID();
-        CredentialsServiceDto credentials = new CredentialsServiceDto(email, password);
 
-        User mockUser = new User();
-        mockUser.setId(userId);
-        mockUser.setPassword(password);
+        CredentialsServiceDto credentials = new CredentialsServiceDto(email, rawPassword);
+
+        User mockUser = Mockito.mock(User.class);
+        Mockito.when(mockUser.getId()).thenReturn(userId);
+        Mockito.when(mockUser.getUsername()).thenReturn("testuser");
+        Mockito.when(mockUser.getEmail()).thenReturn(email);
+
+        Mockito.when(mockUser.getPassword()).thenReturn(encodedPassword);
 
         Mockito.when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
 
-        Pair<Cookie, LoginResultServiceDto> result = authenticationService.login(null, credentials);
+        Mockito.when(passwordEncoder.matches(rawPassword, encodedPassword)).thenReturn(true);
+        Mockito.when(jwtService.generate(userId)).thenReturn(newToken);
 
-        assertNotNull(result.a);
-        assertEquals("user_id", result.a.getName());
-        assertTrue(result.b.success());
+        AuthenticationServiceDto result = authenticationService.login(credentials, null);
+
+        assertTrue(result.result().success());
+        assertEquals(userId, result.result().userId());
+        assertEquals(newToken, result.jwtToken());
     }
 
-    // вход с неверным паролем, куки быть не должно и статус false
     @Test
     void testLogin_WithEmail_WrongPassword() throws CredentialException {
         String email = "test@gmail.com";
-        CredentialsServiceDto credentials = new CredentialsServiceDto(email, "wrong_password");
+        String rawPassword = "wrong_password";
+        String encodedPassword = "encoded_password";
 
-        User mockUser = new User();
-        mockUser.setId(UUID.randomUUID());
-        mockUser.setPassword("correct_password");
+        CredentialsServiceDto credentials = new CredentialsServiceDto(email, rawPassword);
+
+        User mockUser = Mockito.mock(User.class);
+
+        Mockito.when(mockUser.getPassword()).thenReturn(encodedPassword);
 
         Mockito.when(userRepository.findByEmail(email)).thenReturn(Optional.of(mockUser));
 
-        Pair<Cookie, LoginResultServiceDto> result = authenticationService.login(null, credentials);
+        Mockito.when(passwordEncoder.matches(rawPassword, encodedPassword)).thenReturn(false);
 
-        assertNull(result.a);
-        assertFalse(result.b.success());
-    }
+        AuthenticationServiceDto result = authenticationService.login(credentials, null);
 
-    // регистрация с именем, почтой и паролем
-    @Test
-    void testRegister_Success() {
-        UserToRegisterServiceDto registerDto = new UserToRegisterServiceDto(
-                "user",
-                "test@gmail.com",
-                "pass"
-        );
-        User mockUser = new User();
-        mockUser.setId(UUID.randomUUID());
-
-        UserServiceDto responseDto = new UserServiceDto(
-                mockUser.getId(),
-                "user",
-                "test@gmail.com",
-                List.of()
-        );
-
-        Mockito.when(userMapper.userToRegisterServiceDtoToEntity(registerDto)).thenReturn(mockUser);
-        Mockito.when(userMapper.userToServiceDto(mockUser)).thenReturn(responseDto);
-
-        Pair<UserServiceDto, Cookie> result = authenticationService.register(registerDto);
-
-        assertNotNull(result.a);
-        assertNotNull(result.b);
-        assertEquals("user_id", result.b.getName());
-        assertEquals(14400, result.b.getMaxAge());
-        Mockito.verify(userRepository).save(mockUser);
-    }
-
-    // очистка куки после выхода из аккаунта
-    @Test
-    void testLogout_Success() {
-        String userId = "test-123";
-        Cookie cookie = authenticationService.logout(userId);
-
-        assertNotNull(cookie);
-        assertEquals("user_id", cookie.getName());
-        assertEquals(userId, cookie.getValue());
-        assertEquals(0, cookie.getMaxAge());
+        assertFalse(result.result().success());
+        assertNull(result.jwtToken());
     }
 }

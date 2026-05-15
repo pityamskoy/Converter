@@ -6,7 +6,7 @@ public record ModificationServiceDto(
         UUID id,
         String oldName,
         String newName,
-        String newType,
-        String newValue
+        String newValue,
+        String newType
 ) {
 }
