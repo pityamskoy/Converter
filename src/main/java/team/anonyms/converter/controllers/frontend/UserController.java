@@ -79,12 +79,13 @@ public class UserController {
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> deleteUser() {
+    public ResponseEntity<Void> deleteUser(HttpServletResponse response) {
         logger.info("Called deleteUser");
 
         UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         userService.deleteUser(userId);
 
+        response.addHeader(HttpHeaders.SET_COOKIE, createJwtCookie("", 0).toString());
         return ResponseEntity.noContent().build();
     }
 }

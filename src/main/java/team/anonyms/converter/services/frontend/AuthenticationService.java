@@ -1,6 +1,7 @@
 package team.anonyms.converter.services.frontend;
 
 import jakarta.persistence.EntityNotFoundException;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -47,7 +48,7 @@ public class AuthenticationService {
     public Boolean isVerified(UUID userId) {
         Optional<User> userOptional = userRepository.findById(userId);
         if (userOptional.isEmpty()) {
-            throw new EntityNotFoundException("User not found; userId=" + userId);
+            throw new EntityNotFoundException("User not found; id=" + userId);
         }
 
         return userOptional.get().getIsVerified();
@@ -55,69 +56,24 @@ public class AuthenticationService {
 
     /**
      * @param credentials login credentials.
-     * @param jwtToken jwtToken extracted from cookie
+     * @param jwtToken jwtToken extracted from cookie.
      *
-     * @return {@link AuthenticationServiceDto}.
-     *
-     * @throws CredentialException if {@code jwtToken}, {@code email} and {@code password} are null.
+     * @throws CredentialException if {@code jwtToken} is null and
+     * either {@code credentials.email()} or {@code credentials.password()} is null.
      */
     public AuthenticationServiceDto login(
             CredentialsServiceDto credentials,
             @Nullable String jwtToken
     ) throws CredentialException {
         if (jwtToken == null && (credentials.email() == null || credentials.password() == null)) {
-            throw new CredentialException("Login credentials are missing.");
+            throw new CredentialException("Login credentials are missing");
         }
 
         if (jwtToken != null && jwtService.isValid(jwtToken))  {
-            UUID userId = UUID.fromString(jwtService.extractUserId(jwtToken));
-
-            Optional<User> userOptional = userRepository.findById(userId);
-            if (userOptional.isEmpty()) {
-                throw new EntityNotFoundException("User not found; id=" + userId);
-            }
-
-            User user = userOptional.get();
-            LoginResultServiceDto result = new LoginResultServiceDto(
-                    true,
-                    userId,
-                    user.getUsername(),
-                    user.getEmail(),
-                    user.getIsVerified()
-            );
-            return new AuthenticationServiceDto(result, jwtToken);
+            return loginByJwtToken(jwtToken);
         }
 
-        String email = credentials.email();
-        Optional<User> userOptional = userRepository.findByEmail(email);
-
-        if (userOptional.isEmpty()) {
-            throw new EntityNotFoundException("User not found");
-        }
-
-        User user = userOptional.get();
-        if (passwordEncoder.matches(credentials.password(), user.getPassword())) {
-            String newJwtToken = jwtService.generate(user.getId());
-            LoginResultServiceDto result = new LoginResultServiceDto(
-                    true,
-                    user.getId(),
-                    user.getUsername(),
-                    user.getEmail(),
-                    user.getIsVerified()
-            );
-
-            return new AuthenticationServiceDto(result, newJwtToken);
-        }
-
-        LoginResultServiceDto result = new LoginResultServiceDto(
-                false,
-                null,
-                null,
-                null,
-                null
-        );
-
-        return new AuthenticationServiceDto(result, jwtToken);
+        return loginByCredentials(credentials, jwtToken);
     }
 
     public Boolean verifyEmail(UUID userId, String emailVerificationCode) {
@@ -142,9 +98,9 @@ public class AuthenticationService {
             emailVerificationCodeRepository.delete(actualEmailVerificationCode);
 
             return true;
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     public Boolean verifyPasswordReset(PasswordResetServiceDto passwordResetServiceDto) {
@@ -172,5 +128,77 @@ public class AuthenticationService {
         } else {
             return false;
         }
+    }
+
+    /**
+     * Logs in a user via {@code jwtToken}.
+     *
+     * <p>
+     *     For that this method finds a user by their ID which is extracted from {@code jwtToken}.
+     * </p>
+     *
+     * @param jwtToken JWT token.
+     *
+     * @throws EntityNotFoundException if a user is not found.
+     */
+    private @NonNull AuthenticationServiceDto loginByJwtToken(@NonNull String jwtToken) {
+        UUID userId = UUID.fromString(jwtService.extractUserId(jwtToken));
+
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            throw new EntityNotFoundException("User not found; id=" + userId);
+        }
+
+        User user = userOptional.get();
+        LoginResultServiceDto result = new LoginResultServiceDto(
+                true,
+                userId,
+                user.getUsername(),
+                user.getEmail(),
+                user.getIsVerified()
+        );
+
+        return new AuthenticationServiceDto(result, jwtToken);
+    }
+
+    /**
+     * Logs in a user via {@code credentials}.
+     *
+     * <p>
+     *     For that this method finds a user by {@code credentials.email()} and compares passwords.
+     * </p>
+     *
+     * @param credentials user's credentials.
+     * @param jwtToken JWT token.
+     *
+     * @throws EntityNotFoundException if a user is not found.
+     */
+    private @NonNull AuthenticationServiceDto loginByCredentials(
+            @NonNull CredentialsServiceDto credentials,
+            @Nullable String jwtToken
+    ) {
+        String email = credentials.email();
+        Optional<User> userOptional = userRepository.findByEmail(email);
+
+        if (userOptional.isEmpty()) {
+            throw new EntityNotFoundException("User not found");
+        }
+
+        User user = userOptional.get();
+        if (passwordEncoder.matches(credentials.password(), user.getPassword())) {
+            String newJwtToken = jwtService.generate(user.getId());
+            LoginResultServiceDto result = new LoginResultServiceDto(
+                    true,
+                    user.getId(),
+                    user.getUsername(),
+                    user.getEmail(),
+                    user.getIsVerified()
+            );
+
+            return new AuthenticationServiceDto(result, newJwtToken);
+        }
+
+        LoginResultServiceDto result = new LoginResultServiceDto(false, null, null, null, null);
+        return new AuthenticationServiceDto(result, jwtToken);
     }
 }

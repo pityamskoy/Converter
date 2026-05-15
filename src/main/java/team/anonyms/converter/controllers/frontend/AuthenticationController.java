@@ -39,6 +39,12 @@ public class AuthenticationController {
         this.authenticationMapper = authenticationMapper;
     }
 
+    /**
+     * Creates new cookie with {@code jwtToken}.
+     *
+     * @param jwtToken JWT token.
+     * @param maxAgeSeconds the expiration time of {@link ResponseCookie}.
+     */
     public static ResponseCookie createJwtCookie(String jwtToken, int maxAgeSeconds) {
         return ResponseCookie.from("jwtToken", jwtToken)
                 .path("/")
@@ -69,8 +75,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/email/resending")
-    public ResponseEntity<Void> resendVerificationCode() {
-        logger.info("Called resendVerificationCode");
+    public ResponseEntity<Void> sendEmailVerificationCode() {
+        logger.info("Called sendEmailVerificationCode");
 
         UUID userId = (UUID) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         emailService.sendEmailVerificationCode(userId);

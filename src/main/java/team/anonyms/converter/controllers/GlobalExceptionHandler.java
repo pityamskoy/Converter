@@ -16,7 +16,8 @@ import team.anonyms.converter.exceptions.UnsupportedExtensionException;
 import javax.security.auth.login.CredentialException;
 
 /**
- * {@code GlobalExceptionHandler} should handle all {@link RuntimeException}, which all controllers may throw.
+ * {@code GlobalExceptionHandler} should handle all {@link RuntimeException}
+ * TODO: add response status to header
  */
 @RestControllerAdvice
 @SuppressWarnings(value = "unused")

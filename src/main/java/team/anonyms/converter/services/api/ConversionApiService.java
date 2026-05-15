@@ -18,15 +18,13 @@ public class ConversionApiService {
     }
 
     /**
-     * <p>
-     *     Converts JSON data to XML data.
-     * </p>
+     * Converts JSON data to XML data.
      *
-     * @param body body of an arbitrary JSON request.
+     * @param body an arbitrary body of JSON request.
      *
-     * @return converted XML data from {@code body} in string form.
+     * @return converted XML data from {@code body}.
      *
-     * @throws IllegalArgumentException if an unsupported JSON structure for conversion from JSON TO XML was provided.
+     * @throws IllegalArgumentException if an unsupported JSON structure for conversion from JSON to XML was provided.
      */
     public String convertJsonToXml(Map<String, Object> body) {
         try {
@@ -37,15 +35,13 @@ public class ConversionApiService {
     }
 
     /**
-     * <p>
-     *     Converts XML data to JSON data.
-     * </p>
+     * Converts XML data to JSON data.
      *
-     * @param body body of an arbitrary XML request.
+     * @param body an arbitrary body of XML request.
      *
-     * @return converted JSON data from {@code body} in string form.
+     * @return converted JSON data from {@code body}.
      *
-     * @throws IllegalArgumentException if an unsupported XML structure for conversion from XML TO JSON was provided.
+     * @throws IllegalArgumentException if an unsupported XML structure for conversion from XML to JSON was provided.
      */
     public String convertXmlToJson(Map<String, Object> body) {
         try {
